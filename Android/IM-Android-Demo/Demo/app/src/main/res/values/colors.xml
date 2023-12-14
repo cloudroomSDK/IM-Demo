@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <color name="base_text_color">#333333</color>
+    <color name="text_color_gray1">#666666</color>
+    <color name="text_color_gray2">#999999</color>
+    <color name="text_color_gray3">#C7C7C7</color>
+    <color name="base_color">#3981FC</color>
+    <color name="base_color_click">#1D71FF</color>
+    <color name="title_background_color">#FFFFFF</color>
+    <color name="background_color">#F0F0F0</color>
+    <color name="background_color1">#FFFFFF</color>
+    <color name="background_color2">#F8F8F8</color>
+    <color name="titlebar_text_color">#333333</color>
+
+    <color name="floatbar_bg_color">#CC000000</color>
+
+    <color name="nagtive_color">#FF5D5D</color>
+
+    <color name="titlebar_text_pressed_color">#38ABFA</color>
+    <color name="disable_color">#A9A9A9</color>
+    <color name="negative_color">#F25759</color>
+    <color name="drop_pop_menu_bg_color">#D0000000</color>
+    <color name="list_item_split_color">#FFD8D8D8</color>
+    <color name="gray">#7B7B7B</color>
+    <color name="yellow">#EE8632</color>
+    <color name="red">#EA4E3F</color>
+
+    <color name="board_option_bar_bg">#EFEFEF</color>
+    <color name="wb_blue">#FF0000FF</color>
+    <color name="wb_green">#FF008000</color>
+    <color name="wb_yellow">#FFFFFF00</color>
+    <color name="wb_orange">#FFFFA500</color>
+    <color name="wb_red">#FFFF0000</color>
+
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#fff</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <color name="loading_text_color">#FFFFFF00</color>
+
+    //--------------------------- touch -------------
+    <color name="text_color_white1">#EBF5FF</color>
+    <color name="text_color_black1">#404958</color>
+    <color name="text_color_gray4">#8D99AC</color>
+    <color name="text_color_gray5">#768296</color>
+    <color name="text_color_gray6">#6E7787</color>
+    <color name="text_color_gray7">#757F90</color>
+    <color name="text_color_gray8">#62676F</color>
+    <color name="text_color_gray9">#E3E7EF</color>
+    <color name="text_color_gray10">#606060</color>
+    <color name="text_color_gray11">#707891</color>
+    <color name="text_color_red">#FF2C2C</color>
+    <color name="text_color_red1">#FF4646</color>
+    <color name="text_color_red2">#FF4F4F</color>
+    <color name="bg_gray">#CACACA</color>
+    <color name="bg_red">#FF6868</color>
+    <color name="bg_red_FF3838">#FF3838</color>
+    <color name="bg_red_DF0000">#DF0000</color>
+    <color name="bg_ff5a5a">#ff5a5a</color>
+    <color name="bg_E8EBFA">#E8EBFA</color>
+    <color name="bg_C8D6EE">#C8D6EE</color>
+    <color name="bg_D7DCF2">#D7DCF2</color>
+    <color name="bg_B5BDC9">#B5BDC9</color>
+    <color name="bg_B1B7D3">#B1B7D3</color>
+    <color name="bg_DDDDDD">#DDDDDD</color>
+    <color name="bg_21BC21">#21BC21</color>
+    <color name="bg_D3D3D3">#D3D3D3</color>
+    <color name="bg_C1CBDC">#C1CBDC</color>
+    <color name="bg_F7F7F7">#F2F7F7F7</color>
+    <color name="bg_F1F1F1">#F1F1F1</color>
+    <color name="bg_60ACFF">#60ACFF</color>
+    <color name="bg_DFDFDF">#DFDFDF</color>
+    <color name="bg_CDDAF1">#CDDAF1</color>
+    <color name="bg_E6EEFB">#E6EEFB</color>
+    <color name="bg_E9EEF6">#E9EEF6</color>
+    <color name="bg_E4E4E4">#E4E4E4</color>
+    <color name="bg_CDCDCD">#CDCDCD</color>
+    <color name="bg_4CBEFF">#4CBEFF</color>
+    <color name="bg_39ABFB">#39ABFB</color>
+    <color name="bg_FF4545">#FF4545</color>
+    <color name="bg_EAEAEA">#EAEAEA</color>
+    <color name="bg_DBE1E6">#DBE1E6</color>
+    <color name="bg_131313">#E6131313</color>
+    <color name="bg_E3E3E3">#E3E3E3</color>
+    <color name="bg_E6E8F1">#E6E8F1</color>
+    <color name="bg_888888">#888888</color>
+    <color name="bg_F8F8F8">#F8F8F8</color>
+    <color name="bg_FF9D2A">#FF9D2A</color>
+    <color name="bg_E1E1E1">#E1E1E1</color>
+    <color name="bg_DAE8FF">#DAE8FF</color>
+    <color name="bg_F5F5F5">#F5F5F5</color>
+    <color name="bg_C3C3C3">#C3C3C3</color>
+    <color name="bg_F2F2F2">#F2F2F2</color>
+    <color name="bg_DCDCDC">#DCDCDC</color>
+    <color name="bg_FE5F5F">#FE5F5F</color>
+    <color name="bg_212636">#212636</color>
+    <color name="bg_FFFBD0">#FFFBD0</color>
+    <color name="bg_FF7E00">#FF7E00</color>
+    <color name="bg_2C3244">#2C3244</color>
+    <color name="bg_66000000">#66000000</color>
+    <color name="bg_7D7D7D">#FF7D7D7D</color>
+    <color name="shadow_color">#14000000</color>
+
+    <color name="video_wall_bg">#FF1A1D28</color>
+    <color name="video_bg">#FF252833</color>
+
+</resources>

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="ChatVM"
+            type="io.crim.android.ouiconversation.vm.ChatVM" />
+
+        <import type="android.view.View" />
+    </data>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white"
+        android:orientation="vertical"
+        tools:context=".ui.ChatActivity">
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:cardElevation="0dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/comm_title_high"
+                android:orientation="horizontal">
+
+                <RelativeLayout
+                    android:layout_width="50dp"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:id="@+id/back"
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:paddingLeft="8dp"
+                        android:paddingRight="8dp"
+                        android:src="@mipmap/ic_back2" />
+
+                    <TextView
+                        android:id="@+id/cancel"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="@string/cancel"
+                        android:textColor="#ff333333"
+                        android:textSize="15sp"
+                        android:visibility="gone" />
+                </RelativeLayout>
+
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/nickName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/txt_black"
+                        android:singleLine="true"
+                        android:maxWidth="200dp"
+                        android:textSize="@dimen/main_body"
+                        android:textStyle="bold"
+                        android:visibility="visible" />
+
+                    <TextView
+                        android:id="@+id/isTyping"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/typing"
+                        android:textColor="#ff999999"
+                        android:textSize="10sp"
+                        android:visibility="@{ChatVM.typing? View.VISIBLE:View.GONE}" />
+
+                    <FrameLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:visibility="@{ChatVM.typing? View.GONE:ChatVM.isSingleChat?View.VISIBLE:View.GONE}">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <View
+                                android:id="@+id/leftBg"
+                                android:layout_width="6dp"
+                                android:layout_height="6dp"
+                                android:background="@drawable/sty_radius_max_10cc64"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/onlineStatus"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginLeft="5dp"
+                                android:textColor="#ff999999"
+                                android:textSize="10sp" />
+                        </LinearLayout>
+
+                    </FrameLayout>
+
+                </LinearLayout>
+
+
+                <ImageView
+                    android:id="@+id/call"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerInParent="true"
+                    android:visibility="gone"
+                    android:layout_marginRight="18dp"
+                    android:layout_toStartOf="@id/more"
+                    android:src="@mipmap/ic_phone" />
+
+                <ImageView
+                    android:id="@+id/more"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerInParent="true"
+                    android:layout_marginRight="18dp"
+                    android:src="@mipmap/ic_more" />
+            </RelativeLayout>
+        </androidx.cardview.widget.CardView>
+
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@id/layout_input_cote"
+            android:layout_below="@id/card">
+
+            <ImageView
+                android:id="@+id/chatBg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="center" />
+
+            <me.aurelion.x.ui.view.watermark.WaterMarkView
+                android:id="@+id/waterMark"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:water_mark_align="CENTER"
+                app:water_mark_degree="-30"
+                app:water_mark_dx="50dp"
+                app:water_mark_dy="80dp"
+                app:water_mark_sync="true"
+                app:water_mark_textBold="false"
+                app:water_mark_textSize="20sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <include layout="@layout/view_dividing_line" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:overScrollMode="never"
+                    android:paddingLeft="22dp"
+                    android:paddingRight="22dp" />
+            </LinearLayout>
+        </FrameLayout>
+
+
+        <LinearLayout
+            android:id="@+id/notice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/card"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="12dp"
+            android:background="@drawable/sty_radius_4_f0f6ff"
+            android:gravity="center_vertical"
+            android:paddingLeft="16dp"
+            android:paddingTop="7dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="7dp"
+            android:visibility="@{null!=ChatVM.notificationMsg? View.VISIBLE:View.GONE}">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_notice" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:text="@{ChatVM.notificationMsg.group.notification}"
+                android:textColor="#ff617183"
+                android:textSize="12sp" />
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@mipmap/ic_right" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/card"
+            android:layout_marginLeft="12dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="12dp"
+            android:animateLayoutChanges="true"
+            android:background="@drawable/sty_radius_4_fff1f7ff"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:visibility="@{ChatVM.roomCallingInfo.participant.size()
+            >0?View.VISIBLE:View.GONE}">
+
+            <io.crim.android.ouicore.widget.InterceptLinearLayout
+                android:id="@+id/callingUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:src="@mipmap/ic_blue_phone" />
+
+                <TextView
+                    android:id="@+id/callingUserNum"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/s_person_audio_calling"
+                    android:textColor="#ff5496eb"
+                    android:textSize="12sp" />
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginRight="5dp"
+                    android:src="@mipmap/ic_down_arrow2" />
+            </io.crim.android.ouicore.widget.InterceptLinearLayout>
+
+            <LinearLayout
+                android:id="@+id/meetingLy"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/sty_radius_4_white"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/meetingRv"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:padding="12dp" />
+
+                <include layout="@layout/view_dividing_line" />
+
+                <TextView
+                    android:id="@+id/join"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:padding="12dp"
+                    android:text="@string/join"
+                    android:textColor="#ff5496eb"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+
+        <include
+            android:id="@+id/layout_input_cote"
+            layout="@layout/layout_input_cote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true" />
+
+        <com.lihang.ShadowLayout
+            android:id="@+id/choiceMenu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginLeft="-8dp"
+            android:layout_marginRight="-8dp"
+            android:visibility="gone"
+            app:hl_bottomShow="false"
+            app:hl_shadowColor="#2a000000"
+            app:hl_shadowLimit="8dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/theme_bg"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/delete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginRight="55dp"
+                    android:button="@null"
+                    android:drawableTop="@mipmap/ic_delete_grey"
+                    android:drawablePadding="3dp"
+                    android:gravity="center"
+                    android:padding="7dp"
+                    android:text="@string/delete"
+                    android:textColor="@color/txt_warning"
+                    android:textSize="12sp" />
+
+                <CheckBox
+                    android:id="@+id/mergeForward"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:button="@null"
+                    android:drawableTop="@mipmap/ic_forward_grey"
+                    android:drawablePadding="3dp"
+                    android:gravity="center"
+                    android:padding="7dp"
+                    android:text="@string/merge_forward"
+                    android:textColor="@color/txt_black"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+        </com.lihang.ShadowLayout>
+
+    </RelativeLayout>
+</layout>

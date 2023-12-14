@@ -1,0 +1,50 @@
+pluginManagement {
+    repositories {
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/google' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/gradle-plugin' }
+        /*maven {
+            allowInsecureProtocol = true
+            url 'https://open-im-online.rentsoft.cn:51000/repository/maven2/'
+        }*/
+        maven { url 'https://jitpack.io' }
+        maven {url "https://mvn.getui.com/nexus/content/repositories/releases/"}
+        maven {url 'https://developer.huawei.com/repo/'}
+
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+    }
+}
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/google' }
+        maven { url 'https://maven.aliyun.com/nexus/content/repositories/gradle-plugin' }
+        /*maven {
+            allowInsecureProtocol = true
+            url 'https://open-im-online.rentsoft.cn:51000/repository/maven2/'
+        }*/
+        maven { url 'https://jitpack.io' }
+        maven {url "https://mvn.getui.com/nexus/content/repositories/releases/"}
+        maven {url 'https://developer.huawei.com/repo/'}
+
+        mavenCentral()
+        google()
+        gradlePluginPortal()
+    }
+}
+rootProject.name = "Demo"
+include ':app'
+
+include ':OUICore'
+project(':OUICore').projectDir = new File(settingsDir, '../OUIKit/OUICore')
+include ':OUIConversation'
+project(':OUIConversation').projectDir = new File(settingsDir, '../OUIKit/OUIConversation')
+include ':OUIGroup'
+project(':OUIGroup').projectDir = new File(settingsDir, '../OUIKit/OUIGroup')
+include ':OUIContact'
+project(':OUIContact').projectDir = new File(settingsDir, '../OUIKit/OUIContact')

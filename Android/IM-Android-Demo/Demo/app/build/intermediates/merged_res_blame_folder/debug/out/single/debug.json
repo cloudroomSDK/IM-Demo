@@ -1,0 +1,322 @@
+[
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_main.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_add_san.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_add_san.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_my2.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_my2.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_more_data.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_more_data.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable-en-rUS_launch_background.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable-en-rUS\\launch_background.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_splash_logo.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\splash_logo.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_call_history_acticity.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_call_history_acticity.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\xml_network_security_config.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\xml\\network_security_config.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_un_newsletter.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_un_newsletter.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_add_friend3.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_add_friend3.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_splash_shape_gradient.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\splash_shape_gradient.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_back.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_back.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_chat.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_chat.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_logo.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\logo.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_send_verify.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_send_verify.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_add_friend.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_add_friend.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable-en-rUS_ic_launcher_background.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable-en-rUS\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_my.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_my.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_moments3.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_moments3.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_create_group.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_create_group.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_newsletter.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_newsletter.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_moments2.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_moments2.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable-anydpi-v24_ic_launcher_foreground.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\generated\\res\\pngs\\debug\\drawable-anydpi-v24\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_layout_search_item.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\layout_search_item.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_reset_password.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_reset_password.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_personal_info.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_personal_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_copy.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_copy.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_login_setting.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_login_setting.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_add_friend4.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_add_friend4.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_bg_blue_rect_shape.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\bg_blue_rect_shape.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_add_friend2.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_add_friend2.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_close.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_close.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_person_info.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_person_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_call.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_call.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_register.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_register.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_id.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_id.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_dialog_login_type_select.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\dialog_login_type_select.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_about.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_about.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_about_us.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_about_us.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\xml_file_paths.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\xml\\file_paths.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_bg_line_e1_shape.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\bg_line_e1_shape.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_close_eye.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_close_eye.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_moments.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_moments.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_account_setting.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_account_setting.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_item_call_history.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\item_call_history.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_own.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_own.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_ic_open_eye.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\ic_open_eye.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_moments1.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_moments1.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_my_info.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_my_info.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_logo2_void.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_logo2_void.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_open_eyes.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_open_eyes.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_add_friend.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_add_friend.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_bg_head_my.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\bg_head_my.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_black_list.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_black_list.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_server_config.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_server_config.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_group.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_group.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_quit.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_quit.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_tab_txt_color.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_tab_txt_color.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_person_detail.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_person_detail.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_login2.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_login2.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_newsletter.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_newsletter.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_bg_blue_rect_select_shape.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\bg_blue_rect_select_shape.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_logo2.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_logo2.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxxhdpi_setting.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxxhdpi\\setting.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_search_person.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_search_person.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_scan_it.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_scan_it.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_fragment_personal.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\fragment_personal.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_my_qr.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_my_qr.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_layout_login.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\layout_login.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_tick.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_tick.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_add_qr.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_add_qr.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_supplement_info.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_supplement_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_ic_launcher_background.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_launch_background.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\launch_background.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\drawable_selector_logo.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\drawable\\selector_logo.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\mipmap-xxhdpi_ic_my_setting.png.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\mipmap-xxhdpi\\ic_my_setting.png"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_verification_code.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_verification_code.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\merged_res\\debug\\layout_activity_edit_text.xml.flat",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_edit_text.xml"
+    }
+]

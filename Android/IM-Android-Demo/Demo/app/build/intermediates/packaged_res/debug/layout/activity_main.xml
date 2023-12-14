@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+                                                                   
+
+    
+
+                 
+                         
+                                                    
+           
+
+    <LinearLayout xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.main.MainActivity" android:tag="layout/activity_main_0" xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <FrameLayout
+                android:id="@+id/fragment_container"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:background="@color/white" android:tag="binding_1">
+
+                <include layout="@layout/view_dividing_line" />
+
+                <LinearLayout
+                    android:id="@+id/menuGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp">
+
+                    <RadioButton
+                        android:id="@+id/men1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:button="@null"
+                        android:drawableTop="@drawable/selector_logo"
+                        android:gravity="center"
+                        android:text="@string/msg"
+                        android:textColor="@drawable/selector_tab_txt_color"
+                        android:textSize="10sp" />
+
+                    <RadioButton
+                        android:id="@+id/men2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:button="@null"
+                        android:drawableTop="@drawable/selector_newsletter"
+                        android:gravity="center"
+                        android:text="@string/address_book"
+                        android:textColor="@drawable/selector_tab_txt_color"
+                        android:textSize="10sp" />
+
+                    <RadioButton
+                        android:id="@+id/men3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:button="@null"
+                        android:drawableTop="@drawable/selector_moments"
+                        android:gravity="center"
+                        android:text="@string/find"
+                        android:textColor="@drawable/selector_tab_txt_color"
+                        android:textSize="10sp" />
+
+                    <RadioButton
+                        android:id="@+id/men4"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:button="@null"
+                        android:drawableTop="@drawable/selector_own"
+                        android:gravity="center"
+                        android:text="@string/my"
+                        android:textColor="@drawable/selector_tab_txt_color"
+                        android:textSize="10sp" />
+                </LinearLayout>
+
+            </RelativeLayout>
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+         

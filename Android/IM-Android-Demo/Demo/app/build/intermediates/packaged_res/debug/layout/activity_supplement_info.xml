@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+        
+
+    
+
+                 
+                          
+                                                     
+           
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        tools:context=".ui.login.SupplementInfoActivity" android:tag="layout/activity_supplement_info_0">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="32dp"
+            android:paddingTop="48dp"
+            android:paddingRight="32dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome"
+                android:textColor="#ff333333"
+                android:textSize="26sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:layout_marginBottom="20dp"
+                android:text="@string/password"
+                android:textColor="#ff000000"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/password"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@android:color/transparent"
+                android:hint="@string/login_tips"
+                android:inputType="textPassword"
+                android:tag="binding_1"       
+                android:textColor="#ff333333"
+                android:textSize="18sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:layout_marginBottom="20dp"
+                android:text="@string/name"
+                android:textColor="#ff000000"
+                android:textSize="14sp" />
+
+            <EditText
+                android:id="@+id/nickName"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@android:color/transparent"
+                android:hint="@string/input_name"
+                android:tag="binding_2"            
+                android:textColor="#ff333333"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/button_height"
+            android:layout_marginLeft="32dp"
+            android:layout_marginRight="32dp"
+            android:tag="binding_3"                                                             
+                                                        
+            android:text="@string/join_im"
+            android:textColor="#ffffffff"
+            android:textSize="18sp" />
+
+        <View
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="2" />
+    </LinearLayout>
+
+         

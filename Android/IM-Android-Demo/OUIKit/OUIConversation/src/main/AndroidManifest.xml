@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="io.crim.android.ouiconversation">
+
+    <uses-permission android:name="android.permission.FLASHLIGHT" />
+
+    <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus" />
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS" />
+
+    <application android:theme="@style/Theme.Main">
+        <activity
+            android:name=".ui.NotificationActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ChatHistoryDetailsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MsgReadStatusActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SearchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.FileHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.MediaHistoryActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SetChatBgActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ChatSettingActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ChatHistorySearchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.PreviewActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ShootActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ChatActivity"
+            android:exported="false" />
+        <activity android:name=".ui.emoji.CustomEmojiManageActivity"
+            android:exported="false"/>
+        <receiver android:name="com.huawei.hms.support.api.push.PushMsgReceiver"
+            android:exported="true"
+            />
+    </application>
+
+</manifest>

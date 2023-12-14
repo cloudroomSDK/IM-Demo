@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@id/avatar"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/nickName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="3dp"
+                    android:textColor="#ff666666"
+                    android:textSize="12sp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/content"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/sty_radius_unleft_stroke_30"
+                    android:gravity="center_vertical"
+                    android:maxWidth="@dimen/msg_max_width"
+                    android:minHeight="60dp"
+                    android:orientation="horizontal"
+                    android:paddingLeft="12dp"
+                    android:paddingTop="10dp"
+                    android:paddingRight="12dp"
+                    android:paddingBottom="10dp">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/title"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="2dp"
+                            android:minWidth="120dp"
+                            android:textColor="#FF0c1c33"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/size"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#ff8e9ab0"
+                            android:textSize="14sp" />
+                    </LinearLayout>
+
+                    <io.crim.android.ouicore.widget.FileDownloadView
+                        android:id="@+id/downloadView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="10dp" />
+
+                </LinearLayout>
+            </LinearLayout>
+
+            <io.crim.android.ouiconversation.widget.SendStateView
+                android:id="@+id/sendState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="8dp"
+                android:layout_marginRight="8dp"
+                android:layout_toLeftOf="@id/content2" />
+
+            <TextView
+                android:id="@+id/readVanishNum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginStart="8dp"
+                android:textColor="#ff5496eb"
+                android:textSize="12sp"
+                android:visibility="gone" />
+        </LinearLayout>
+
+
+        <io.crim.android.ouicore.widget.AvatarImage
+            android:id="@+id/avatar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginRight="10dp"
+            android:src="@mipmap/ic_my_friend" />
+
+    </RelativeLayout>
+</FrameLayout>

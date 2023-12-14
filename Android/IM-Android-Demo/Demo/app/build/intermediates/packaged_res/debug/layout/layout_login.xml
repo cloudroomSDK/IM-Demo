@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+        
+
+    
+
+                 
+                          
+                                                     
+           
+
+    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white" android:tag="layout/layout_login_0">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edt1"
+                    android:layout_width="0dp"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/input_phone"
+                    android:paddingTop="6dp"
+                    android:tag="binding_1"           
+                    android:textColor="#ff333333"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/clear"
+                    android:layout_width="35dp"
+                    android:layout_height="35dp"
+                    android:padding="8dp"
+                    android:src="@mipmap/ic_close" />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EAEAEA" />
+
+            <TextView
+                android:id="@+id/vcTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="6dp"
+                android:text="@string/password"
+                android:textColor="#ff333333"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/edt2"
+                    android:layout_width="0dp"
+                    android:layout_height="45dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/input_password"
+                    android:inputType="textPassword"
+                    android:tag="binding_2"       
+                    android:textColor="#ff333333"
+                    android:textSize="18sp" />
+
+                <CheckBox
+                    android:id="@+id/eyes"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:button="@null"
+                    android:drawableEnd="@drawable/selector_open_eyes"
+                    android:paddingRight="8dp" />
+                <TextView
+                    android:id="@+id/getVC"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/get_vc"
+                    android:visibility="gone"
+                    android:textColor="#ff0089ff"
+                    android:textSize="17sp"
+                    />
+            </LinearLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#EAEAEA" />
+
+            <TextView
+                android:id="@+id/vcLogin"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:paddingTop="5dp"
+                android:paddingRight="5dp"
+                android:paddingBottom="5dp"
+                android:text="@string/vc_login"
+                android:textColor="#ff0089ff"
+                android:textSize="12sp" />
+
+
+        </LinearLayout>
+
+
+    </FrameLayout>
+         

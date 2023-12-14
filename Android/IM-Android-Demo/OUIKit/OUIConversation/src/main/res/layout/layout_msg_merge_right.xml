@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:ignore="MissingDefaultResource">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/readVanishNum2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@id/sendState2"
+            android:textColor="#ff5496eb"
+            android:textSize="12sp"
+            android:visibility="gone" />
+
+        <io.crim.android.ouiconversation.widget.SendStateView
+            android:id="@+id/sendState2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_marginRight="8dp"
+            android:layout_toLeftOf="@id/content2" />
+
+        <LinearLayout
+            android:id="@+id/content2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:layout_marginRight="7dp"
+            android:layout_toLeftOf="@id/avatar2"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/nickName2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:layout_marginEnd="3dp"
+                android:layout_marginBottom="2dp"
+                android:textColor="#ff8e9ab0"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:background="@drawable/sty_radius_unright_stroke_30"
+                android:gravity="center_vertical"
+                android:maxWidth="@dimen/msg_max_width"
+                android:minWidth="@dimen/msg_min_width"
+                android:minHeight="@dimen/msg_min_height"
+                android:orientation="vertical"
+                android:padding="7dp">
+
+                <TextView
+                    android:id="@+id/title2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:textColor="#ff0c1c33"
+                    android:textSize="17sp" />
+
+                <include layout="@layout/view_dividing_line" />
+
+                <TextView
+                    android:id="@+id/history21"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="5dp"
+                    android:textColor="#ff8e9ab0"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/history22"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:textColor="#ff8e9ab0"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <io.crim.android.ouicore.widget.AvatarImage
+            android:id="@+id/avatar2"
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:layout_alignParentRight="true"
+            android:src="@mipmap/ic_my_friend" />
+
+    </RelativeLayout>
+</FrameLayout>

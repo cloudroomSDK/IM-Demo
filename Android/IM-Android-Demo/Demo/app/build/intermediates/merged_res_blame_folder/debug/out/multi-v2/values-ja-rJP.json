@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-ja-rJP\\values-ja-rJP.xml",
+            "map": [
+                {
+                    "source": "E:\\data\\.gradle\\caches\\transforms-3\\c2ba2f4ccd812bd5cca789127a7c3ac3\\transformed\\jetified-jiaozivideoplayer-7.7.0\\res\\values-ja-rJP\\values-ja-rJP.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,110,152,192,260,317,376",
+                        "endColumns": "54,41,39,67,56,58,59",
+                        "endOffsets": "105,147,187,255,312,371,431"
+                    }
+                }
+            ]
+        }
+    ]
+}

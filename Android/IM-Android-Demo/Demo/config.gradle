@@ -1,0 +1,29 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+
+ext {
+    //模块单独运行
+    isModule=false
+
+    //android 配置
+    androidConfig = [
+            minSdk     : 21,
+            targetSdk  : 33,
+            compileSdk : 33,
+            versionCode: 3,
+            versionName: "1.0.7",
+            abiFilters : ['armeabi-v7a', 'arm64-v8a']
+    ]
+
+    applicationId = [
+            "app" : "io.crim.android.demo",
+            "OUIConversation" : "io.crim.android.ouiconversation",
+            "OUIGroup" : "io.crim.android.ouigroup",
+            "OUIContact" : "io.crim.android.ouicontact",
+            "OUICalling" : "io.crim.android.ouicalling",
+            "OUIMoments" : "io.crim.android.ouimoments",
+            "OUIMeeting" : "io.crim.android.ouimeeting",
+            "OUIApplet" : "io.crim.android.ouiapplet",
+    ]
+
+}

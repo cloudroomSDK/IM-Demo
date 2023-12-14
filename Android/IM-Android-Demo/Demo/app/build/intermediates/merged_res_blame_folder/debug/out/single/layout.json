@@ -1,0 +1,106 @@
+[
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_search_person.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_search_person.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_edit_text.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_edit_text.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_main.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_account_setting.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_account_setting.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_reset_password.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_reset_password.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_verification_code.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_verification_code.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\fragment_personal.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\fragment_personal.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\layout_login.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\layout_login.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_login_setting.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_login_setting.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_person_info.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_person_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_personal_info.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_personal_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\item_call_history.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\item_call_history.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_black_list.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_black_list.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_add_friend.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_add_friend.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_about_us.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_about_us.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_send_verify.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_send_verify.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\dialog_login_type_select.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\dialog_login_type_select.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_supplement_info.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_supplement_info.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_more_data.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_more_data.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_login2.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_login2.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_id.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_id.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_server_config.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_server_config.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\layout_search_item.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\layout_search_item.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_register.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_register.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_person_detail.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_person_detail.xml"
+    },
+    {
+        "merged": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\build\\intermediates\\incremental\\mergeDebugResources\\stripped.dir\\layout\\activity_call_history_acticity.xml",
+        "source": "F:\\CRIM\\IM-Android-Demo\\Demo\\app\\src\\main\\res\\layout\\activity_call_history_acticity.xml"
+    }
+]
