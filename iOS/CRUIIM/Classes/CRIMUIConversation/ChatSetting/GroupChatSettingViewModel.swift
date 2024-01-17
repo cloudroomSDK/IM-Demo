@@ -38,11 +38,6 @@ class GroupChatSettingViewModel {
 
         IMController.shared.getGrpMemberList(groupId: gid, filter: .all, offset: 0, count: 8) { [weak self] (members: [GroupMemberInfo]) in
             var users = members
-            let fakeUser = GroupMemberInfo()
-            fakeUser.isAddButton = true
-            fakeUser.nickname = "增加".innerLocalized()
-            users.append(fakeUser)
-
             self?.membersRelay.accept(users)
             self?.combileMembersRelay.accept(users)
         }
@@ -69,14 +64,22 @@ class GroupChatSettingViewModel {
         }
         
         let combinedRelay = BehaviorRelay.combineLatest(combileMembersRelay, myInfoInGroup) { members, member in
-            if let member = member, member.roleLevel != .member {
-                let fakeUser2 = GroupMemberInfo()
-                fakeUser2.isRemoveButton = true
-                fakeUser2.nickname = "移除".innerLocalized()
+            if let member {
                 var users = members
-                users.append(fakeUser2)
+                let fakeUser = GroupMemberInfo()
+                fakeUser.isAddButton = true
+                fakeUser.nickname = "增加".innerLocalized()
+                users.append(fakeUser)
+                
+                if member.roleLevel != .member {
+                    let fakeUser2 = GroupMemberInfo()
+                    fakeUser2.isRemoveButton = true
+                    fakeUser2.nickname = "移除".innerLocalized()
+                    users.append(fakeUser2)
+                }
                 return users
             }
+            
             return members
         }
         combinedRelay.subscribe(onNext: { [weak self] users in
@@ -131,6 +134,14 @@ class GroupChatSettingViewModel {
         IMController.shared.changeGrpMute(groupID: groupID, isMute: !mutedAllRelay.value, completion: { [weak self] _ in
             guard let sself = self else { return }
             sself.mutedAllRelay.accept(!sself.mutedAllRelay.value)
+        })
+    }
+    
+    func toggleNoDisturb() {
+        let receiveOpt: ReceiveMessageOpt = !noDisturbRelay.value == true ? .notNotify : .receive
+        IMController.shared.setConversationRecvMsgOpt(conversationID: conversation.conversationID, status: receiveOpt, completion: { [weak self] _ in
+            guard let sself = self else { return }
+            self?.noDisturbRelay.accept(!sself.noDisturbRelay.value)
         })
     }
 

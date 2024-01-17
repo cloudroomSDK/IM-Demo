@@ -71,3 +71,7 @@ AppConfig_null.swift
 clear_config.sh
 git_push.sh
 Publish
+Example/Builds/
+Example/PublishSDK/
+Example/build_ipa.sh
+Example/doc/

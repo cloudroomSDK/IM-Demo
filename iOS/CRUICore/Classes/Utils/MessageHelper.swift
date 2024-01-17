@@ -316,6 +316,15 @@ public struct MessageHelper {
                 ret.append(NSAttributedString(string: " \(beRevoker) ".innerLocalized(), attributes: nameAttributes))
             }
             ret.append(NSAttributedString(string: "一条消息".innerLocalized(), attributes: contentAttributes))
+            if info.revokerIsSelf, let textElem = message.textElem {
+                let tapText = " 重新编辑".innerLocalized()
+                ret.append(NSAttributedString(string: tapText, attributes: nameAttributes))
+                let tapAttributes: [NSAttributedString.Key: Any] = [
+                    .link: "reedit"
+                ]
+                let tapRange = (ret.string as NSString).range(of: tapText)
+                ret.addAttributes(tapAttributes, range: tapRange)
+            }
             return ret
         case .conversationNotification:
             let content = NSAttributedString(string: isSingleChat ? "你已开启此会话消息免打扰".innerLocalized() : "你已解除屏蔽该群聊".innerLocalized(), attributes: contentAttributes)
@@ -374,7 +383,11 @@ public struct MessageHelper {
                     let mutedSeconds = detail["mutedSeconds"] as? Int else {return ret}
             
             var dispalySeconds = FormatUtil.getMutedFormat(of: mutedSeconds)
-            ret.append(NSAttributedString(string: "\(mutedUser["nickname"] ?? "")被\(getOpUserName(message: message).string)禁言 \(dispalySeconds)", attributes: contentAttributes))
+            ret.append(NSAttributedString(string: "\(mutedUser["nickname"] ?? "")", attributes: nameAttributes))
+            ret.append(NSAttributedString(string: "被", attributes: contentAttributes))
+            ret.append(NSAttributedString(string: "\(getOpUserName(message: message).string) ", attributes: nameAttributes))
+            ret.append(NSAttributedString(string: "禁言 \(dispalySeconds)", attributes: contentAttributes))
+            //ret.append(NSAttributedString(string: "\(mutedUser["nickname"] ?? "")被\(getOpUserName(message: message).string)禁言 \(dispalySeconds)", attributes: contentAttributes))
             return ret
         case .groupMemberCancelMuted:
             let ret = NSMutableAttributedString()
@@ -423,12 +436,18 @@ public struct MessageHelper {
                 let type = message.customElem?.type,
                 let value = message.customElem?.value() else { return NSAttributedString() }
         
+        let contentAttributes: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: UIFont.f14,
+            NSAttributedString.Key.foregroundColor: UIColor.c8E9AB0,
+        ]
+        
         var str = NSMutableAttributedString()
         
         switch type {
         case .call:
             break
-        case .blockedByFriend, .deletedByFriend:
+        case .blockedByFriend, .deletedByFriend, .mutedInGroup:
+            str.append(NSAttributedString(string: customMessageAbstruct(message: message), attributes: contentAttributes))
             break
         default:
             break
@@ -449,9 +468,11 @@ public struct MessageHelper {
         case .tagMessage:
             return "[标签]".innerLocalized()
         case .blockedByFriend:
-            return "消息已发出，但被对方拒收了".innerLocalized()
+            return "你已被对方拉黑".innerLocalized()
         case .deletedByFriend:
             return "对方开启了朋友验证，你还不是他（她）朋友，请先发送朋友验证请求，对方验证通过后才能聊天。".innerLocalized()
+        case .mutedInGroup:
+            return "您已被禁言".innerLocalized()
         }
     }
 }

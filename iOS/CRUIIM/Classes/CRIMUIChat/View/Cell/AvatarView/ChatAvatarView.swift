@@ -32,6 +32,10 @@ final class ChatAvatarView: UIView, StaticViewFactory {
     private lazy var avatarView = RoundedCornersContainerView<AvatarView>(frame: bounds)
 
     private var controller: AvatarViewController?
+    
+    public var customView: UIView {
+        avatarView
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)

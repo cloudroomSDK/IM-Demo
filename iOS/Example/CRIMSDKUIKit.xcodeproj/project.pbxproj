@@ -67,6 +67,9 @@
 
 /* Begin PBXFileReference section */
 		169A67A32AAB352A0011C5EC /* AboutUsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutUsViewController.swift; sourceTree = "<group>"; };
+		16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = VersionConfig.xcconfig; sourceTree = "<group>"; };
+		16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
+		16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		16D65CFE2B16EC420012BB00 /* AppConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		16E32BC02ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigAuthenTypeView.swift; sourceTree = "<group>"; };
 		170A2B3628F29C5000CA68EA /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -212,6 +215,9 @@
 				DC28F0E627EE1BD90068B545 /* Pages */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				16D65CFE2B16EC420012BB00 /* AppConfig.swift */,
+				16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */,
+				16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */,
+				16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
 				607FACDC1AFB9204008FA782 /* Images.xcassets */,
 				607FACDE1AFB9204008FA782 /* LaunchScreen.xib */,
@@ -609,6 +615,7 @@
 /* Begin XCBuildConfiguration section */
 		170A2B3F28F29C5000CA68EA /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -622,7 +629,7 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 300000;
+				CURRENT_PROJECT_VERSION = "$(CRIM_APP_BUILD_NUMBER)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 93XFE92JTW;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -632,7 +639,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 cloudroom. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS";
@@ -648,6 +655,7 @@
 		};
 		170A2B4028F29C5000CA68EA /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */;
 			buildSettings = {
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -661,7 +669,7 @@
 				CODE_SIGN_ENTITLEMENTS = NotificationService/NotificationService.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 300000;
+				CURRENT_PROJECT_VERSION = "$(CRIM_APP_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 93XFE92JTW;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -670,7 +678,7 @@
 				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 cloudroom. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
-				MARKETING_VERSION = 3.0.0;
+				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";
 				MTL_FAST_MATH = YES;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cloudroom.ios.crim.NotificationService;
@@ -787,7 +795,7 @@
 		};
 		607FACF01AFB9204008FA782 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 700B1E1F3BFDAC573F2FEBEC /* Pods-CRIMSDKUIKit_Example.debug.xcconfig */;
+			baseConfigurationReference = 16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				APPLICATION_EXTENSION_API_ONLY = NO;
@@ -796,7 +804,7 @@
 				CODE_SIGN_ENTITLEMENTS = CRIMSDKUIKit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = "$(CRIM_APP_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 93XFE92JTW;
 				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = "";
@@ -807,7 +815,7 @@
 				INFOPLIST_FILE = CRIMSDKUIKit/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.6.4;
+				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cloudroom.ios.crim;
@@ -823,7 +831,7 @@
 		};
 		607FACF11AFB9204008FA782 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 957B7B9B8927F9C6301C3B15 /* Pods-CRIMSDKUIKit_Example.release.xcconfig */;
+			baseConfigurationReference = 16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				APPLICATION_EXTENSION_API_ONLY = NO;
@@ -832,7 +840,7 @@
 				CODE_SIGN_ENTITLEMENTS = CRIMSDKUIKit.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = "$(CRIM_APP_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 93XFE92JTW;
 				ENABLE_BITCODE = NO;
 				EXCLUDED_ARCHS = "";
@@ -843,7 +851,7 @@
 				INFOPLIST_FILE = CRIMSDKUIKit/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 2.6.4;
+				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";
 				MODULE_NAME = ExampleApp;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D COCOAPODS";
 				PRODUCT_BUNDLE_IDENTIFIER = com.cloudroom.ios.crim;

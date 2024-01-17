@@ -35,6 +35,7 @@ open class AccountViewModel {
     private static let QueryUserInfoAPI = "/user/find/full"
     private static let SearchUserFullInfoAPI = "/user/search/full"
     private static let GetClientConfigAPI = "/client_config/get"
+    private static let BlockAddAPI = "/block/add"
     
     
     private let _disposeBag = DisposeBag()
@@ -99,7 +100,7 @@ open class AccountViewModel {
 
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString { (response: DataResponse<String>) in
+        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -108,17 +109,87 @@ open class AccountViewModel {
                         savePreLoginAccount(phone)
                         loginIM(uid: res.data!.userID, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
                     } else {
+                        IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
                         completionHandler(res.errCode, res.errMsg)
                     }
                 } else {
                     let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
                     completionHandler(err?.errCode ?? -1, err?.errMsg)
                 }
             case .failure(let err):
+                IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
                 completionHandler(-1, err.localizedDescription)
             }
         }
     }
+    
+    static func blockAdd(userID: String? = nil, adminToken: String? = nil, completionHandler: @escaping CompletionHandler) {
+        let body = JsonTool.toJson(fromObject: ["userID": userID ?? ""]).data(using: .utf8)
+        
+        var req = try! URLRequest(url: ADMIN_BASE_URL + BlockAddAPI, method: .post)
+        req.httpBody = body
+        req.addValue(UUID().uuidString, forHTTPHeaderField: "operationID")
+        req.addValue(adminToken ?? "", forHTTPHeaderField: "token")
+
+        print("输入地址：\(req)")
+        IMController.writeLog(content: "输入地址：\(req)")
+        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+            switch response.result {
+            case .success(let result):
+                if let res = JsonTool.fromJson(result, toClass: Response<AdminEntity>.self) {
+                    if res.errCode == 0 {
+                        
+                        completionHandler(res.errCode, nil)
+                    } else {
+                        IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
+                        completionHandler(res.errCode, res.errMsg)
+                    }
+                } else {
+                    let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
+                    completionHandler(err?.errCode ?? -1, err?.errMsg)
+                }
+            case .failure(let err):
+                IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
+                completionHandler(-1, err.localizedDescription)
+            }
+        }
+    }
+    
+    static func loginAdmin(account: String? = nil, psw: String? = nil, completionHandler: @escaping CompletionHandler) {
+        let body = JsonTool.toJson(fromObject: AdminRequest(account: account,
+                                                            psw: psw)).data(using: .utf8)
+        
+        var req = try! URLRequest(url: ADMIN_BASE_URL + LoginAPI, method: .post)
+        req.httpBody = body
+        req.addValue(UUID().uuidString, forHTTPHeaderField: "operationID")
+
+        print("输入地址：\(req)")
+        IMController.writeLog(content: "输入地址：\(req)")
+        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+            switch response.result {
+            case .success(let result):
+                if let res = JsonTool.fromJson(result, toClass: Response<AdminEntity>.self) {
+                    if res.errCode == 0 {
+                        adminToken = res.data?.adminToken
+                        completionHandler(res.errCode, nil)
+                    } else {
+                        IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
+                        completionHandler(res.errCode, res.errMsg)
+                    }
+                } else {
+                    let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
+                    completionHandler(err?.errCode ?? -1, err?.errMsg)
+                }
+            case .failure(let err):
+                IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
+                completionHandler(-1, err.localizedDescription)
+            }
+        }
+    }
+    static var adminToken: String?
     
     static func registerAccount(phone: String,
                                 areaCode: String,
@@ -563,6 +634,16 @@ class Request: Encodable {
     }
 }
 
+class AdminRequest: Encodable {
+    private let account: String?
+    private let password: String
+    
+    init(account: String? = nil, psw: String? = nil) {
+        self.account = account
+        self.password = psw ?? ""
+    }
+}
+
 class Response<T: Decodable>: Decodable {
     var data: T? = nil
     var errCode: Int = 0
@@ -575,6 +656,13 @@ struct UserEntity: Decodable {
     let imToken: String
     let chatToken: String
     let expiredTime: Int?
+}
+
+struct AdminEntity: Decodable {
+    let adminUserID: String
+    let adminToken: String
+    let imUserID: String
+    let imToken: String
 }
 
 class RegisterRequest: Encodable {

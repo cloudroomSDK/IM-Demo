@@ -12,6 +12,8 @@ enum Cell: Hashable {
     }
 
     case message(Message, bubbleType: BubbleType)
+    case replyMessage(Message, bubbleType: BubbleType)
+    case quoteMessage(Message, bubbleType: BubbleType)
     
     case systemMessage(SystemGroup)
 
@@ -25,7 +27,7 @@ enum Cell: Hashable {
 
     var alignment: ChatItemAlignment {
         switch self {
-        case let .message(message, _):
+        case let .message(message, _), let .replyMessage(message, _), let .quoteMessage(message, _):
             return message.type == .incoming ? .leading : .trailing
 //        case .deliveryStatus:
 //            return .trailing
@@ -47,6 +49,10 @@ extension Cell: Differentiable {
     public var differenceIdentifier: Int {
         switch self {
         case let .message(message, _):
+            return message.differenceIdentifier
+        case let .replyMessage(message, _):
+            return message.differenceIdentifier
+        case let .quoteMessage(message, _):
             return message.differenceIdentifier
 //        case .deliveryStatus:
 //            return hashValue

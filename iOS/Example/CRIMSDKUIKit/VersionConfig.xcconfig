@@ -1,0 +1,12 @@
+//
+//  VersionConfig.xcconfig
+//  CRIMSDKUIKit
+//
+//  Created by YunWu01 on 2024/1/11.
+//  Copyright © 2024 rentsoft. All rights reserved.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+CRIM_APP_BUILD_VERSION=2.6.5
+CRIM_APP_BUILD_NUMBER=2

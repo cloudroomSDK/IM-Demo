@@ -85,8 +85,7 @@ final class ChatViewController: UIViewController {
             let viewModel = SingleChatSettingViewModel(conversation: conversation)
             let vc = SingleChatSettingTableViewController(viewModel: viewModel, style: .grouped)
             vc.clearRecordComplete = { [weak self] in
-                self?.dataSource.sections.removeAll()
-                self?.collectionView.reloadData()
+                self?.chatController.deleteAllMsg()
             }
             self.navigationController?.pushViewController(vc, animated: true)
         case .group:
@@ -133,6 +132,7 @@ final class ChatViewController: UIViewController {
         }
         fd_interactivePopDisabled = true
         setupTitle()
+        updateLeftButtons()
         setupInputBar()
         
         chatLayout.settings.interItemSpacing = 8
@@ -246,6 +246,16 @@ final class ChatViewController: UIViewController {
         }
     }
     
+    func updateLeftButtons() {
+        if !editNotifier.isEditing {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: "   ") { [weak self] in
+                self?.navigationController?.popViewController(animated: true)
+            }
+        } else {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelEdit))
+        }
+    }
+    
     private func setRightButtons(show: Bool) {
         if show {
             navigationItem.rightBarButtonItems = [settingButton]
@@ -257,6 +267,13 @@ final class ChatViewController: UIViewController {
     private func setupInputBar() {
         inputBarView.delegate = self
         inputBarView.shouldAnimateTextDidChangeLayout = true
+    }
+    
+    @objc private func cancelEdit() {
+        setEditNotEdit(forceEnd: true)
+        updateLeftButtons()
+        chatController.clearSelectedStatus()
+        inputBarView.showChatToolMultipleMenu(true)
     }
     
     @objc private func setEditNotEdit(forceEnd: Bool = false) {
@@ -407,15 +424,7 @@ extension ChatViewController: UIScrollViewDelegate {
 // MARK: ChatControllerDelegate
 
 extension ChatViewController: ChatControllerDelegate {
-    
-    func updateUnreadCount(count: Int) {
-        if !editNotifier.isEditing {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: count > 0 ? "\(count)" : "      ") { [weak self] in
-                self?.navigationController?.popViewController(animated: true)
-            }
-        }
-    }
-    
+
     func isInGroup(with isIn: Bool) {
         if isIn {
             navigationItem.rightBarButtonItems = [settingButton]
@@ -462,6 +471,9 @@ extension ChatViewController: ChatControllerDelegate {
             navigationController?.addChild(vc)
             navigationController?.view.addSubview(vc.view)
             
+        case .quote(let source):
+            break
+            
         case .custom(let source):
             guard let value = source.value, let type = source.type else { return }
             switch type {
@@ -489,21 +501,23 @@ extension ChatViewController: ChatControllerDelegate {
         switch data {
         case .text(let string):
             print("点击纯文本消息")
-            toolItems = [.copy, .delete]
+            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
             break
         case .attributeText(let nSAttributedString):
             print("点击富文本消息")
-            toolItems = [.copy, .delete]
+            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
             break
         case .url(let uRL, let isLocallyStored):
             print("点击url消息")
             break
         case .image(let source, let isLocallyStored):
-            toolItems = [.delete]
+            toolItems = [.delete, .reply, .forward, .muiltSelection]
             break
         case .video(let source, let isLocallyStored):
-            toolItems = [.delete]
+            toolItems = [.delete, .reply, .forward, .muiltSelection]
             break
+        case .quote(let source):
+            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
         case .custom(let source):
             break
         }
@@ -520,14 +534,38 @@ extension ChatViewController: ChatControllerDelegate {
                 self?.chatController.revokeMsg(with: id)
                 break
             case .reply:
+                self?.chatController.defaultSelecteMessage(with: id)
                 
-//                self?.inputBarView
-//                self?.chatBar.textInputView.becomeFirstResponder()
-                break
+                let quoteText = (messageInfo?.senderNickname ?? "") + ":" + " "
+                switch data {
+                case .text(let string):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + string.text)
+                case .quote(let sourrce):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + sourrce.text)
+                case .attributeText(let nSAttributedString):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + nSAttributedString.string)
+                case .image(let source, let isLocallyStored):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[图片]".innerLocalized())
+                case .video(let source, let isLocallyStored):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[视频]".innerLocalized())
+                default:
+                    break
+                }
             case .delete:
-                self?.chatController.removeMessage(messageID: id)
+                self?.chatController.defaultSelecteMessage(with: id)
+                self?.chatController.deleteMsgs()
             case .forward:
-                break
+                let vc = SelectContactsViewController()
+                vc.selectedContact() { [weak self] r in
+                    guard let self else { return }
+                    self.navigationController?.popViewController(animated: true)
+                    self.chatController.defaultSelecteMessage(with: id)
+                    self.chatController.sendForwardMsg(r) { _ in
+                        
+                    }
+                }
+                vc.hidesBottomBarWhenPushed = true
+                self?.navigationController?.pushViewController(vc, animated: true)
             case .copy:
                 var content: String?
                 switch data {
@@ -542,6 +580,10 @@ extension ChatViewController: ChatControllerDelegate {
                 }
                 UIPasteboard.general.string = content
                 ProgressHUD.showSuccess("复制成功".innerLocalized())
+            case .muiltSelection:
+                self?.setEditNotEdit(forceEnd: false)
+                self?.updateLeftButtons()
+                self?.inputBarView.showChatToolMultipleMenu()
              default:
              break
              }
@@ -549,6 +591,12 @@ extension ChatViewController: ChatControllerDelegate {
         }).disposed(by: menu.disposeBag)
 
         present(menu, animated: true, completion: nil)
+    }
+    
+    func reeditMessage(with id: String) {
+        let messageInfo = chatController.getMessageInfo(ids: [id]).first(where: { $0.clientMsgID == id })
+        guard let content = messageInfo?.textElem?.content else { return }
+        inputBarView.inputTextView.text = content
     }
     
     func update(with sections: [Section], requiresIsolatedProcess: Bool) {
@@ -698,9 +746,11 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
     private func completionHandler() -> ([Section]) -> Void {
         // 发送结束的操作
         let completion: ([Section]) -> Void = { [weak self] sections in
+            self?.chatController.defaultSelecteMessage(with: nil)
             self?.inputBarView.sendButton.stopAnimating()
             self?.currentInterfaceActions.options.remove(.sendingMessage)
             self?.processUpdates(with: sections, animated: true, requiresIsolatedProcess: false)
+            self?.inputBarView.updateMiddleContentView()
         }
         
         return completion
@@ -771,6 +821,27 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                 }
             })
         }
+    }
+    
+    func clearSelectQuoteMessage(_ inputBar: InputBarAccessoryView) {
+        chatController.defaultSelecteMessage(with: nil)
+    }
+    
+    func deleteMessages(_ inputBar: InputBarAccessoryView) {
+        chatController.deleteMsgs()
+    }
+    
+    func forwardMessages(_ inputBar: InputBarAccessoryView) {
+        let vc = SelectContactsViewController()
+        vc.selectedContact() { [weak self] r in
+            guard let self else { return }
+            self.navigationController?.popViewController(animated: true)
+            self.chatController.sendMergeForwardMsg(r) { _ in
+                
+            }
+        }
+        vc.hidesBottomBarWhenPushed = true
+        navigationController?.pushViewController(vc, animated: true)
     }
 }
 

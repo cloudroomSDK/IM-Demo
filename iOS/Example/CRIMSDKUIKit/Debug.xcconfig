@@ -1,0 +1,12 @@
+//
+//  Debug.xcconfig
+//  CRIMSDKUIKit
+//
+//  Created by YunWu01 on 2024/1/11.
+//  Copyright © 2024 rentsoft. All rights reserved.
+//
+
+// Configuration settings file format documentation can be found at:
+// https://help.apple.com/xcode/#/dev745c5c974
+#include? "Pods/Target Support Files/Pods-CRIMSDKUIKit_Example/Pods-CRIMSDKUIKit_Example.debug.xcconfig"
+#include "VersionConfig.xcconfig"

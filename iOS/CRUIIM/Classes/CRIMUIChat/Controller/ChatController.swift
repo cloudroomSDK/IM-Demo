@@ -7,8 +7,13 @@ protocol ChatController {
     func loadInitialMessages(completion: @escaping ([Section]) -> Void)
     func loadPreviousMessages(completion: @escaping ([Section]) -> Void)
     func sendMsg(_ data: Message.Data, completion: @escaping ([Section]) -> Void)
+    func sendForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
+    func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
 
-    func deleteMsg(with id: String)
+    func defaultSelecteMessage(with id: String?)
+    func clearSelectedStatus()
+    func deleteMsgs()
+    func deleteAllMsg()
     func getConversation() -> ConversationInfo
     func getGroupMembers(completion: @escaping ([GroupMemberInfo]) -> Void)
     func getGrpInfo(requirePull: Bool, completion: @escaping (GroupInfo) -> Void)
@@ -20,7 +25,6 @@ protocol ChatController {
     func revokeMsg(with id: String)
     
     func isMsgRevokedExpired(timestamp: TimeInterval) -> Bool
-    func removeMessage(messageID: String)
 }
 
 extension ChatController {

@@ -227,13 +227,16 @@ class UserDetailTableViewController: UIViewController {
             }
         }
         
-        let spacer = UIView()
+        let spacer_top = UIView()
+        let spacer_bottom = UIView()
+        spacer_top.snp.makeConstraints { make in
+            make.height.equalTo(40)
+        }
 
         let vStack: UIStackView = {
-            let v = UIStackView(arrangedSubviews: [spacer, hStack])
-            v.frame =  CGRect(x: 0, y: 0, width: kScreenWidth, height: 134)
+            let v = UIStackView(arrangedSubviews: [spacer_top, hStack, spacer_bottom])
+            v.frame =  CGRect(x: 0, y: 0, width: kScreenWidth, height: 174)
             v.axis = .vertical
-            v.distribution = .equalCentering
             v.spacing = 4
             
             return v

@@ -10,6 +10,8 @@ final class TextBubbleController<CustomView: UIView>: BubbleController {
     private let type: MessageType
 
     private let bubbleType: Cell.BubbleType
+    
+    let isQuoted: Bool
 
     public weak var bubbleView: UIView? {
         didSet {
@@ -17,10 +19,11 @@ final class TextBubbleController<CustomView: UIView>: BubbleController {
         }
     }
 
-    init(bubbleView: UIView, type: MessageType, bubbleType: Cell.BubbleType) {
+    init(bubbleView: UIView, type: MessageType, bubbleType: Cell.BubbleType, isQuoted: Bool = false) {
         self.type = type
         self.bubbleType = bubbleType
         self.bubbleView = bubbleView
+        self.isQuoted = isQuoted
         setupBubbleView()
     }
 
@@ -35,10 +38,10 @@ final class TextBubbleController<CustomView: UIView>: BubbleController {
 
             if #available(iOS 13.0, *) {
                 let incomingGray = UIColor(red: 0 / 255, green: 0 / 255, blue: 0 / 255, alpha: 0.06)
-                bubbleView.backgroundColor = type.isIncoming ? incomingGray : .c0584FE
+                bubbleView.backgroundColor = (type.isIncoming || isQuoted) ? incomingGray : .c0584FE
             } else {
                 let systemGray5 = UIColor(red: 200 / 255, green: 200 / 255, blue: 200 / 255, alpha: 1)
-                bubbleView.backgroundColor = type.isIncoming ? systemGray5 : .systemBlue
+                bubbleView.backgroundColor = (type.isIncoming || isQuoted) ? systemGray5 : .systemBlue
             }
         }
     }

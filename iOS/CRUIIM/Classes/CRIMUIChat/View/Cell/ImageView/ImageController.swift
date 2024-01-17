@@ -8,6 +8,12 @@ final class ImageController {
             view?.reloadData()
         }
     }
+    
+    weak var quoteView: ImageQuoteView? {
+        didSet {
+            quoteView?.reloadData()
+        }
+    }
 
     weak var delegate: ReloadDelegate?
     
@@ -17,6 +23,10 @@ final class ImageController {
         }
         return .image(image)
     }
+    
+    var isQuoted: Bool = false
+    
+    let senderNickname: String?
 
     private var image: UIImage?
 
@@ -26,10 +36,12 @@ final class ImageController {
 
     private let bubbleController: BubbleController
 
-    init(source: MediaMessageSource, messageId: String, bubbleController: BubbleController) {
+    init(source: MediaMessageSource, messageId: String, bubbleController: BubbleController, senderNickname: String? = nil, isQuoted: Bool = false) {
         self.source = source
         self.messageId = messageId
         self.bubbleController = bubbleController
+        self.senderNickname = (senderNickname ?? "") + ":"
+        self.isQuoted = isQuoted
         loadImage()
     }
     
@@ -37,11 +49,13 @@ final class ImageController {
         if let image = source.image {
             self.image = image
             view?.reloadData()
+            quoteView?.reloadData()
         } else {
             guard let url = source.source.url else { return }
             if let image = try? imageCache.getEntity(for: .init(url: url)) {
                 self.image = image
                 view?.reloadData()
+                quoteView?.reloadData()
             } else {
                 loader.loadImage(from: url) { [weak self] _ in
                     guard let self else {

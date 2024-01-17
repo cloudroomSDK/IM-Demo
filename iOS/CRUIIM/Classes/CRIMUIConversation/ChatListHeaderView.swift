@@ -122,6 +122,7 @@ class ChatListHeaderView: UIView {
         }()
         addSubview(btnStack)
         btnStack.snp.makeConstraints { make in
+            make.leading.greaterThanOrEqualTo(hStack.snp.trailing).offset(10)
             make.centerY.equalTo(avatarImageView)
             make.trailing.equalToSuperview().offset(-16)
         }

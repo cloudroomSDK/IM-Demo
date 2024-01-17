@@ -139,15 +139,18 @@ class GroupDetailViewController: UIViewController {
     private func enterChat() {
         IMController.shared.getConversation(sessionType: .group,
                                             sourceId: _viewModel.groupId) { [weak self] (conversation: ConversationInfo?) in
-            guard let self, let conversation else { return }
-            
-            let vc = ChatViewControllerBuilder().build(conversation)
-            navigationController?.pushViewController(vc, animated: true)
-            if let root = navigationController?.viewControllers.first {
-                navigationController?.viewControllers.removeAll(where: { controller in
-                    controller != root && controller != vc
-                })
-            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                
+                guard let self, let conversation else { return }
+                
+                let vc = ChatViewControllerBuilder().build(conversation)
+                self.navigationController?.pushViewController(vc, animated: true)
+                if let root = self.navigationController?.viewControllers.first {
+                    self.navigationController?.viewControllers.removeAll(where: { controller in
+                        controller != root && controller != vc
+                    })
+                }
+            })
         }
     }
     

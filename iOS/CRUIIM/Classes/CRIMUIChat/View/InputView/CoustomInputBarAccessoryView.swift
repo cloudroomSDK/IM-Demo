@@ -14,11 +14,17 @@ enum CustomAttachment {
 protocol CoustomInputBarAccessoryViewDelegate: InputBarAccessoryViewDelegate {
     func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith attachments: [CustomAttachment])
     func inputBar(_ inputBar: InputBarAccessoryView, didPressPadItemWith type: PadItemType)
+    func clearSelectQuoteMessage(_ inputBar: InputBarAccessoryView)
+    func deleteMessages(_ inputBar: InputBarAccessoryView)
+    func forwardMessages(_ inputBar: InputBarAccessoryView)
 }
 
 extension CoustomInputBarAccessoryViewDelegate {
     func inputBar(_: InputBarAccessoryView, didPressSendButtonWith _: [CustomAttachment]) { }
     func inputBar(_: InputBarAccessoryView, didPressPadItemWith _: PadItemType) {}
+    func clearSelectQuoteMessage(_: InputBarAccessoryView) {}
+    func deleteMessages(_: InputBarAccessoryView) {}
+    func forwardMessages(_: InputBarAccessoryView) {}
 }
 
 // MARK: - CameraInputBarAccessoryView
@@ -65,7 +71,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
                 PhotoHelper.getVideoAt(url: videoPath) { main, thumb, duration in
                     self.sendAttachments(attachments: [.video(thumb.relativeFilePath,
                                                               thumb.fullPath,
-                                                              main.relativeFilePath,
+                                                              main.fullPath,
                                                               duration)])
                 }
             }
@@ -90,7 +96,27 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         
         return v
     }()
+    
+    lazy var middleContentStackView: UIStackView = {
+        let v = UIStackView()
+        v.backgroundColor = .white
+        v.layer.cornerRadius = 6
+        v.spacing = 0
+        v.alignment = .fill
         
+        return v
+    }()
+    
+    lazy var multipleMenuStackView: UIStackView = {
+        let v = UIStackView()
+        v.spacing = 5
+        v.distribution = .fill
+        v.alignment = .center
+        v.backgroundColor = UIColor(hex: 0xF5F5F5)
+        
+        return v
+    }()
+            
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupSubViews()
@@ -110,6 +136,173 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         
         return manager
     }()
+    
+    func showChatToolMultipleMenu(_ forceEnd: Bool = false) {
+        guard !forceEnd else {
+            multipleMenuStackView.removeFromSuperview()
+            return
+        }
+        
+        let space_1: UIView = {
+            let v = UIView()
+            
+            return v
+        }()
+        space_1.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            space_1.widthAnchor.constraint(equalToConstant: 15)
+        ])
+        
+        let space_2: UIView = {
+            let v = UIView()
+            
+            return v
+        }()
+        space_2.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            space_2.widthAnchor.constraint(equalToConstant: 15)
+        ])
+        
+        let space_3: UIView = {
+            let v = UIView()
+            
+            return v
+        }()
+        
+        let deleteBtn: UIButton = {
+            let v = UIButton()
+            v.setImage(UIImage(nameInBundle: "inputbar_multiple_delete_icon"), for: .normal)
+            
+            return v
+        }()
+        deleteBtn.addTarget(self, action: #selector(deleteMessagesAction), for: .touchUpInside)
+        deleteBtn.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            deleteBtn.widthAnchor.constraint(equalToConstant: 20)
+        ])
+        
+        let forwardBtn: UIButton = {
+            let v = UIButton()
+            v.setImage(UIImage(nameInBundle: "inputbar_multiple_forward_icon"), for: .normal)
+            
+            return v
+        }()
+        forwardBtn.addTarget(self, action: #selector(forwardMessagesAction), for: .touchUpInside)
+        forwardBtn.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            forwardBtn.widthAnchor.constraint(equalToConstant: 20)
+        ])
+        
+        multipleMenuStackView.arrangedSubviews.forEach { v in
+            v.removeFromSuperview()
+        }
+        let views = [space_1, deleteBtn, space_2, space_3]
+        views.forEach { v in
+            multipleMenuStackView.addArrangedSubview(v)
+        }
+        
+        addSubview(multipleMenuStackView)
+        multipleMenuStackView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            multipleMenuStackView.leadingAnchor.constraint(equalTo: leftStackView.leadingAnchor),
+            multipleMenuStackView.topAnchor.constraint(equalTo: leftStackView.topAnchor),
+            multipleMenuStackView.trailingAnchor.constraint(equalTo: rightStackView.trailingAnchor),
+            multipleMenuStackView.bottomAnchor.constraint(equalTo: rightStackView.bottomAnchor),
+        ])
+    }
+    
+    func updateMiddleContentView(_ quote: Bool = false, _ text: String? = nil, _ attributedText: NSAttributedString? = nil) {
+        if quote {
+            let hStack: UIStackView = {
+                let quoteLabel: UILabel = {
+                    let v = UILabel()
+                    v.textColor = .c999999
+                    v.font = UIFont.preferredFont(forTextStyle: .footnote)
+                    v.numberOfLines = 2
+                    v.lineBreakMode = .byTruncatingTail
+                    v.text = text
+                    
+                    return v
+                }()
+                if text != nil {
+                    quoteLabel.text = text
+                }
+                if attributedText != nil {
+                    quoteLabel.attributedText = attributedText
+                }
+                
+                let closeButton: UIButton = {
+                    let v = UIButton()
+                    v.setImage(UIImage(nameInBundle: "inputbar_quote_close_icon"), for: .normal)
+                    v.addTarget(self, action: #selector(clearQuoteMessageAction), for: .touchUpInside)
+                    
+                    return v
+                }()
+                closeButton.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    closeButton.widthAnchor.constraint(equalToConstant: 16)
+                ])
+                
+                let hStack = UIStackView(arrangedSubviews: [quoteLabel, closeButton])
+                hStack.spacing = 8
+//                hStack.alignment = .center
+                
+                return hStack
+            }()
+            
+            let containerLeft: UIView = {
+                let v = UIView()
+                v.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    v.widthAnchor.constraint(equalToConstant: 5)
+                ])
+                
+                return v
+            }()
+            
+            let containerRight: UIView = {
+                let v = UIView()
+                v.translatesAutoresizingMaskIntoConstraints = false
+                NSLayoutConstraint.activate([
+                    v.widthAnchor.constraint(equalToConstant: 5)
+                ])
+                
+                return v
+            }()
+
+            middleContentStackView.arrangedSubviews.forEach { v in
+                v.removeFromSuperview()
+            }
+            let views = [containerLeft, hStack, containerRight]
+            views.forEach { v in
+                middleContentStackView.addArrangedSubview(v)
+            }
+   
+            setMiddleContentView(nil, animated: false) // 注意设置前先清理老的
+            
+            let vStack = UIStackView(arrangedSubviews: [inputTextView, middleContentStackView])
+            vStack.axis = .vertical
+            vStack.alignment = .fill
+            vStack.spacing = 8
+            setMiddleContentView(vStack, animated: false)
+        } else {
+            middleContentStackView.removeFromSuperview()
+        }
+    }
+    
+    @objc private func clearQuoteMessageAction() {
+        updateMiddleContentView(false)
+    }
+    
+    @objc private func deleteMessagesAction() {
+        (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
+            .deleteMessages(self)
+    }
+    
+    @objc private func forwardMessagesAction() {
+        (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
+            .forwardMessages(self)
+    }
     
     private func setupSubViews() {
         separatorLine.backgroundColor = .white

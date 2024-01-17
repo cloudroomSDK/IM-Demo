@@ -101,21 +101,6 @@ public class MineViewController: UIViewController {
                 return "退出登录".localized()
             }
         }
-
-        var icon: UIImage? {
-            switch self {
-            case .header:
-                return UIImage(named: "mine_background_image")
-            case .myInfo:
-                return UIImage(named: "mine_info_icon")
-            case .setting:
-                return UIImage(named: "mine_setting_icon")
-            case .aboutUs:
-                return UIImage(named: "mine_about_icon")
-            case .logout:
-                return UIImage(named: "mine_logout_icon")
-            }
-        }
     }
 }
 

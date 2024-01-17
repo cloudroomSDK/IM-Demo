@@ -24,6 +24,13 @@ class GroupChatNameTableViewCell: UITableViewCell {
         let v = UITextField()
         v.placeholder = "取个群名称".innerLocalized()
         
+        let maxTextLength = 60
+        // 监听UITextView的文本变化
+        v.rx.text.orEmpty
+            .map { String($0.prefix(maxTextLength)) } // 限制输入文本的长度
+            .bind(to: v.rx.text) // 将限制后的文本绑定回UITextView
+            .disposed(by: disposeBag)
+        
         return v
     }()
 

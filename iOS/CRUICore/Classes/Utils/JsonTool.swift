@@ -31,10 +31,9 @@ public struct JsonTool {
             guard var json = String(data: data, encoding: .utf8) else {
                 fatalError("check your data is encodable from utf8!")
             }
-            json = json.replacingOccurrences(of: "\\", with: "")
             
-            print("输入参数：\(json)")
-            IMController.writeLog(content: "输入参数：\(json)")
+            print("输出参数：\(json)")
+            IMController.writeLog(content: "输出参数：\(json)")
             return json
         } catch let err {
             return ""

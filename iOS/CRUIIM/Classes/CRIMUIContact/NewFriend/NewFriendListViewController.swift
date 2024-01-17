@@ -7,7 +7,7 @@ class NewFriendListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "新的好友".innerLocalized()
-        view.backgroundColor = .systemGroupedBackground
+        view.backgroundColor = .white
         replaceSystemBackBarButtonItem()
         
         initView()
@@ -22,6 +22,7 @@ class NewFriendListViewController: UIViewController {
     private lazy var tableView: UITableView = {
         let v = UITableView()
         v.register(NewFriendTableViewCell.self, forCellReuseIdentifier: NewFriendTableViewCell.className)
+        v.delegate = self
         v.rowHeight = 68
         v.tableFooterView = UIView()
         v.backgroundColor = .clear
@@ -35,7 +36,7 @@ class NewFriendListViewController: UIViewController {
     private func initView() {
         view.addSubview(tableView)
         tableView.snp.makeConstraints { make in
-            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(8)
+            make.top.equalTo(view.safeAreaLayoutGuide.snp.top).offset(0)
             make.leading.bottom.trailing.equalToSuperview()
         }
     }
@@ -70,4 +71,18 @@ class NewFriendListViewController: UIViewController {
 
     private let _viewModel = NewFriendListViewModel()
     private let _disposeBag = DisposeBag()
+}
+
+extension NewFriendListViewController: UITableViewDelegate {
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return 33
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let name = "新的好友请求"
+        let header = ViewUtil.createSectionHeaderWith(text: name)
+        header.backgroundColor = .white
+        return header
+    }
 }

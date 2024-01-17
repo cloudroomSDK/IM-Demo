@@ -266,7 +266,7 @@ public class SelectContactsViewController: UIViewController {
     private func updateSelectedResult() {
         if multipleSelected {
             let count = self.hasSelectedItems.count
-            let total = maxCount - count
+            let total = _viewModel.contacts.count - blockedIDs.count
             bottomBar.selectCountBtn.setTitle("已选择：(\(count))", for: .normal)
             bottomBar.completeBtn.setTitle("确定(\(count)/\(total))", for: .normal)
         } else {
@@ -296,7 +296,7 @@ public class SelectContactsViewController: UIViewController {
             v.layer.cornerRadius = 4
             v.backgroundColor = .c0089FF
             v.setTitleColor(.white, for: .normal)
-            v.setTitle("确定(0/\(maxCount)".innerLocalized(), for: .normal)
+            v.setTitle("确定".innerLocalized(), for: .normal)
             v.titleLabel?.font = .f14
             v.contentEdgeInsets = UIEdgeInsets(top: 3, left: 6, bottom: 3, right: 6)
             

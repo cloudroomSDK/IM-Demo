@@ -44,11 +44,11 @@ class NewGroupViewModel {
             IMController.shared.getConversation(sessionType: .group,
                                                 sourceId: groupInfo.groupID) { [weak self] (conversation: ConversationInfo?) in
                 onSuccess(conversation)
-            }
-            
-            // 修改进群验证方式
-            IMController.shared.setGrpVerification(groupId: groupInfo.groupID, type: .directly) { _ in
                 
+                // 修改进群验证方式
+                IMController.shared.setGrpVerification(groupId: groupInfo.groupID, type: .directly) { _ in
+                    
+                }
             }
         }
     }

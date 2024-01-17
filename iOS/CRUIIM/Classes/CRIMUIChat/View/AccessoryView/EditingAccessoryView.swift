@@ -12,6 +12,10 @@ final class EditingAccessoryView: UIView, StaticViewFactory {
         
         return v
     }()
+    
+    public var customView: UIView {
+        button
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)

@@ -40,6 +40,10 @@ class GroupChatSettingTableViewController: UITableViewController {
         return [
             [.header],
             [.members],
+            [.groupName, .myGroupNickname],
+            [.qrCode],
+            [.groupId],
+            [.messageRecvOpt, .pinConversation, .clearRecord],
             [.quitGrp],
         ]
     }
@@ -115,7 +119,7 @@ class GroupChatSettingTableViewController: UITableViewController {
             cell.avatarView.setAvatar(url: groupInfo?.faceURL, text: nil, placeHolder: "contact_group_setting_icon")
             let count = groupInfo?.memberCount ?? 0
             cell.textFiled.text = groupInfo?.groupName?.append(string: "(\(count))")
-            cell.subLabel.text = groupInfo?.groupID
+            //cell.subLabel.text = groupInfo?.groupID
             cell.textFiled.rightViewMode = groupInfo?.isMine == true ? .always : .never
             _viewModel.myInfoInGroup.map { (info: GroupMemberInfo?) -> Bool in
                 return info?.roleLevel == .owner || info?.roleLevel == .admin
@@ -135,6 +139,8 @@ class GroupChatSettingTableViewController: UITableViewController {
                 self?.navigationController?.pushViewController(vc, animated: true)
             }
             
+            cell.QRCodeButton.isHidden = true
+            /*
             cell.QRCodeTapHandler = { [weak self] in
                 guard let self else { return }
                 let vc = QRCodeViewController(idString: IMController.joinGrpPrefix.append(string: self._viewModel.conversation.groupID))
@@ -143,6 +149,7 @@ class GroupChatSettingTableViewController: UITableViewController {
                 vc.tipLabel.text = "扫一扫群二维码，立刻加入该群。".innerLocalized()
                 self.navigationController?.pushViewController(vc, animated: true)
             }
+            */
             return cell
         case .members:
             let cell = tableView.dequeueReusableCell(withIdentifier: GroupChatMemberTableViewCell.className) as! GroupChatMemberTableViewCell
@@ -155,7 +162,7 @@ class GroupChatSettingTableViewController: UITableViewController {
                     cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "setting_remove_btn_icon")
                 } else {
                     cell.avatarView.setAvatar(url: item.faceURL, text: item.nickname)
-                    cell.levelLabel.text = item.roleLevelString
+                    //cell.levelLabel.text = item.roleLevelString
                 }
                 
                 cell.nameLabel.text = item.nickname
@@ -199,13 +206,90 @@ class GroupChatSettingTableViewController: UITableViewController {
                 }
             }).disposed(by: cell.disposeBag)
             return cell
+        case .groupName:
+            let groupInfo = _viewModel.groupInfoRelay.value
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.subtitleLabel.text = groupInfo?.groupName
+            cell.subtitleLabel.textAlignment = .right
+            cell.accessoryType = .none
+            
+            return cell
+        case .announcement:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.accessoryType = .none
+            
+            return cell
+        case .myGroupNickname:
+            let member = _viewModel.myInfoInGroup.value
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.subtitleLabel.text = member?.nickname
+            cell.subtitleLabel.textColor = .c3D3D3D
+            cell.accessoryType = .none
+            
+            return cell
+        case .qrCode:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionImageTableViewCell.className, for: indexPath) as! OptionImageTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "common_qrcode_icon")
+            cell.avatarView.backgroundColor = .clear
+            cell.avatarView.layer.cornerRadius = 0
+            
+            return cell
+        case .groupId:
+            let groupInfo = _viewModel.groupInfoRelay.value
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.subtitleLabel.text = groupInfo?.groupID
+            cell.subtitleLabel.textColor = .c3D3D3D
+            cell.subtitleLabel.textAlignment = .right
+            
+            return cell
+        case .messageRecvOpt:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            _viewModel.noDisturbRelay.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                self?._viewModel.toggleNoDisturb()
+            }).disposed(by: cell.disposeBag)
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.switcher.isHidden = false
+            cell.accessoryType = .none
+            
+            return cell
+        case .pinConversation:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            _viewModel.setTopContactRelay.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                self?._viewModel.toggleTopContacts()
+            }).disposed(by: cell.disposeBag)
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.switcher.isHidden = false
+            cell.accessoryType = .none
+            
+            return cell
+        case .clearRecord:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            
+            return cell
         case .quitGrp:
             let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
-            cell.titleLabel.textColor = .cFF381F
+            cell.subtitleLabel.textColor = .cFF381F
+            cell.subtitleLabel.textAlignment = .center
             _viewModel.myInfoInGroup.map { (info: GroupMemberInfo?) -> String in
                 let title = info?.roleLevel == .owner ? "解散群聊".innerLocalized() : "退出群聊".innerLocalized()
                 return title
-            }.bind(to: cell.titleLabel.rx.text).disposed(by: cell.disposeBag)
+            }.bind(to: cell.subtitleLabel.rx.text).disposed(by: cell.disposeBag)
+            cell.accessoryType = .none
             return cell
         }
     }
@@ -216,6 +300,17 @@ class GroupChatSettingTableViewController: UITableViewController {
         case .members:
             let vc = MemberListViewController(viewModel: MemberListViewModel(groupInfo: _viewModel.groupInfoRelay.value!))
             navigationController?.pushViewController(vc, animated: true)
+        case .groupId:
+            let groupInfo = _viewModel.groupInfoRelay.value
+            guard let groupId = groupInfo?.groupID, !groupId.isEmpty else { return }
+            UIPasteboard.general.string = groupId
+            ProgressHUD.showSuccess("群聊ID已复制".innerLocalized())
+        case .qrCode:
+            let vc = QRCodeViewController(idString: IMController.joinGrpPrefix.append(string: _viewModel.conversation.groupID))
+            vc.avatarView.setAvatar(url: _viewModel.conversation.faceURL, text: nil, placeHolder: "contact_group_setting_icon")
+            vc.nameLabel.text = _viewModel.conversation.showName
+            vc.tipLabel.text = "扫一扫群二维码，立刻加入该群。".innerLocalized()
+            self.navigationController?.pushViewController(vc, animated: true)
         case .quitGrp:
             if let role = _viewModel.myInfoInGroup.value?.roleLevel, role == .owner {
                 presentAlert(title: "解散群聊后，将失去和群成员的联系。".innerLocalized()) {
@@ -230,6 +325,16 @@ class GroupChatSettingTableViewController: UITableViewController {
                     })
                 }
             }
+        case .clearRecord:
+            presentAlert(title: "确认清空所有聊天记录吗？".innerLocalized()) {
+                self._viewModel.clearRecord(completion: { [weak self] _ in
+                    ProgressHUD.showSuccess("清空成功".innerLocalized())
+                    /*
+                    guard let handler = self?.clearRecordComplete else { return }
+                    handler()
+                    */
+                })
+            }
         default:
             break
         }
@@ -239,15 +344,39 @@ class GroupChatSettingTableViewController: UITableViewController {
         case header
         case members
         case quitGrp
+        case groupName
+        case announcement
+        case myGroupNickname
+        case qrCode
+        case groupId
+        case messageRecvOpt
+        case pinConversation
+        case clearRecord
         
         var title: String {
             switch self {
             case .header:
                 return ""
             case .members:
-                return "查看全部群成员".innerLocalized()
+                return "查看更多群成员".innerLocalized()
             case .quitGrp:
                 return "退出群聊".innerLocalized()
+            case .groupName:
+                return "群聊名称".innerLocalized()
+            case .announcement:
+                return "群公告".innerLocalized()
+            case .myGroupNickname:
+                return "我在群里的昵称".innerLocalized()
+            case .qrCode:
+                return "群聊二维码".innerLocalized()
+            case .groupId:
+                return "群聊ID号".innerLocalized()
+            case .messageRecvOpt:
+                return "消息免打扰".innerLocalized()
+            case .pinConversation:
+                return "置顶聊天".innerLocalized()
+            case .clearRecord:
+                return "清空聊天记录".innerLocalized()
             }
         }
     }

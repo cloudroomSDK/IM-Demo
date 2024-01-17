@@ -28,6 +28,8 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
     }
 
     func prepareForReuse() {
+        textView.textContainer.maximumNumberOfLines = 0
+        textView.textContainer.lineBreakMode = .byWordWrapping
         textView.resignFirstResponder()
     }
 
@@ -67,20 +69,26 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
         guard let controller else {
             return
         }
+        let font = controller.isQuoted ? UIFont.preferredFont(forTextStyle: .footnote) : UIFont.preferredFont(forTextStyle: .body)
         if controller.text != nil {
+            textView.font = font
             textView.text = controller.text
         } else {
-            var str = NSAttributedString(string: controller.attributedString!.string, attributes: [.font: UIFont.preferredFont(forTextStyle: .body)])
+            var str = NSAttributedString(string: controller.attributedString!.string, attributes: [.font: font])
 
             textView.attributedText = str
         }
+        if controller.isQuoted {
+            textView.textContainer.maximumNumberOfLines = 2
+            textView.textContainer.lineBreakMode = .byTruncatingTail
+        }
         UIView.performWithoutAnimation {
             if #available(iOS 13.0, *) {
-                textView.textColor = controller.type.isIncoming ? .c0C1C33 : .white
+                textView.textColor = controller.type.isIncoming || controller.isQuoted ? .c0C1C33 : .white
                 textView.linkTextAttributes = [.foregroundColor: controller.type.isIncoming ? UIColor.systemBlue : .systemGray6,
                                                .underlineStyle: 1]
             } else {
-                let color = controller.type.isIncoming ? UIColor.black : .white
+                let color = controller.type.isIncoming || controller.isQuoted ? UIColor.black : .white
                 textView.textColor = color
                 textView.linkTextAttributes = [.foregroundColor: color,
                                                .underlineStyle: 1]
@@ -129,7 +137,7 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
         textViewWidthConstraint = textView.widthAnchor.constraint(lessThanOrEqualToConstant: viewPortWidth)
         textViewWidthConstraint?.isActive = true
         
-        let longPress = UILongPressGestureRecognizer()
+        let longPress = TextMessageViewLongPressGestureRecognizer()
         longPress.rx.event.filter { (gesture: UILongPressGestureRecognizer) -> Bool in
             gesture.state == .began
         }.subscribe(onNext: { [weak self] _ in
@@ -151,6 +159,13 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
         controller?.longPressAction()
     }
 
+}
+
+// 解决在textView上手势冲突问题
+class TextMessageViewLongPressGestureRecognizer: UILongPressGestureRecognizer {
+    override func canBePrevented(by otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return false
+    }
 }
 
 /// UITextView with hacks to avoid selection

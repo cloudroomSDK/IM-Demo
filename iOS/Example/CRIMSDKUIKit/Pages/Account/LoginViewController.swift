@@ -102,6 +102,7 @@ class LoginViewController: UIViewController {
     
     private lazy var passwordTextField: UITextField = {
         let v = UITextField()
+        v.keyboardType = .numberPad
         v.placeholder = "请输入验证码".localized()
         v.isSecureTextEntry = false
         v.rightView = countDownButton
@@ -153,6 +154,11 @@ class LoginViewController: UIViewController {
         countDownButton.clickedBlock = { [weak self] sender in
             guard let sself = self,
                   let phone = sself.phoneTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
+            
+            guard sself.validatePhoneNumber(phone) else {
+                ProgressHUD.showError("填写正确的手机号码".localized())
+                return
+            }
             
             AccountViewModel.requestCode(phone: phone, areaCode: sself.areaCode, useFor: .login) { (errCode, errMsg) in
                 if errMsg != nil {
@@ -301,6 +307,12 @@ class LoginViewController: UIViewController {
     func showConfigViewController() {
         let vc = ConfigViewController()
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func validatePhoneNumber(_ phoneNumber: String) -> Bool {
+        let phoneRegex = #"^1[3456789]\d{9}$"#
+        let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
+        return phonePredicate.evaluate(with: phoneNumber)
     }
 }
 

@@ -137,6 +137,17 @@ struct MediaMessageSource: Hashable {
     var duration: Int?
 }
 
+struct QuoteMessageSource: Hashable {
+    var text: String
+    var type: TextMessageType = .text
+    
+    var quoteUser: String
+    var quoteData: Message.Data
+//    var textSource: TextMessageSource?
+//    var imageSource: MediaMessageSource?
+//    var videoSource: MediaMessageSource?
+}
+
 // 自定义消息
 struct CustomMessageSource: Hashable {
     var data: String?
@@ -178,6 +189,8 @@ struct Message: Hashable {
         case image(MediaMessageSource, isLocallyStored: Bool)
         
         case video(MediaMessageSource, isLocallyStored: Bool) // 视频路径，缩略图路径，时长
+        
+        case quote(QuoteMessageSource)
         
         case custom(CustomMessageSource)
     }

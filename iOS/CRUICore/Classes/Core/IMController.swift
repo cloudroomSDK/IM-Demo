@@ -41,6 +41,7 @@ public enum ConnectionStatus: Int {
 public enum SDKError: Int {
     case deletedByFriend = 601 // 被对方删除
     case blockedByFriend = 1302 // 被对方拉黑
+    case mutedInGroup = 1402 // 被禁言
     case refuseToAddFriends = 10007 // 该用户已设置不可添加
 }
 
@@ -50,11 +51,12 @@ public enum CustomMessageType: Int {
     case tagMessage = 903 // 标签消息
     case blockedByFriend = 910 // 被拉黑
     case deletedByFriend = 911 // 被删除
+    case mutedInGroup = 912 // 被禁言
 }
 
 public class IMController: NSObject {
     public static let addFriendPrefix = "io.crim.app/addFriend/"
-    public static let joinGrpPrefix = "io.crim.app/joinGrp/"
+    public static let joinGrpPrefix = "io.crim.app/joinGroup/"
     public static let shared: IMController = .init()
     private(set) var imManager: CRIMSDK.CRIMManager!
     /// 好友申请列表新增
@@ -163,6 +165,12 @@ public class IMController: NSObject {
     
     public func unInitSDK() {
         Self.shared.imManager.unInitSDK()
+        
+        // remove listener
+        CRIMSDK.CRIMManager.callbacker.removeFriendListener(listener: self)
+        CRIMSDK.CRIMManager.callbacker.removeGroupListener(listener: self)
+        CRIMSDK.CRIMManager.callbacker.removeConversationListener(listener: self)
+        CRIMSDK.CRIMManager.callbacker.removeAdvancedMsgListener(listener: self)
     }
     
     public class func writeLog(level: LogLevel = .info, content: String) {
@@ -463,6 +471,12 @@ extension IMController {
         }
     }
     
+    public func isJoinedGrp(id: String, onSuccess: ((Bool) -> (Void))?) {
+        Self.shared.imManager.isJoinedGrp(id, onSuccess: onSuccess) { code, msg in
+            print("查询是否已加入群失败:\(code), \(msg)")
+        }
+    }
+    
     public func dismissGrp(id: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
         Self.shared.imManager.dismissGrp(id, onSuccess: onSuccess) { code, msg in
             print("解散群聊失败:\(code), \(msg)")
@@ -649,9 +663,9 @@ extension IMController {
         }
     }
     
-    public func sendMsg(message: MessageInfo, to recvID: String, conversationType: ConversationType = .c1v1, onComplete: @escaping CallBack.MessageReturnVoid) {
-        sendHelper(message: message.toCRIMMessageInfo(), to: recvID, conversationType: conversationType, onComplete: onComplete)
-    }
+//    public func sendMsg(message: MessageInfo, to recvID: String, conversationType: ConversationType = .c1v1, onComplete: @escaping CallBack.MessageReturnVoid) {
+//        sendHelper(message: message.toCRIMMessageInfo(), to: recvID, conversationType: conversationType, onComplete: onComplete)
+//    }
     
     private func sendHelper(message: CRIMMessageInfo,
                             to recvID: String,
@@ -675,7 +689,7 @@ extension IMController {
                 
                 if conversationType == .c1v1 {
                     if errCode == SDKError.blockedByFriend.rawValue {
-//                        customMessage = self?.createCustomMsg(customType: .blockedByFriend, data: [:])
+                        customMessage = self?.createCustomMsg(customType: .blockedByFriend, data: [:])
                     } else if errCode == SDKError.deletedByFriend.rawValue {
                         customMessage = self?.createCustomMsg(customType: .deletedByFriend, data: [:])
                     }
@@ -702,25 +716,53 @@ extension IMController {
                 }
             } onProgress: { (progress: Int) in
                 print("sending message progress: \(progress)")
-            } onFailure: { (_: Int, msg: String?) in
+            } onFailure: { [weak self] (errCode: Int, msg: String?) in
                 print("send message error:", msg)
+                var customMessage: MessageInfo?
                 model.status = .sendFailure
+                if errCode == SDKError.mutedInGroup.rawValue {
+                    customMessage = self?.createCustomMsg(customType: .mutedInGroup, data: [:])
+                }
                 onComplete(model)
+                
+                if customMessage != nil {
+                    Self.shared.imManager.insertGrpMsg(toLocalStorage: customMessage!.toCRIMMessageInfo(), groupID: recvID, sendID: model.sendID, onSuccess: nil, onFailure: nil)
+                    customMessage?.recvID = recvID
+                    print("type:\(customMessage?.customElem?.type)")
+                    onComplete(customMessage!)
+                }
             }
         }
     }
     
     private func sendCRIMMsg(message: CRIMMessageInfo,
-                                to recvID: String,
-                                conversationType: ConversationType,
-                                onComplete: @escaping CallBack.MessageReturnVoid) {
+                             to recvID: String,
+                             groupName: String? = nil,
+                             conversationType: ConversationType,
+                             onComplete: @escaping CallBack.MessageReturnVoid) {
         
         let model = message.toMessageInfo()
-        
+    
         if let desc = model.offlinePushInfo.desc, desc.isEmpty {
+            var abstruct = model.contentType.abstruct
+            switch model.contentType {
+            case .text:
+                abstruct = model.textElem?.content
+            case .at:
+                abstruct = model.atTextElem?.text
+            default:
+                abstruct = model.contentType.abstruct
+            }
+            
+            if abstruct?.isEmpty == true {
+                abstruct = "你收到了一条消息"
+            }
+            
             let push = OfflinePushInfo()
-            push.title = "你收到了一条消息"
-            push.desc = "你收到了一条消息"
+            push.title = conversationType == .c1v1 ? message.senderNickname : groupName ?? "群消息"
+            push.desc = conversationType == .c1v1 ? abstruct : (message.senderNickname ?? "") + ":" + (abstruct ?? "")
+            push.iOSBadgeCount = true
+            push.iOSPushSound = "default"
             message.offlinePush = push.toCRIMOfflinePushInfo()
         }
         
@@ -733,11 +775,12 @@ extension IMController {
     }
     
     public func sendTextMsg(text: String,
-                                quoteMessage: MessageInfo? = nil,
-                                to recvID: String,
-                                conversationType: ConversationType,
-                                sending: CallBack.MessageReturnVoid,
-                                onComplete: @escaping CallBack.MessageReturnVoid) {
+                            quoteMessage: MessageInfo? = nil,
+                            to recvID: String,
+                            groupName: String? = nil,
+                            conversationType: ConversationType,
+                            sending: CallBack.MessageReturnVoid,
+                            onComplete: @escaping CallBack.MessageReturnVoid) {
         let message: CRIMMessageInfo
         if let quoteMessage = quoteMessage {
             let quote = quoteMessage.toCRIMMessageInfo()
@@ -747,7 +790,7 @@ extension IMController {
         }
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func createAtAllFlag(displayText: String) -> AtInfo {
@@ -757,12 +800,13 @@ extension IMController {
     }
     
     public func sendAtTextMsg(text: String,
-                                  atUsers: [AtInfo] = [],
-                                  quoteMessage: MessageInfo? = nil,
-                                  to recvID: String,
-                                  conversationType: ConversationType,
-                                  sending: CallBack.MessageReturnVoid,
-                                  onComplete: @escaping CallBack.MessageReturnVoid) {
+                              atUsers: [AtInfo] = [],
+                              quoteMessage: MessageInfo? = nil,
+                              to recvID: String,
+                              groupName: String? = nil,
+                              conversationType: ConversationType,
+                              sending: CallBack.MessageReturnVoid,
+                              onComplete: @escaping CallBack.MessageReturnVoid) {
         
         var quote: CRIMMessageInfo?
         
@@ -782,28 +826,43 @@ extension IMController {
         
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
+    }
+    
+    public func sendForwardMsg(forwardMessage: MessageInfo,
+                               to recvID: String,
+                               groupName: String? = nil,
+                               conversationType: ConversationType,
+                               sending: CallBack.MessageReturnVoid,
+                               onComplete: @escaping CallBack.MessageReturnVoid) {
+        let forward = forwardMessage.toCRIMMessageInfo()
+        let message = CRIMMessageInfo.createForwardMsg(forward)
+        message.status = .sending
+        sending(message.toMessageInfo())
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendImageMsg(path: String,
-                                 to recvID: String,
-                                 conversationType: ConversationType,
-                                 sending: CallBack.MessageReturnVoid,
-                                 onComplete: @escaping CallBack.MessageReturnVoid) {
+                             to recvID: String,
+                             groupName: String? = nil,
+                             conversationType: ConversationType,
+                             sending: CallBack.MessageReturnVoid,
+                             onComplete: @escaping CallBack.MessageReturnVoid) {
         
         let message = CRIMMessageInfo.createImageMsg(fromFullPath: path)
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendVideoMsg(path: String,
-                                 duration: Int,
-                                 snapshotPath: String,
-                                 to recvID: String,
-                                 conversationType: ConversationType,
-                                 sending: CallBack.MessageReturnVoid,
-                                 onComplete: @escaping CallBack.MessageReturnVoid) {
+                             duration: Int,
+                             snapshotPath: String,
+                             to recvID: String,
+                             groupName: String? = nil,
+                             conversationType: ConversationType,
+                             sending: CallBack.MessageReturnVoid,
+                             onComplete: @escaping CallBack.MessageReturnVoid) {
         
         let message = CRIMMessageInfo.createVideoMsg(fromFullPath: path,
                                                         videoType: String(path.split(separator: ".").last ?? "mp4"),
@@ -811,30 +870,32 @@ extension IMController {
                                                         snapshotPath: snapshotPath)
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendAudioMsg(path: String,
-                                 duration: Int,
-                                 to recvID: String,
-                                 conversationType: ConversationType,
-                                 sending: CallBack.MessageReturnVoid,
-                                 onComplete: @escaping CallBack.MessageReturnVoid) {
+                             duration: Int,
+                             to recvID: String,
+                             conversationType: ConversationType,
+                             sending: CallBack.MessageReturnVoid,
+                             groupName: String? = nil,
+                             onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createSoundMsg(fromFullPath: path, duration: duration)
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendCardMsg(card: CardElem,
-                                to recvID: String,
-                                conversationType: ConversationType,
-                                sending: CallBack.MessageReturnVoid,
-                                onComplete: @escaping CallBack.MessageReturnVoid) {
+                            to recvID: String,
+                            conversationType: ConversationType,
+                            sending: CallBack.MessageReturnVoid,
+                            groupName: String? = nil,
+                            onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createCardMsg(card.toCRIMCardElem())
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendLocation(latitude: Double,
@@ -843,32 +904,35 @@ extension IMController {
                              to recvID: String,
                              conversationType: ConversationType,
                              sending: CallBack.MessageReturnVoid,
+                             groupName: String? = nil,
                              onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createLocationMsg(desc, latitude: latitude, longitude: longitude)
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     
     public func sendFileMsg(filePath: String,
-                                to recvID: String,
-                                conversationType: ConversationType,
-                                sending: CallBack.MessageReturnVoid,
-                                onComplete: @escaping CallBack.MessageReturnVoid) {
+                            to recvID: String,
+                            conversationType: ConversationType,
+                            sending: CallBack.MessageReturnVoid,
+                            groupName: String? = nil,
+                            onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createFileMsg(fromFullPath: filePath,
                                                        fileName: (filePath as NSString).lastPathComponent)
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func sendMergeMsg(messages: [MessageInfo],
-                                 title: String, // let title = conversationType != .c1v1 ? "群聊的聊天记录" : "\(conversation.showName!)与\(currentUserRelay.value!.nickname!)的聊天记录"
-                                 to recvID: String,
-                                 conversationType: ConversationType,
-                                 sending: CallBack.MessageReturnVoid,
-                                 onComplete: @escaping CallBack.MessageReturnVoid) {
+                             title: String,
+                             to recvID: String,
+                             conversationType: ConversationType,
+                             sending: CallBack.MessageReturnVoid,
+                             groupName: String? = nil,
+                             onComplete: @escaping CallBack.MessageReturnVoid) {
         
         let summaryList = messages.map { ($0.senderNickname ?? "") + ":" +  MessageHelper.getSummary(by: $0) }
         
@@ -876,7 +940,7 @@ extension IMController {
         
         message.status = .sending
         sending(message.toMessageInfo())
-        sendCRIMMsg(message: message, to: recvID, conversationType: conversationType, onComplete: onComplete)
+        sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
     }
     
     public func revokeMsg(conversationID: String, clientMsgID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
@@ -1038,6 +1102,11 @@ extension IMController {
         }
     }
     
+    public func clearConversationAndDeleteAllMsg(conversationID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+        Self.shared.imManager.clearConversationAndDeleteAllMsg(conversationID, onSuccess: onSuccess) { code, msg in
+            print("清空会话失败:\(code), .msg:\(msg)")
+        }
+    }
     
     public func setGlobalRecvMsgOpt(op: ReceiveMessageOpt, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
         let opt = CRIMReceiveMessageOpt(rawValue: op.rawValue) ?? CRIMReceiveMessageOpt.receive
@@ -1185,6 +1254,7 @@ extension IMController: CRIMConversationListener {
 
 extension IMController: CRIMAdvancedMsgListener {
     public func onRecvNewMsg(_ msg: CRIMMessageInfo) {
+        print("onRecvNewMsg clientMsgID:\(msg.clientMsgID)")
         if msg.contentType.rawValue < 1000,
            msg.contentType != .typing,
            msg.contentType != .revoke,
@@ -1904,7 +1974,6 @@ public class QuoteElem: Encodable {
 public class CustomElem: Encodable {
     public var data: String?
     public var ext: String?
-    public var description: String?
     
     public func value() -> [String: Any]? {
         if let data = data {
@@ -2527,7 +2596,6 @@ extension CRIMCustomElem {
         let item = CustomElem()
         item.data = data
         item.ext = self.extension
-        item.description = description
         return item
     }
 }

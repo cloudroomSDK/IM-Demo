@@ -7,7 +7,7 @@ import RxCocoa
 import ProgressHUD
 import Localize_Swift
 import MJExtension
-//import GTSDK
+import GTSDK
 
 class MainTabViewController: UITabBarController {
     private let _disposeBag = DisposeBag()
@@ -33,6 +33,11 @@ class MainTabViewController: UITabBarController {
             }
             return badge
         }).bind(to: chatNav.tabBarItem.rx.badgeValue).disposed(by: _disposeBag)
+        
+        IMController.shared.totalUnreadSubject.asObserver().subscribe(onNext: {
+            UIApplication.shared.applicationIconBadgeNumber = $0
+            GeTuiSdk.setBadge(UInt($0))
+        }).disposed(by: _disposeBag)
         
         let contactVC = ContactsViewController()
         contactVC.viewModel.dataSource = self
@@ -124,8 +129,8 @@ class MainTabViewController: UITabBarController {
                 appSecret = appSecret.md5()
             }
             
-            guard let phone = controller.phone, !phone.isEmpty else {
-                ProgressHUD.showError("填写正确的手机号码")
+            guard let phone = controller.phone, !phone.isEmpty, controller.validatePhoneNumber(phone) else {
+                ProgressHUD.showError("填写正确的手机号码".localized())
                 return
             }
             
@@ -133,7 +138,7 @@ class MainTabViewController: UITabBarController {
             let code = controller.verificationCode
             
             guard code?.isEmpty == false else {
-                ProgressHUD.showError("填写正确的验证码")
+                ProgressHUD.showError("填写正确的验证码".localized())
                 return
             }
             var account: String?
@@ -145,7 +150,16 @@ class MainTabViewController: UITabBarController {
                                        verificationCode: code,
                                        areaCode: controller.areaCode) {[weak self] (errCode, errMsg) in
                 if errMsg != nil {
-                    ProgressHUD.showError(errMsg)
+                    switch errCode {
+                    case 1005:
+                        ProgressHUD.showError("用户已注册".localized())
+                    case 20006, 20007:
+                        ProgressHUD.showError("验证码已过期".localized())
+                    case 20012:
+                        ProgressHUD.showError("该账号已注销".localized())
+                    default:
+                        ProgressHUD.showError(errMsg)
+                    }
                     self?.presentLoginController()
                 } else {
                     ProgressHUD.dismiss()

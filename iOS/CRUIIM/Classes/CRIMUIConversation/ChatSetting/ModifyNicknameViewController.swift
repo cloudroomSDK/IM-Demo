@@ -12,6 +12,13 @@ open class ModifyNicknameViewController: UIViewController {
         v.font = .f17
         v.text = "昵称".innerLocalized()
         
+        let maxTextLength = 30
+        // 监听UITextView的文本变化
+        v.rx.text.orEmpty
+            .map { String($0.prefix(maxTextLength)) } // 限制输入文本的长度
+            .bind(to: v.rx.text) // 将限制后的文本绑定回UITextView
+            .disposed(by: disposeBag)
+        
         v.rx.text.orEmpty.asDriver().map({ $0.count > 0}).drive(completeBtn.rx.isEnabled).disposed(by: disposeBag)
         
         return v

@@ -11,6 +11,7 @@ class SettingViewModel {
     
     let notDisturbRelay: BehaviorRelay<Bool> = .init(value: false)
     let blockedList: BehaviorRelay<[BlackInfo]> = .init(value: [])
+    private let _disposeBag = DisposeBag()
     
     func getSettingInfo() {
         IMController.shared.getSelfInfo {[weak self] user in
@@ -77,6 +78,17 @@ class SettingViewModel {
     
     func clearHistory(onSuccess: @escaping CallBack.StringOptionalReturnVoid)  {
         IMController.shared.deleteAllMsgFromLocalAndSvr(onSuccess: onSuccess)
+    }
+    
+    func clearConversationAndDeleteAllMsg(onSuccess: @escaping CallBack.StringOptionalReturnVoid)  {
+        IMController.shared.getAllConversationList { conversations in
+            for conversation in conversations {
+                IMController.shared.clearConversationAndDeleteAllMsg(conversationID: conversation.conversationID) { _ in
+                    
+                }
+            }
+            onSuccess(nil)
+        }
     }
     
     func changePassword(password: String, completion: @escaping CompletionHandler) {
