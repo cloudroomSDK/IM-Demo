@@ -10,11 +10,11 @@ public struct FormatUtil {
             let hour = seconds / 3600
             let min = seconds % 3600 / 60
             let sec = seconds % 3600 % 60
-            return String(format: "%02d:%02d:%02d", hour, min, sec)
+            return String(format: "%d:%d:%d", hour, min, sec)
         } else {
             let min = seconds / 60
             let sec = seconds % 60 % 60
-            return String(format: "%02d:%02d", min, sec)
+            return String(format: "%d:%d", min, sec)
         }
     }
     

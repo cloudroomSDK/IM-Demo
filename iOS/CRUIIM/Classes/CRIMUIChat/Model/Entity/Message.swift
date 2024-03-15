@@ -17,8 +17,11 @@ enum MessageType: Hashable {
 
 // 控制已读状态
 enum MessageStatus: Hashable {
+    case sending
+    case sendFailure
     case sent
     case received
+    case read
 }
 
 // 控制显示类型
@@ -135,6 +138,26 @@ struct MediaMessageSource: Hashable {
     var source: Info
     var thumb: Info?
     var duration: Int?
+    var isPlaying: Bool = false
+    
+    var fileSize: Int = 0
+    var fileName: String?
+}
+
+struct CardMessageSource: Hashable {
+    var user: User
+    var image: UIImage?
+}
+
+struct LocationMessageSource: Hashable {
+    struct Desc: Decodable, Hashable  {
+        var name: String?
+        var addr: String?
+    }
+    
+    var longitude: Double
+    var latitude: Double
+    var desc: Desc?
 }
 
 struct QuoteMessageSource: Hashable {
@@ -143,9 +166,6 @@ struct QuoteMessageSource: Hashable {
     
     var quoteUser: String
     var quoteData: Message.Data
-//    var textSource: TextMessageSource?
-//    var imageSource: MediaMessageSource?
-//    var videoSource: MediaMessageSource?
 }
 
 // 自定义消息
@@ -189,6 +209,14 @@ struct Message: Hashable {
         case image(MediaMessageSource, isLocallyStored: Bool)
         
         case video(MediaMessageSource, isLocallyStored: Bool) // 视频路径，缩略图路径，时长
+        
+        case audio(MediaMessageSource, isLocallyStored: Bool)
+        
+        case file(MediaMessageSource, isLocallyStored: Bool)
+        
+        case card(CardMessageSource)
+        
+        case location(LocationMessageSource)
         
         case quote(QuoteMessageSource)
         

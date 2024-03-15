@@ -7,3 +7,6 @@ var metadataCache = IterativeCache(mainCache: MetaDataCache(cache: MemoryDataCac
 
 let imageCache = IterativeCache(mainCache: ImageForUrlCache(cache: MemoryDataCache<CacheableImageKey>()),
                                 backupCache: ImageForUrlCache(cache: PersistentDataCache<CacheableImageKey>()))
+
+let fileCache = IterativeCache(mainCache: FileForUrlCache(cache: MemoryDataCache<CacheableFileKey>()),
+                                backupCache: FileForUrlCache(cache: PersistentDataCache<CacheableFileKey>()))

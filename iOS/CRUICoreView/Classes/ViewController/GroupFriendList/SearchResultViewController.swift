@@ -2,6 +2,13 @@ import CRUICore
 import RxSwift
 import SnapKit
 
+struct SearchFriendGroupResultItem {
+    var ID: String
+    var showName: String
+    var faceURL: String?
+    var isFriend: Bool = true
+}
+
 public class SearchResultViewController: UIViewController, UISearchResultsUpdating {
     
     public var didSelectedItem: ((_ ID: String) -> Void)?
@@ -36,12 +43,13 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
     }()
     
     private var debounceTimer: Timer?
-    var dataList = [[String: String]]() {
+    var dataList = [SearchFriendGroupResultItem]() {
         willSet {
             dataList = newValue
             tableView.reloadData()
         }
     }
+
     private let _disposebag = DisposeBag()
     private let _searchType: SearchType
     private var userInfo: FullUserInfo?
@@ -65,7 +73,7 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
     }
     
     private func initView() {
-        view.backgroundColor = .groupTableViewBackground
+        view.backgroundColor = .white
         
         view.addSubview(tableView)
         tableView.snp.makeConstraints { make in
@@ -101,6 +109,34 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
     
     private var keyword: String = ""
     
+    private func checkIsFriendship() {
+        DispatchQueue.global().async { [weak self] in
+            let group = DispatchGroup()
+            var modifiedList: [SearchFriendGroupResultItem] = []
+            
+            self?.dataList.forEach { item in
+                group.enter()
+                
+                IMController.shared.checkFriendBy(userID: item.ID).subscribe { [weak self] (result: Bool) in
+                    var modifiedItem = item
+                    modifiedItem.isFriend = result
+                    
+                    let pointer = withUnsafePointer(to: modifiedItem) {
+                        "\($0)"
+                    }
+                    
+                    modifiedList.append(modifiedItem)
+                    group.leave()
+                }
+            }
+            
+            group.wait()
+            DispatchQueue.main.async { [weak self] in
+                self?.dataList = modifiedList
+            }
+        }
+    }
+    
     public func updateSearchResults(for searchController: UISearchController) {
         let keyword = searchController.searchBar.text?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard let keyword = keyword, !keyword.isEmpty else {
@@ -123,7 +159,7 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
                     self?.searchResultEmptyView.isHidden = shouldHideEmptyView
                     self?.tableView.isHidden = shouldHideResultView
                     if groupID != nil {
-                        self?.dataList = [[groupID!: groupID!]]
+                        self?.dataList = [SearchFriendGroupResultItem(ID: groupID!, showName: groupID!, faceURL: "")]
                     }
                 }
             }).disposed(by: _disposebag)
@@ -135,6 +171,10 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
                     let shouldHideResultView = res.isEmpty
                     DispatchQueue.main.async { [weak self] in
                         guard let `self` = self else { return }
+                        defer {
+                            self.checkIsFriendship()
+                        }
+                        
                         self.searchResultEmptyView.isHidden = shouldHideEmptyView
                         self.tableView.isHidden = shouldHideResultView
                         // 输入的类型
@@ -143,16 +183,17 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
                         let isEmail = self.isEmail(keyword)
                         
                         self.dataList = res.map { elem in
+                            let faceURL = elem.faceURL ?? ""
                             if isNumber {
                                 if isPhone {
-                                    return [elem.userID : "手机号:" + elem.phoneNumber!]
+                                    return SearchFriendGroupResultItem(ID: elem.userID, showName: elem.phoneNumber!, faceURL: faceURL)
                                 } else {
-                                    return [elem.userID : "ID:" + elem.userID]
+                                    return SearchFriendGroupResultItem(ID: elem.userID, showName: "ID:" + elem.userID, faceURL: faceURL)
                                 }
                             } else if isEmail {
-                                return [elem.userID : "邮箱:" + elem.email!]
+                                return SearchFriendGroupResultItem(ID: elem.userID, showName: "邮箱:" + elem.email!, faceURL: faceURL)
                             } else {
-                                return [elem.userID : "昵称:" + elem.nickname!]
+                                return SearchFriendGroupResultItem(ID: elem.userID, showName: elem.nickname!, faceURL: faceURL)
                             }
                         }
                     }
@@ -163,12 +204,16 @@ public class SearchResultViewController: UIViewController, UISearchResultsUpdati
                     let uid = userInfo?.userID
                     let shouldHideEmptyView = uid != nil
                     let shouldHideResultView = uid == nil
+                    let faceURL = userInfo?.publicInfo?.faceURL ?? ""
                     DispatchQueue.main.async {
+                        defer {
+                            self?.checkIsFriendship()
+                        }
                         self?.searchResultEmptyView.isHidden = shouldHideEmptyView
                         self?.tableView.isHidden = shouldHideResultView
                         
                         if uid != nil {
-                            self?.dataList = [[uid! :uid!]]
+                            self?.dataList = [SearchFriendGroupResultItem(ID: uid!, showName: keyword, faceURL: faceURL)]
                         }
                     }
                 }.disposed(by: _disposebag)
@@ -214,16 +259,26 @@ extension SearchResultViewController: UITableViewDelegate, UITableViewDataSource
         let cell = tableView.dequeueReusableCell(withIdentifier: SearchResultCell.className, for: indexPath) as! SearchResultCell
         let info = dataList[indexPath.row]
         
-        let text = info.values.first
-        cell.titleLabel.text = text
+        let placeholderName: String = _searchType == .user ? "contact_my_friend_icon" : "contact_group_setting_icon"
+        let faceURL = info.faceURL
+        cell.avatarImageView.setAvatar(url: faceURL, text: nil, placeHolder: placeholderName)
+        
+        cell.titleLabel.text = info.showName
+        
+        cell.addFriendBtn.isHidden = _searchType != .user || info.isFriend
+        cell.addFriendBtn.isUserInteractionEnabled = false
+        /*
+        cell.addFriendBtnTapHandler = { [weak self] in
+            guard let self = self else { return }
+            
+        }
+        */
         
         return cell
     }
     
     public func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         let info = dataList[indexPath.row]
-        if let id = info.keys.first {
-            didSelectedItem?(id)
-        }
+        didSelectedItem?(info.ID)
     }
 }

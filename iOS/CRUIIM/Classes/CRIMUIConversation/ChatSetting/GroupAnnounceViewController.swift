@@ -144,6 +144,8 @@ class GroupAnnounceViewController: UIViewController {
                     IMController.shared.setGrpInfo(group: self.groupInfo) { _ in
                         ProgressHUD.showSuccess()
                         self.navigationController?.popViewController(animated: true)
+                    } onFailure: { errCode, errMsg in
+                        ProgressHUD.dismiss()
                     }
                 }
             }

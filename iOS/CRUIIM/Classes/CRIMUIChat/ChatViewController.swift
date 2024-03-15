@@ -8,6 +8,8 @@ import CRUICore
 import CRUICoreView
 import ProgressHUD
 import FDFullscreenPopGesture
+import Photos
+import RxSwift
 
 final class ChatViewController: UIViewController {
     
@@ -51,6 +53,8 @@ final class ChatViewController: UIViewController {
     
     private var oldLeftBarButtonItem: UIBarButtonItem?
     
+    private let _disposeBag = DisposeBag()
+    
     private let chatController: ChatController
     private let dataSource: ChatCollectionDataSource
     private var animator: ManualAnimator?
@@ -59,6 +63,13 @@ final class ChatViewController: UIViewController {
     private var currentOffset: CGFloat = 0
     
     private var documentInteractionController: UIDocumentInteractionController!
+    
+    private weak var currentPlayingMessage: MessageInfo?
+    
+    private lazy var _audioPlayer: AVPlayer = {
+        let v = AVPlayer(playerItem: nil)
+        return v
+    }()
     
     private lazy var panGesture: UIPanGestureRecognizer = {
         let gesture = UIPanGestureRecognizer(target: self, action: #selector(handleRevealPan(_:)))
@@ -177,6 +188,14 @@ final class ChatViewController: UIViewController {
         KeyboardListener.shared.add(delegate: self)
 //        collectionView.addGestureRecognizer(panGesture)
         
+        NotificationCenter.default.rx.notification(NSNotification.Name.AVPlayerItemDidPlayToEndTime).subscribe(onNext: { [weak self] _ in
+            guard let sself = self else { return }
+            if let currentItem = sself.currentPlayingMessage {
+                sself._audioPlayer.replaceCurrentItem(with: nil)
+                sself.chatController.markAudio(messageId: currentItem.clientMsgID ?? "", isPlaying: false)
+            }
+        }).disposed(by: _disposeBag)
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -267,6 +286,7 @@ final class ChatViewController: UIViewController {
     private func setupInputBar() {
         inputBarView.delegate = self
         inputBarView.shouldAnimateTextDidChangeLayout = true
+        inputBarView.weakReferenceParentView(superView: self.view)
     }
     
     @objc private func cancelEdit() {
@@ -471,6 +491,68 @@ extension ChatViewController: ChatControllerDelegate {
             navigationController?.addChild(vc)
             navigationController?.view.addSubview(vc.view)
             
+        case .audio(let source, let isLocallyStored):
+            guard let msg = chatController.getMessageInfo(ids: [id]).first(where: { $0.clientMsgID == id }) else {
+                return
+            }
+            
+            var message: MessageInfo = msg
+            if msg.contentType == .quote, let quoteMessage = msg.quoteElem?.quoteMessage {
+                message = quoteMessage
+            }
+                        
+            // 如果当前音频消息正在播放，停止
+            if message.isPlaying {
+                _audioPlayer.pause()
+                _audioPlayer.replaceCurrentItem(with: nil)
+                chatController.markAudio(messageId: message.clientMsgID ?? "", isPlaying: false)
+                return
+            }
+            var playItem: AVPlayerItem?
+            if let audioUrl = message.soundElem?.soundPath {
+                let url = URL(fileURLWithPath: audioUrl)
+                if FileManager.default.fileExists(atPath: url.path) {
+                    playItem = AVPlayerItem(url: url)
+                } else if let url = source.source.url, fileCache.isEntityCached(for: CacheableFileKey(url: url)), let filePath = try? fileCache.getEntity(for: CacheableFileKey(url: url)) {
+                    let url = URL(fileURLWithPath: documents + filePath)
+                    playItem = AVPlayerItem(url: url)
+                }
+            } else if let audioUrl = message.soundElem?.sourceUrl, let url = URL(string: audioUrl) {
+                playItem = AVPlayerItem(url: url)
+            }
+
+            if let playItem = playItem {
+                currentPlayingMessage = message
+                try? AVAudioSession.sharedInstance().setCategory(.playback)
+                _audioPlayer.replaceCurrentItem(with: playItem)
+                _audioPlayer.play()
+                chatController.markAudio(messageId: message.clientMsgID ?? "", isPlaying: true)
+            }
+            
+        case .file(let source, let isLocallyStored):
+            let fileManager = FileManager.default
+            var fileURL: URL?
+            if let url = source.source.url, fileCache.isEntityCached(for: CacheableFileKey(url: url)), let filePath = try? fileCache.getEntity(for: CacheableFileKey(url: url)) {
+                fileURL = URL(fileURLWithPath: documents + filePath)
+            } else if let path = source.source.relativePath, let url = URL(string: path), fileCache.isEntityCached(for: CacheableFileKey(url: url)), let filePath = try? fileCache.getEntity(for: CacheableFileKey(url: url)) {
+                fileURL = URL(fileURLWithPath: documents + filePath)
+            }
+            guard let fileURL = fileURL, fileManager.fileExists(atPath: fileURL.path) else {
+                debugPrint("preview file failed, file path not exist")
+                return
+            }
+            
+            let vc = FilePreviewController(fileURL: fileURL, fileName: source.fileName)
+            navigationController?.pushViewController(vc, animated: true)
+            
+        case .card(let source):
+            let vc = UserDetailTableViewController(userId: source.user.id)
+            navigationController?.pushViewController(vc, animated: true)
+            
+        case .location(let source):
+            let vc = LocationViewController(locationFor: .locationForShow, latitude: source.latitude, longitude: source.longitude, name: source.desc?.name, addr: source.desc?.addr)
+            navigationController?.pushViewController(vc, animated: true)
+            
         case .quote(let source):
             break
             
@@ -501,29 +583,48 @@ extension ChatViewController: ChatControllerDelegate {
         switch data {
         case .text(let string):
             print("点击纯文本消息")
-            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
+            toolItems = [.copy, .delete, .forward, .reply, .muiltSelection]
             break
         case .attributeText(let nSAttributedString):
             print("点击富文本消息")
-            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
+            toolItems = [.copy, .delete, .forward, .reply, .muiltSelection]
             break
         case .url(let uRL, let isLocallyStored):
             print("点击url消息")
             break
         case .image(let source, let isLocallyStored):
-            toolItems = [.delete, .reply, .forward, .muiltSelection]
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
             break
         case .video(let source, let isLocallyStored):
-            toolItems = [.delete, .reply, .forward, .muiltSelection]
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
             break
+        case .audio(let source, let isLocallyStored):
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
+            break
+        case .file(let source, let isLocallyStored):
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
+            break
+        case .card(let source):
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
+        case .location(let source):
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
         case .quote(let source):
-            toolItems = [.copy, .delete, .reply, .forward, .muiltSelection]
+            toolItems = [.copy, .delete, .forward, .reply, .muiltSelection]
         case .custom(let source):
             break
         }
-        if isMyMessage, self.chatController.isMsgRevokedExpired(timestamp: (messageInfo?.createTime ?? 0)/1000) == false {
-            toolItems.append(.revoke)
+        
+        let isExpired = self.chatController.isMsgRevokedExpired(timestamp: (messageInfo?.createTime ?? 0)/1000)
+        if isMyMessage, isExpired == false, let index = toolItems.index(of: .delete) {
+            toolItems.insert(.revoke, at: index + 1)
         }
+        
+        /*
+        if self.chatController.getConversation().conversationType == .group, !toolItems.contains(.revoke) {
+            
+        }
+        */
+        
         if toolItems.isEmpty { return }
         let menu = ChatToolController(sourceView: bubbleView, items: toolItems)
 
@@ -548,6 +649,14 @@ extension ChatViewController: ChatControllerDelegate {
                     self?.inputBarView.updateMiddleContentView(true, quoteText + "[图片]".innerLocalized())
                 case .video(let source, let isLocallyStored):
                     self?.inputBarView.updateMiddleContentView(true, quoteText + "[视频]".innerLocalized())
+                case .audio(let source, let isLocallyStored):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[语音]".innerLocalized())
+                case .file(let source, let isLocallyStored):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[文件]".innerLocalized())
+                case .card(let source):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[名片]".innerLocalized())
+                case .location(let source):
+                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[位置]".innerLocalized())
                 default:
                     break
                 }
@@ -555,17 +664,19 @@ extension ChatViewController: ChatControllerDelegate {
                 self?.chatController.defaultSelecteMessage(with: id)
                 self?.chatController.deleteMsgs()
             case .forward:
+                guard let self else { return }
+                let completion = self.completionHandler()
                 let vc = SelectContactsViewController()
                 vc.selectedContact() { [weak self] r in
                     guard let self else { return }
                     self.navigationController?.popViewController(animated: true)
                     self.chatController.defaultSelecteMessage(with: id)
-                    self.chatController.sendForwardMsg(r) { _ in
-                        
-                    }
+                    self.scrollToBottom(completion: {
+                        self.chatController.sendForwardMsg(r, completion: completion)
+                    })
                 }
                 vc.hidesBottomBarWhenPushed = true
-                self?.navigationController?.pushViewController(vc, animated: true)
+                self.navigationController?.pushViewController(vc, animated: true)
             case .copy:
                 var content: String?
                 switch data {
@@ -809,17 +920,84 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                         let source = MediaMessageSource(source: MediaMessageSource.Info(url: URL(string: path)!, relativePath: path))
                         
                         self.chatController.sendMsg(.image(source, isLocallyStored: true),
-                                                        completion: completion)
+                                                    completion: completion)
 
                     case .video(let thumbRelativePath, let thumbPath, let mediaFullPath, let duration):
                         let source = MediaMessageSource(source: MediaMessageSource.Info(url: URL(string: mediaFullPath)!),
                                                         thumb: MediaMessageSource.Info(url: URL(string: thumbPath)!, relativePath: thumbPath),
                                                         duration: duration)
                         
-                        self.chatController.sendMsg(.video(source, isLocallyStored: true), completion: completion)
+                        self.chatController.sendMsg(.video(source, isLocallyStored: true), 
+                                                    completion: completion)
+                        
+                    case .file(let relativePath, let path, let fileName):
+                        let source = MediaMessageSource(source: MediaMessageSource.Info(url: URL(fileURLWithPath: path), relativePath: relativePath),
+                                                        fileName: fileName)
+                        self.chatController.sendMsg(.file(source, isLocallyStored: true), 
+                                                    completion: completion)
+                        
+                    case .audio(let relativePath, let path, let duration):
+                        let source = MediaMessageSource(source: MediaMessageSource.Info(url: URL(fileURLWithPath: path), relativePath: relativePath),
+                                                        duration: duration)
+                        self.chatController.sendMsg(.audio(source, isLocallyStored: true),
+                                                    completion: completion)
                     }
                 }
             })
+        }
+    }
+    
+    func inputBar(_ inputBar: InputBarAccessoryView, didPressPadItemWith type: PadItemType) {
+        // 发送结束的操作
+        let completion = completionHandler()
+        switch type {
+        case .card:
+            
+            let vc = SelectContactsViewController(multiple: false)
+            vc.selectedContact() { [weak self] r in
+                
+                self?.currentInterfaceActions.options.insert(.sendingMessage)
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) { [weak self] in
+                    inputBar.inputTextView.text = String()
+                    inputBar.invalidatePlugins()
+                    guard let self, let contact = r.first else { 
+                        self?.currentInterfaceActions.options.remove(.sendingMessage)
+                        return
+                    }
+                    
+                    self.scrollToBottom(completion: {
+                        inputBar.sendButton.startAnimating()
+                        self.chatController.sendCardMsg(contact, completion: completion)
+                        self.navigationController?.popViewController(animated: true)
+                    })
+                }
+            }
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
+            
+        case .location:
+            let vc = LocationViewController()
+            vc.modalPresentationStyle = .fullScreen
+            vc.selectedLocation() { [weak self] latitude, longitude, desc in
+                self?.currentInterfaceActions.options.insert(.sendingMessage)
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) { [weak self] in
+                    inputBar.inputTextView.text = String()
+                    inputBar.invalidatePlugins()
+                    guard let self else {
+                        self?.currentInterfaceActions.options.remove(.sendingMessage)
+                        return
+                    }
+                    
+                    self.scrollToBottom(completion: {
+                        inputBar.sendButton.startAnimating()
+                        self.chatController.sendLocationMsg(latitude, longitude, desc, completion: completion)
+                    })
+                }
+            }
+            present(vc, animated: true)
+            
+        default:
+            break
         }
     }
     

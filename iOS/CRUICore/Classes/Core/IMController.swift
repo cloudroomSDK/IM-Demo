@@ -41,6 +41,7 @@ public enum ConnectionStatus: Int {
 public enum SDKError: Int {
     case deletedByFriend = 601 // 被对方删除
     case blockedByFriend = 1302 // 被对方拉黑
+    case differentAppID = 1305 // 不同个项目下不能添加
     case mutedInGroup = 1402 // 被禁言
     case refuseToAddFriends = 10007 // 该用户已设置不可添加
 }
@@ -84,6 +85,7 @@ public class IMController: NSObject {
     public let currentUserRelay: BehaviorRelay<UserInfo?> = .init(value: nil)
     public let momentsReceivedSubject: PublishSubject<String?> = .init()
     public let organizationUpdated: PublishSubject<String?> = .init()
+    public let msgSendProgressSubject: BehaviorSubject<(String?, Int)> = .init(value: (nil, 0))
     // 连接状态
     public let connectionRelay: BehaviorRelay<ConnectionStatus> = .init(value: .connecting)
     
@@ -441,10 +443,8 @@ extension IMController {
         }
     }
     
-    public func setGrpInfo(group: GroupInfo, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
-        Self.shared.imManager.setGrpInfo(group.toCRIMGroupInfo(), onSuccess: onSuccess) { code, msg in
-            print("更新群信息失败：\(code), \(msg)")
-        }
+    public func setGrpInfo(group: GroupInfo, onSuccess: @escaping CallBack.StringOptionalReturnVoid, onFailure: CallBack.ErrorOptionalReturnVoid? = nil) {
+        Self.shared.imManager.setGrpInfo(group.toCRIMGroupInfo(), onSuccess: onSuccess, onFailure: onFailure)
     }
     
     public func setGrpVerification(groupId: String, type: GroupVerificationType, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
@@ -681,8 +681,9 @@ extension IMController {
                     model.status = .sendSuccess
                     onComplete(model)
                 }
-            } onProgress: { (progress: Int) in
-                print("sending message progress: \(progress)")
+            } onProgress: { [weak self] (progress: Int) in
+                self?.msgSendProgressSubject.onNext((model.clientMsgID, progress))
+                print("sending message id: \(model.clientMsgID)  progress: \(progress)")
             } onFailure: { [weak self] (errCode: Int, msg: String?) in
                 print("send message error:", msg)
                 var customMessage: MessageInfo?
@@ -876,9 +877,9 @@ extension IMController {
     public func sendAudioMsg(path: String,
                              duration: Int,
                              to recvID: String,
+                             groupName: String? = nil,
                              conversationType: ConversationType,
                              sending: CallBack.MessageReturnVoid,
-                             groupName: String? = nil,
                              onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createSoundMsg(fromFullPath: path, duration: duration)
         message.status = .sending
@@ -888,9 +889,9 @@ extension IMController {
     
     public func sendCardMsg(card: CardElem,
                             to recvID: String,
+                            groupName: String? = nil,
                             conversationType: ConversationType,
                             sending: CallBack.MessageReturnVoid,
-                            groupName: String? = nil,
                             onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createCardMsg(card.toCRIMCardElem())
         message.status = .sending
@@ -902,9 +903,9 @@ extension IMController {
                              longitude: Double,
                              desc: String,
                              to recvID: String,
+                             groupName: String? = nil,
                              conversationType: ConversationType,
                              sending: CallBack.MessageReturnVoid,
-                             groupName: String? = nil,
                              onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createLocationMsg(desc, latitude: latitude, longitude: longitude)
         message.status = .sending
@@ -914,13 +915,14 @@ extension IMController {
     
     
     public func sendFileMsg(filePath: String,
+                            fileName: String,
                             to recvID: String,
+                            groupName: String? = nil,
                             conversationType: ConversationType,
                             sending: CallBack.MessageReturnVoid,
-                            groupName: String? = nil,
                             onComplete: @escaping CallBack.MessageReturnVoid) {
         let message = CRIMMessageInfo.createFileMsg(fromFullPath: filePath,
-                                                       fileName: (filePath as NSString).lastPathComponent)
+                                                       fileName: fileName)
         message.status = .sending
         sending(message.toMessageInfo())
         sendCRIMMsg(message: message, to: recvID, groupName: groupName, conversationType: conversationType, onComplete: onComplete)
@@ -929,9 +931,9 @@ extension IMController {
     public func sendMergeMsg(messages: [MessageInfo],
                              title: String,
                              to recvID: String,
+                             groupName: String? = nil,
                              conversationType: ConversationType,
                              sending: CallBack.MessageReturnVoid,
-                             groupName: String? = nil,
                              onComplete: @escaping CallBack.MessageReturnVoid) {
         
         let summaryList = messages.map { ($0.senderNickname ?? "") + ":" +  MessageHelper.getSummary(by: $0) }
@@ -954,6 +956,12 @@ extension IMController {
          print("消息删除失败:\(code), msg:\(msg)")
             onFailure(code, msg)
         }
+        /*
+        Self.shared.imManager.deleteMsg(fromLocalStorage:conversation, clientMsgID: clientMsgID, onSuccess: onSuccess) { code, msg in
+         print("消息删除失败:\(code), msg:\(msg)")
+            onFailure(code, msg)
+        }
+        */
     }
     
     public func createCustomMsg(customType: CustomMessageType, data: [String: Any]) -> MessageInfo {
@@ -967,12 +975,13 @@ extension IMController {
         Self.shared.imManager.markConversationMsg(asRead: byConID, onSuccess: onSuccess)
     }
     
-    public func createGrpConversation(users: [UserInfo], groupName: String = "", onSuccess: @escaping CallBack.GroupInfoOptionalReturnVoid) {
+    public func createGrpConversation(faceURL: String = "", users: [UserInfo], groupName: String = "", onSuccess: @escaping CallBack.GroupInfoOptionalReturnVoid) {
         
         let nickname = currentUserRelay.value?.nickname
         
         let groupInfo = CRIMGroupBaseInfo()
         groupInfo.groupName = groupName.isEmpty ? nickname?.append(string: "创建的群聊".innerLocalized()) : groupName
+        groupInfo.faceURL = faceURL
         
         let createInfo = CRIMGroupCreateInfo()
         createInfo.memberUserIDs = users.compactMap({ $0.userID.isEmpty ? nil : $0.userID })
@@ -1008,7 +1017,7 @@ extension IMController {
         }
     }
     
-    public func uploadFile(fullPath: String, onProgress: @escaping CallBack.ProgressReturnVoid, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+    public func uploadFile(fullPath: String, onProgress: @escaping CallBack.ProgressReturnVoid, onSuccess: @escaping CallBack.StringOptionalReturnVoid, onFailure: CallBack.ErrorOptionalReturnVoid? = nil) {
         Self.shared.imManager.uploadFile(fullPath,
                                          name: nil,
                                          cause: nil) { total, current, save in
@@ -1023,6 +1032,9 @@ extension IMController {
             onSuccess(dic["url"] as! String)
         } onFailure: { code, msg in
             print("上传文件失败:\(code), \(msg)")
+            
+            guard let onFailure = onFailure else { return }
+            onFailure(code, msg)
         }
     }
     
@@ -1550,7 +1562,7 @@ extension GroupMemberInfo {
         case .admin:
             return "管理员"
         case .owner:
-            return "创建者"
+            return "群主"
         default:
             return ""
         }
@@ -1964,6 +1976,19 @@ public class LocationElem: Encodable {
     public var desc: String?
     public var longitude: Double = 0
     public var latitude: Double = 0
+    
+    private enum CodingKeys: String, CodingKey {
+        case desc = "description"
+        case longitude
+        case latitude
+    }
+    
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(desc, forKey: .desc)
+        try container.encode(longitude, forKey: .longitude)
+        try container.encode(latitude, forKey: .latitude)
+    }
 }
 
 public class QuoteElem: Encodable {

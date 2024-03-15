@@ -2,6 +2,12 @@
 import CRUICore
 import RxSwift
 
+public enum ModifyFor: Int {
+    case undefine
+    case nickname = 1
+    case identifier = 2
+}
+
 open class ModifyNicknameViewController: UIViewController {
     public let disposeBag = DisposeBag()
 
@@ -31,14 +37,46 @@ open class ModifyNicknameViewController: UIViewController {
         return v
     }()
     
+    public lazy var copyIDBtn: UIButton = {
+        let v = UIButton(type: .system)
+        v.setTitle("复制".innerLocalized(), for: .normal)
+        v.backgroundColor = .c0089FF
+        v.setTitleColor(.white, for: .normal)
+        v.layer.cornerRadius = 5
+        
+        return v
+    }()
+    
+    let modifyFor: ModifyFor
+    
+    public init(modifyFor: ModifyFor = .nickname) {
+        self.modifyFor = modifyFor
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    @available(*, unavailable)
+    required public init?(coder _: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     open override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .viewBackgroundColor
-        navigationItem.title = "昵称".innerLocalized()
         replaceSystemBackBarButtonItem()
+        switch modifyFor {
+        case .undefine:
+            break
+        case .nickname:
+            navigationItem.title = "昵称".innerLocalized()
+        case .identifier:
+            navigationItem.title = "ID号".innerLocalized()
+            nameTextField.clearButtonMode = .never
+            nameTextField.isEnabled = false
+        }
 
         let rightButton = UIBarButtonItem(customView: completeBtn)
         navigationItem.rightBarButtonItem = rightButton
+        completeBtn.isHidden = modifyFor == .identifier
         
         let topLine: UIView = {
             let v = UIView()
@@ -49,11 +87,11 @@ open class ModifyNicknameViewController: UIViewController {
         let container = UIView()
         container.backgroundColor = .cellBackgroundColor
         
-        container.addSubview(topLine)
-        topLine.snp.makeConstraints { make in
-            make.left.top.right.equalToSuperview()
-            make.height.equalTo(1)
-        }
+//        container.addSubview(topLine)
+//        topLine.snp.makeConstraints { make in
+//            make.left.top.right.equalToSuperview()
+//            make.height.equalTo(1)
+//        }
 
         let bottomLine: UIView = {
             let v = UIView()
@@ -61,11 +99,11 @@ open class ModifyNicknameViewController: UIViewController {
             return v
         }()
 
-        container.addSubview(bottomLine)
-        bottomLine.snp.makeConstraints { make in
-            make.left.bottom.right.equalToSuperview()
-            make.height.equalTo(1)
-        }
+//        container.addSubview(bottomLine)
+//        bottomLine.snp.makeConstraints { make in
+//            make.left.bottom.right.equalToSuperview()
+//            make.height.equalTo(1)
+//        }
 
         container.addSubview(nameTextField)
         nameTextField.snp.makeConstraints { make in
@@ -80,6 +118,15 @@ open class ModifyNicknameViewController: UIViewController {
             make.top.equalToSuperview().offset(15 + kStatusBarHeight + 44)
             make.left.right.equalToSuperview().inset(0)
             make.height.equalTo(46)
+        }
+        
+        if modifyFor == .identifier {
+            view.addSubview(copyIDBtn)
+            copyIDBtn.snp.makeConstraints { make in
+                make.width.equalTo(50)
+                make.centerY.equalTo(nameTextField.snp.centerY)
+                make.right.equalTo(nameTextField).offset(-16)
+            }
         }
     }
 }

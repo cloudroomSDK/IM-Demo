@@ -7,6 +7,14 @@ public class UnderlineButton: UIButton {
         v.backgroundColor = .systemBlue
         return v
     }()
+    
+    let backCornerView: UIView = {
+        let v = UIView()
+        v.backgroundColor = .black.withAlphaComponent(0.06)
+        v.layer.cornerRadius = 16
+        v.isHidden = true
+        return v
+    }()
 
     public var underLineWidth: CGFloat? {
         didSet {
@@ -28,6 +36,11 @@ public class UnderlineButton: UIButton {
             make.left.right.equalToSuperview()
             make.height.equalTo(3)
         }
+        
+        insertSubview(backCornerView, at: 0)
+        backCornerView.snp.makeConstraints { make in
+            make.edges.equalToSuperview().inset(UIEdgeInsets(top: 0, left: 15, bottom: 0, right: 15))
+        }
     }
 
     @available(*, unavailable)
@@ -38,6 +51,7 @@ public class UnderlineButton: UIButton {
     public override var isSelected: Bool {
         didSet {
             underline.isHidden = !isSelected
+            backCornerView.isHidden = !isSelected
         }
     }
 }

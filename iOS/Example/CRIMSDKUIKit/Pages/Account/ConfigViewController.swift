@@ -82,8 +82,8 @@ class ConfigViewController: UIViewController {
     let disposeBag = DisposeBag()
     
     let rowHeight = 54
-    let authenTypeAppID = "帐号密码鉴权方式"
-    let authenTypeToken = "Token鉴权方式"
+    let authenTypeAppID = "帐号密码鉴权"
+    let authenTypeToken = "动态Token鉴权"
     
     // 读取鉴权方式
     let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil ? false : UserDefaults.standard.bool(forKey: useTokenKey)
@@ -112,6 +112,7 @@ class ConfigViewController: UIViewController {
         let v = getConfigCell()
         let value = ConfigCellType.bussinessSever
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         v.inputTextFiled.text = severAddress
         
         let line = UIView()
@@ -129,6 +130,7 @@ class ConfigViewController: UIViewController {
         let v = getConfigCell()
         let value = ConfigCellType.sdkServer
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         v.inputTextFiled.text = sdkAPIAddr
         return v
     }()
@@ -137,6 +139,7 @@ class ConfigViewController: UIViewController {
         let v = getOptionTableViewCell()
         let value = ConfigCellType.authenType
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         v.subtitleLabel.text = currentAuthen
         
         let line = UIView()
@@ -166,6 +169,7 @@ class ConfigViewController: UIViewController {
         let v = getConfigCell()
         let value = ConfigCellType.appID
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         
         let line = UIView()
         line.backgroundColor = DemoUI.color_E0E0E0
@@ -190,6 +194,7 @@ class ConfigViewController: UIViewController {
         v.inputTextFiled.isSecureTextEntry = true
         let value = ConfigCellType.appSecret
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         v.inputTextFiled.text = appSecret
         return v
     }()
@@ -198,6 +203,7 @@ class ConfigViewController: UIViewController {
         let v = getConfigCell()
         let value = ConfigCellType.token
         v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
         v.inputTextFiled.text = token
         return v
     }()

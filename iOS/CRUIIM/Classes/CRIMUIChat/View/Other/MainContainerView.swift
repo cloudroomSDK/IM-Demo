@@ -22,8 +22,15 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
     }
 
     var customView: BezierMaskedView<CustomView> {
-        containerView.customView
+        containerView.customView.customView
     }
+    
+    lazy var trailingAudioRedLabel: UIView = {
+        let v = UIView()
+        v.backgroundColor = .cFF381F
+        
+        return v
+    }()
     
     // 阅后即焚 倒计时
     lazy var leadingCountdownLabel: UILabel = {
@@ -77,7 +84,7 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
         }
     }
 
-    private(set) lazy var containerView = CellLayoutContainerView<LeadingAccessory, BezierMaskedView<CustomView>, TrailingAccessory>()
+    private(set) lazy var containerView = CellLayoutContainerView<LeadingAccessory, VerticalContentContainerView<CustomView>, TrailingAccessory>()
 
     private weak var accessoryOffsetConstraint: NSLayoutConstraint?
 
@@ -101,8 +108,21 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
         layoutMargins = .zero
         clipsToBounds = false
         containerView.translatesAutoresizingMaskIntoConstraints = false
+        trailingAudioRedLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        let containerStack = UIStackView(arrangedSubviews: [leadingCountdownLabel, containerView, trailingCountdownLabel])
+        let statusContainerStack = UIStackView(arrangedSubviews: [containerView, trailingAudioRedLabel])
+        statusContainerStack.spacing = 5
+        statusContainerStack.alignment = .center
+        statusContainerStack.translatesAutoresizingMaskIntoConstraints = false
+        
+        let trailingAudioRedLabelLength: CGFloat = 6
+        trailingAudioRedLabel.layer.cornerRadius = trailingAudioRedLabelLength/2
+        NSLayoutConstraint.activate([
+            trailingAudioRedLabel.widthAnchor.constraint(equalToConstant: trailingAudioRedLabelLength),
+            trailingAudioRedLabel.heightAnchor.constraint(equalTo: trailingAudioRedLabel.widthAnchor, multiplier: 1),
+        ])
+        
+        let containerStack = UIStackView(arrangedSubviews: [leadingCountdownLabel, statusContainerStack, trailingCountdownLabel])
         containerStack.spacing = 8
         containerStack.translatesAutoresizingMaskIntoConstraints = false
         
@@ -137,7 +157,7 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
            !avatarView.isHidden {
             avatarView.transform = CGAffineTransform(translationX: -((avatarView.bounds.width + accessorySafeAreaInsets.left) * swipeCompletionRate), y: 0)
         }
-        switch containerView.customView.messageType {
+        switch containerView.customView.customView.messageType {
         case .incoming:
             customView.transform = .identity
             customView.transform = CGAffineTransform(translationX: -(customView.frame.origin.x * swipeCompletionRate), y: 0)
@@ -158,4 +178,5 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
 
         accessoryView.transform = CGAffineTransform(translationX: -((accessoryView.bounds.width + accessorySafeAreaInsets.right) * swipeCompletionRate), y: 0)
     }
+
 }

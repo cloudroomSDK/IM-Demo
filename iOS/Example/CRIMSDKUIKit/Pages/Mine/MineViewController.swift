@@ -121,7 +121,7 @@ extension MineViewController: UITableViewDataSource, UITableViewDelegate {
             let user = _viewModel.currentUserRelay.value
             cell.avatarView.setAvatar(url: user?.faceURL, text: user?.nickname)
             cell.nameLabel.text = user?.nickname
-            cell.IDTextFiled.text = user?.userID
+            cell.IDTextFiled.text = "ID : " + (user?.userID ?? "")
             cell.QRCodeTapHandler = { [weak self] in
                 guard let user: QueryUserInfo = self?._viewModel.currentUserRelay.value else { return }
                 let vc = QRCodeViewController(idString: IMController.addFriendPrefix.append(string: user.userID!))
@@ -215,7 +215,7 @@ extension MineViewController {
             v.font = UIFont.f14
             v.textColor = UIColor.c8E9AB0
             v.rightViewMode = .always
-            v.rightView = UIImageView(image: UIImage(named: "mine_copy_icon"))
+            //v.rightView = UIImageView(image: UIImage(named: "mine_copy_icon"))
             v.delegate = self
 
             return v

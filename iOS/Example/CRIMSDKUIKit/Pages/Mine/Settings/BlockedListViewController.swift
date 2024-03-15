@@ -110,6 +110,17 @@ extension BlockedListViewController: UITableViewDelegate {
             }
         })])
     }
+    
+    public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let name = _viewModel.blockedList.value.count > 0 ? "你将不再接受黑名单用户的任何消息" : ""
+        let header = ViewUtil.createSectionHeaderWith(text: name)
+        header.backgroundColor = .viewBackgroundColor
+        return header
+    }
+    
+    public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        return _viewModel.blockedList.value.count > 0 ? 33 : CGFloat.leastNormalMagnitude
+    }
 
     public func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         return CGFloat.leastNormalMagnitude

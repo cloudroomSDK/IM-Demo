@@ -4,6 +4,9 @@ import CRUICore
 public enum PadItemType: CaseIterable {
     case album
     case camera
+    case file
+    case location
+    case card
 
     var name: String {
         switch self {
@@ -11,6 +14,12 @@ public enum PadItemType: CaseIterable {
             return "相册".innerLocalized()
         case .camera:
             return "拍摄".innerLocalized()
+        case .file:
+            return "文件".innerLocalized()
+        case .location:
+            return "位置".innerLocalized()
+        case .card:
+            return "名片".innerLocalized()
         }
     }
 
@@ -21,6 +30,12 @@ public enum PadItemType: CaseIterable {
             imageName = "inputbar_pad_album_icon"
         case .camera:
             imageName = "inputbar_pad_camera_icon"
+        case .file:
+            imageName = "inputbar_pad_file_icon"
+        case .location:
+            imageName = "inputbar_pad_location_icon"
+        case .card:
+            imageName = "inputbar_pad_business_card_icon"
         }
         return UIImage(nameInBundle: imageName)
     }

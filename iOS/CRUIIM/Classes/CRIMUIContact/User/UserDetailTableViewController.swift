@@ -429,7 +429,7 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
 
         case .birthday:
             let birth = user?.friendInfo?.birth != nil ? ((user?.friendInfo?.birth)!) : 0
-            cell.subtitleLabel.text = FormatUtil.getFormatDate(of: birth)
+            cell.subtitleLabel.text = FormatUtil.getFormatDate(of: birth/1000)
             cell.accessoryType = .none
 
         case .phone:

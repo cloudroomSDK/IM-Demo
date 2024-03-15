@@ -3,7 +3,7 @@
 //  CRIMSDKUIKit_Example
 //
 //  Created by YunWu01 on 2023/9/8.
-//  Copyright © 2023 rentsoft. All rights reserved.
+//  Copyright © 2023 tom. All rights reserved.
 //
 
 import UIKit

@@ -1,15 +1,60 @@
 
 import Foundation
 
+public enum DocumentType: String, CaseIterable {
+    case unknown
+    case excel
+    case word
+    case ppt
+    case pdf
+    case zip
+
+    var fileExtensions: [String] {
+        switch self {
+        case .excel:
+            return ["xls", "xlsx"]
+        case .word:
+            return ["doc", "docx"]
+        case .ppt:
+            return ["ppt", "pptx"]
+        case .pdf:
+            return ["pdf"]
+        case .zip:
+            return ["zip", "rar"]
+        case .unknown:
+            return []
+        }
+    }
+
+    public static var allCases: [DocumentType] {
+        return [.excel, .word, .ppt, .pdf, .zip, .unknown]
+    }
+
+    public static func detectDocumentType(for fileName: String) -> DocumentType? {
+        let lowercasedFileName = fileName.lowercased()
+        guard let fileExtension = lowercasedFileName.components(separatedBy: ".").last else {
+            return nil
+        }
+        
+        for type in DocumentType.allCases {
+            if type.fileExtensions.contains(fileExtension) {
+                return type
+            }
+        }
+        
+        return nil
+    }
+}
+
+public let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! + "/"
+public let imageDirectory = "CRIM/image/"
+public let audioDirectory = "CRIM/audio/"
+public let videoDirectory = "CRIM/video/"
+public let fileDirecotory = "CRIM/file/"
+
 public class FileHelper {
     public static let shared: FileHelper = .init()
-
-    let documents = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first! + "/"
-    let imageDirectory = "CRIM/image/"
-    let audioDirectory = "CRIM/audio/"
-    let videoDirectory = "CRIM/video/"
-    let fileDirecotory = "CRIM/file/"
-
+    
     init() {
         createDirectoryIfNotExist(path: documents + imageDirectory)
         createDirectoryIfNotExist(path: documents + audioDirectory)
@@ -17,19 +62,19 @@ public class FileHelper {
         createDirectoryIfNotExist(path: documents + fileDirecotory)
     }
 
-    func getVideoName() -> String {
+    public func getVideoName() -> String {
         return "video_\(getCurrentTime()).mp4"
     }
 
-    func getImageName(with fileType: String) -> String {
+    public func getImageName(with fileType: String) -> String {
         return "image_\(getCurrentTime()).\(fileType)"
     }
 
-    func getAudioName() -> String {
+    public func getAudioName() -> String {
         return "voice_\(getCurrentTime()).m4a"
     }
     
-    func getFileName(with fileType: String) -> String {
+    public func getFileName(with fileType: String) -> String {
         return "file_\(getCurrentTime()).\(fileType)"
     }
 

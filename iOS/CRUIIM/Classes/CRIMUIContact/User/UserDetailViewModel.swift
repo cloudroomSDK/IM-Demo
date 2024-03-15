@@ -76,9 +76,21 @@ class UserDetailViewModel {
             print("checkFriendBy \(result)")
             if result {
                 group.enter()
-                IMController.shared.getFriendsInfo(userIDs: [userID]) { users in
+                IMController.shared.getFriendsInfo(userIDs: [userID]) { [weak self] users in
                     userInfo = users.first
-                    group.leave()
+                    
+                    if let userID = self?.userId, let handler = CRIMApi.queryUsersInfoWithCompletionHandler {
+                        handler([userID], { [weak self] users in
+                            if let u = users.first {
+                                userInfo?.friendInfo?.birth = u.birth ?? 0
+                                userInfo?.friendInfo?.phoneNumber = u.phoneNumber
+                            }
+                            group.leave()
+                        })
+                    } else {
+                        group.leave()
+                    }
+                    
                 }
             } else {
                 group.enter()

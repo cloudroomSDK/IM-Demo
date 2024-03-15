@@ -92,6 +92,8 @@ class FileDownloader: NSObject {
         }
 
         filePath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/\(r!)"
+        if FileManager.default.fileExists(atPath: filePath) {
+        }
         print("下载地址:\(filePath)")
         
         let destination: DownloadRequest.DownloadFileDestination = { [weak self] _, _ in

@@ -21,19 +21,7 @@ class GroupListViewController: UIViewController {
         let v = UIBarButtonItem()
         v.title = "发起群聊".innerLocalized()
         v.rx.tap.subscribe(onNext: { [weak self] in
-            let alertController = UIAlertController.init(title: nil, message: "创建群聊".innerLocalized(), preferredStyle: .actionSheet)
-            
-            alertController.addAction(.init(title: "普通群".innerLocalized(), style: .default, handler: { [weak self] action in
-                self?.newGroup()
-            }))
-            
-            alertController.addAction(.init(title: "工作群".innerLocalized(), style: .default, handler: { [weak self] action in
-                self?.newGroup()
-            }))
-            
-            alertController.addAction(.init(title: "取消".innerLocalized(), style: .cancel))
-            
-            self?.present(alertController, animated: true)
+            self?.newGroup()
         }).disposed(by: _disposeBag)
         return v
     }()
@@ -55,6 +43,7 @@ class GroupListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         navigationItem.title = "我的群组".innerLocalized()
+        navigationItem.rightBarButtonItem = createChatBtn
         view.backgroundColor = .viewBackgroundColor
         replaceSystemBackBarButtonItem()
         
@@ -77,10 +66,10 @@ class GroupListViewController: UIViewController {
     private let iCreateBtn: UnderlineButton = {
         let v = UnderlineButton(frame: .zero)
         v.setTitle("我创建的".innerLocalized(), for: .normal)
-        v.setTitleColor(.c0C1C33, for: .normal)
+        v.setTitleColor(.c0089FF, for: .normal)
         v.titleLabel?.font = .f17
         v.isSelected = true
-        v.underLineWidth = 20
+        v.underLineWidth = 0
         
         return v
     }()
@@ -88,9 +77,9 @@ class GroupListViewController: UIViewController {
     private let iJoinBtn: UnderlineButton = {
         let v = UnderlineButton(frame: .zero)
         v.setTitle("我加入的".innerLocalized(), for: .normal)
-        v.setTitleColor(.c0C1C33, for: .normal)
+        v.setTitleColor(.black.withAlphaComponent(0.5), for: .normal)
         v.titleLabel?.font = .f17
-        v.underLineWidth = 20
+        v.underLineWidth = 0
         
         return v
     }()
@@ -152,10 +141,14 @@ class GroupListViewController: UIViewController {
     private func bindData() {
         iCreateBtn.rx.tap.subscribe(onNext: { [weak self] in
             self?._viewModel.isICreateTableSelected.accept(true)
+            self?.iCreateBtn.setTitleColor(.c0089FF, for: .normal)
+            self?.iJoinBtn.setTitleColor(.black.withAlphaComponent(0.5), for: .normal)
         }).disposed(by: _disposeBag)
 
         iJoinBtn.rx.tap.subscribe(onNext: { [weak self] in
             self?._viewModel.isICreateTableSelected.accept(false)
+            self?.iCreateBtn.setTitleColor(.black.withAlphaComponent(0.5), for: .normal)
+            self?.iJoinBtn.setTitleColor(.c0089FF, for: .normal)
         }).disposed(by: _disposeBag)
 
         _viewModel.isICreateTableSelected

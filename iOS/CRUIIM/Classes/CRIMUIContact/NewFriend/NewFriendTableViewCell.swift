@@ -81,7 +81,7 @@ class NewFriendTableViewCell: UITableViewCell {
             agreeBtn.tintColor = .c333333
             agreeBtn.isEnabled = true
         case .agreed:
-            agreeBtn.setTitle("已接受".innerLocalized(), for: .normal)
+            agreeBtn.setTitle("已添加".innerLocalized(), for: .normal)
             agreeBtn.backgroundColor = .clear
             agreeBtn.tintColor = .c8E9AB0
             agreeBtn.isEnabled = false

@@ -1,4 +1,6 @@
 
+import UIKit
+import Photos
 import RxSwift
 import ProgressHUD
 import CRUICore
@@ -18,6 +20,46 @@ class GroupChatSettingTableViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private lazy var _photoHelper: PhotoHelper = {
+        let v = PhotoHelper()
+        v.setConfigToPickAvatar()
+        v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
+            guard var first = images.first else { return }
+            ProgressHUD.show()
+            first = first.compress(to: 42)
+            let result = FileHelper.shared.saveImage(image: first)
+                        
+            if result.isSuccess {
+                self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
+                    guard progress > 0  else { return }
+                    ProgressHUD.showProgress(progress)
+                }, onComplete: {
+                    ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                }, onFailure: {
+                    ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                })
+            } else {
+                ProgressHUD.dismiss()
+            }
+        }
+
+        v.didCameraFinished = { [weak self] (photo: UIImage?, _: URL?) in
+            guard let sself = self else { return }
+            if let photo = photo {
+                let result = FileHelper.shared.saveImage(image: photo)
+                if result.isSuccess {
+                    self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
+                        ProgressHUD.showProgress(progress)
+                    }, onComplete: {
+                        ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                    }, onFailure: {
+                        ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                    })
+                }
+            }
+        }
+        return v
+    }()
     
     private var sectionItems: [[RowType]]!
     
@@ -134,9 +176,30 @@ class GroupChatSettingTableViewController: UITableViewController {
                     self?._viewModel.updateGroupName(text, onSuccess: { _ in
                         ProgressHUD.showSuccess()
                         vc?.navigationController?.popViewController(animated: true)
+                    }, onFailure: {
+                        ProgressHUD.showError("修改群名称失败".innerLocalized())
                     })
                 }).disposed(by: vc.disposeBag)
                 self?.navigationController?.pushViewController(vc, animated: true)
+            }
+            
+            _viewModel.myInfoInGroup.map { (info: GroupMemberInfo?) -> Bool in
+                return info?.roleLevel == .owner || info?.roleLevel == .admin
+            }.bind(to: cell.avatarView.rx.isUserInteractionEnabled).disposed(by: cell.disposeBag)
+            _viewModel.myInfoInGroup.map { (info: GroupMemberInfo?) -> Bool in
+                return info?.roleLevel != .owner && info?.roleLevel != .admin
+            }.bind(to: cell.editImageView.rx.isHidden).disposed(by: cell.disposeBag)
+            cell.avatarViewTapHandler = { [weak self] in
+                self?.presentActionSheet(action1Title: "相册".innerLocalized(), action1Handler: { [weak self] in
+                    guard let self else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {                    self._photoHelper.presentPhotoLibrary(byController: self)
+                    }
+                }, action2Title: "拍照".innerLocalized()) { [weak self] in
+                    guard let self else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self._photoHelper.presentCamera(byController: self)
+                    }
+                }
             }
             
             cell.QRCodeButton.isHidden = true
@@ -230,6 +293,7 @@ class GroupChatSettingTableViewController: UITableViewController {
             cell.titleLabel.textColor = .c3D3D3D
             cell.subtitleLabel.text = member?.nickname
             cell.subtitleLabel.textColor = .c3D3D3D
+            cell.subtitleLabel.textAlignment = .right
             cell.accessoryType = .none
             
             return cell

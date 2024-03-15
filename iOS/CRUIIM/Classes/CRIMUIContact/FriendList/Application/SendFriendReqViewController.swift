@@ -132,6 +132,8 @@ class SendFriendReqViewController: UIViewController {
         }, onFailure: { (errCode, errMsg) in
             if errCode == SDKError.refuseToAddFriends.rawValue {
                 ProgressHUD.showError("该用户已设置不可添加！".innerLocalized())
+            } else if errCode == SDKError.differentAppID.rawValue {
+                ProgressHUD.showError("不同项目下不可添加！".innerLocalized())
             }
         })
     }

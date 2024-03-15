@@ -297,11 +297,16 @@ class VideoZoomCell: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate, 
             // 在此处处理状态变化
             if player.status == .readyToPlay {
                 // 播放器准备好播放
-                player.play()
+                print("======readyToPlay")
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.02, execute: {
+                    player.play()
+                })
             } else if player.status == .failed {
                 // 播放器失败
+                print("======failed")
             } else if player.status == .unknown {
                 // 播放器状态未知
+                print("======unknown")
             }
         }
     }
@@ -446,6 +451,8 @@ class VideoZoomCell: UIView, UIScrollViewDelegate, UIGestureRecognizerDelegate, 
     /// 响应拖动
     @objc open func onPan(_ pan: UIPanGestureRecognizer) {
         guard imageView.image != nil else {
+            lantern?.dismiss()
+            dismissHandler?()
             return
         }
         switch pan.state {

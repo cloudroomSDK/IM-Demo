@@ -144,7 +144,7 @@ class SingleChatSettingTableViewController: UITableViewController {
                 if item.isAddButton {
                     cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "setting_add_btn_icon")
                 } else {
-                    cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "contact_my_friend_icon")
+                    cell.avatarView.setAvatar(url: item.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
                 }
                 cell.nameLabel.text = item.nickname
 

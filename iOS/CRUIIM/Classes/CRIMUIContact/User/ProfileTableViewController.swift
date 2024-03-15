@@ -132,7 +132,7 @@ open class ProfileTableViewController: UITableViewController {
             cell.accessoryType = .none
 
         case .identifier:
-            cell.subtitleLabel.text = user?.userID
+            cell.subtitleLabel.text = nil
             
         case .landline:
             cell.subtitleLabel.text = user?.landline

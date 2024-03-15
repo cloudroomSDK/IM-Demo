@@ -15,6 +15,7 @@ public class SelectContactsViewController: UIViewController {
     private var multipleSelected: Bool = false // 可多选
     private var hasSelectedItems: [ContactInfo] = [] // 上一次已经选择过的ID
     private var blockedIDs: [String] = [] // 不能选择的ID
+    private var specifiedFriends: [String] = [] // 指定获取好友信息的ID
     
     public init(types: [ContactType] = [.friends], multiple: Bool = true, sourceID: String? = nil) {
         super.init(nibName: nil, bundle: nil)
@@ -28,10 +29,11 @@ public class SelectContactsViewController: UIViewController {
     }
     
     // 设置其它选项
-    public func selectedContact(hasSelected: [String]? = nil, blocked: [String]? = nil, handler: SelectedContactsHandler?) {
+    public func selectedContact(hasSelected: [String]? = nil, blocked: [String]? = nil, specifiedFriends: [String]? = nil, handler: SelectedContactsHandler?) {
         if let hasSelected = hasSelected {
             self.hasSelectedItems = hasSelected.map{ContactInfo(ID: $0)}
         }
+        self.specifiedFriends = specifiedFriends ?? []
         self.blockedIDs = blocked ?? []
         self.selectedHandler = handler
     }
@@ -229,7 +231,11 @@ public class SelectContactsViewController: UIViewController {
     private func loadData() {
         
         if contacTypes.contains(.friends) {
-            _viewModel.getMyFriendList()
+            if specifiedFriends.isEmpty {
+                _viewModel.getMyFriendList()
+            } else {
+                _viewModel.getSpecifiedFriendList(userIDs: specifiedFriends)
+            }
         }
         if contacTypes.contains(.groups) {
             _viewModel.getGroups()

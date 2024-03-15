@@ -35,8 +35,17 @@ extension UIViewController {
             vc.hidesBottomBarWhenPushed = true
             self?.navigationController?.pushViewController(vc, animated: true)
             vc.didSelectedItem = { [weak self] id in
-                let vc = UserDetailTableViewController(userId: id, groupId: nil)
-                self?.navigationController?.pushViewController(vc, animated: true)
+                IMController.shared.checkFriendBy(userID: id).subscribe { [weak self] (result: Bool) in
+                    if result {
+                        let vc = UserDetailTableViewController(userId: id, groupId: nil)
+                        self?.navigationController?.pushViewController(vc, animated: true)
+                        
+                    } else {
+                        let viewModel = UserDetailViewModel(userId: id, groupId: nil, groupInfo: nil, userDetailFor: .card)
+                        let vc = SendFriendReqViewController(viewModel: viewModel)
+                        self?.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
             }
         }
 
@@ -162,9 +171,9 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
 
         _viewModel.conversationsRelay.asDriver(onErrorJustReturn: []).drive(_tableView.rx.items) { (tableView, _, item: ConversationInfo) in
             let cell = tableView.dequeueReusableCell(withIdentifier: ChatTableViewCell.className) as! ChatTableViewCell
-            let placeholderName: String = item.conversationType == .c1v1 ? "contact_my_friend_icon" : "contact_my_group_icon"
+            let placeholderName: String = item.conversationType == .c1v1 ? "contact_my_friend_icon" : "contact_group_setting_icon"
             let showName = item.showName?.isEmpty == true ? item.userID : item.showName
-            cell.avatarImageView.setAvatar(url: item.faceURL, text: showName, placeHolder: placeholderName)
+            cell.avatarImageView.setAvatar(url: item.faceURL, text: nil, placeHolder: placeholderName)
             cell.muteImageView.isHidden = item.recvMsgOpt == .receive
             
             cell.titleLabel.text = item.showName

@@ -9,6 +9,8 @@ protocol ChatController {
     func sendMsg(_ data: Message.Data, completion: @escaping ([Section]) -> Void)
     func sendForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
     func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
+    func sendCardMsg(_ contact: ContactInfo, completion: @escaping ([Section]) -> Void)
+    func sendLocationMsg(_ latitude: Double, _ longitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void)
 
     func defaultSelecteMessage(with id: String?)
     func clearSelectedStatus()
@@ -24,6 +26,7 @@ protocol ChatController {
     func addFriend(onSuccess: @escaping CallBack.StringOptionalReturnVoid, onFailure: @escaping CallBack.ErrorOptionalReturnVoid)
     func revokeMsg(with id: String)
     
+    func markAudio(messageId: String, isPlaying: Bool)
     func isMsgRevokedExpired(timestamp: TimeInterval) -> Bool
 }
 

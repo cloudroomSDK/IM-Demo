@@ -444,7 +444,9 @@ open class AccountViewModel {
                     } else {
                         completionHandler(res.errCode, res.errMsg)
                     }
-                } else {}
+                } else {
+                    completionHandler(-1, "")
+                }
             case .failure(let err):
                 completionHandler(-1, err.localizedDescription)
             }

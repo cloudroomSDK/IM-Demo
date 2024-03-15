@@ -210,12 +210,13 @@ extension GroupDetailViewController: UITableViewDelegate, UITableViewDataSource 
         case .header:
             let cell = tableView.dequeueReusableCell(withIdentifier: GroupBasicInfoCell.className) as! GroupBasicInfoCell
             let groupInfo = _viewModel.groupInfoRelay.value
-            cell.avatarView.setAvatar(url: groupInfo?.faceURL, text: groupInfo?.groupName)
+            cell.avatarView.setAvatar(url: groupInfo?.faceURL, text: nil, placeHolder: "contact_group_setting_icon")
             let count = groupInfo?.memberCount ?? 0
             cell.textFiled.text = groupInfo?.groupName
             cell.subLabel.text = Date.timeString(timeInterval: TimeInterval(groupInfo?.createTime ?? 0))
             cell.textFiled.rightViewMode = .never
             cell.QRCodeButton.isHidden = true
+            cell.editImageView.isHidden = true
             
             return cell
         case .members:

@@ -344,7 +344,7 @@
 			attributes = {
 				LastSwiftUpdateCheck = 1410;
 				LastUpgradeCheck = 0830;
-				ORGANIZATIONNAME = rentsoft;
+				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					170A2B3528F29C5000CA68EA = {
 						CreatedOnToolsVersion = 13.4;

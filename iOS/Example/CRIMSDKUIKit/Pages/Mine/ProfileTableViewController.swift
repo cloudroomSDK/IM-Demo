@@ -28,6 +28,8 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
                 }, onComplete: {
                     ProgressHUD.showSuccess("头像上传成功".innerLocalized())
                     self?.getUserOrMemberInfo()
+                }, onFailure: {
+                    ProgressHUD.showError("头像上传失败".innerLocalized())
                 })
             } else {
                 ProgressHUD.dismiss()
@@ -44,6 +46,8 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
                     }, onComplete: {
                         ProgressHUD.showSuccess("头像上传成功".innerLocalized())
                         self?.getUserOrMemberInfo()
+                    }, onFailure: {
+                        ProgressHUD.showError("头像上传失败".innerLocalized())
                     })
                 }
             }
@@ -87,7 +91,7 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
             }
             
         case .nickname:
-            let vc = ModifyNicknameViewController()
+            let vc = ModifyNicknameViewController(modifyFor: .nickname)
             vc.nameTextField.text = user?.nickname
             vc.completeBtn.rx.tap.subscribe(onNext: { [weak self, weak vc] in
                 guard let text = vc?.nameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
@@ -142,8 +146,15 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
             vc.tipLabel.text = "扫一扫上面的二维码，添加我为好友"
             navigationController?.pushViewController(vc, animated: true)
         case .identifier:
-            UIPasteboard.general.string = _viewModel.currentUserRelay.value?.userID
-            ProgressHUD.showSuccess("ID复制成功")
+            let vc = ModifyNicknameViewController(modifyFor: .identifier)
+            vc.nameTextField.text = _viewModel.currentUserRelay.value?.userID
+            vc.copyIDBtn.rx.tap.subscribe(onNext: { [weak vc] in
+                guard let text = vc?.nameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
+                      !text.isEmpty else { return }
+                UIPasteboard.general.string = text
+                ProgressHUD.showSuccess("ID复制成功")
+            }).disposed(by: vc.disposeBag)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
 

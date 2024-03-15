@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import CRUICore
 
 final class VideoController {
 
@@ -42,7 +43,7 @@ final class VideoController {
         self.source = source
         self.messageId = messageId
         self.bubbleController = bubbleController
-        self.duration = #"\#(source.duration!)s"#
+        self.duration = #"\#(FormatUtil.getMediaFormat(of: source.duration!))"#
         self.senderNickname = (senderNickname ?? "") + ":"
         self.isQuoted = isQuoted
         loadImage()

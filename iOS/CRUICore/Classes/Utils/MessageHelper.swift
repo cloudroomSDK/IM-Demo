@@ -362,7 +362,8 @@ public struct MessageHelper {
         case .groupOwnerTransferred:
             let ret = NSMutableAttributedString()
             ret.append(getOpUserName(message: message))
-            ret.append(NSAttributedString(string: "将群转让给了\(message.notificationElem?.groupNewOwner?.nickname ?? "")", attributes: contentAttributes))
+            ret.append(NSAttributedString(string: "将群主转让给了", attributes: contentAttributes))
+            ret.append(NSAttributedString(string: "\(message.notificationElem?.groupNewOwner?.nickname ?? "")", attributes: nameAttributes))
             return ret
         case .groupSetName:
             let ret = NSMutableAttributedString()

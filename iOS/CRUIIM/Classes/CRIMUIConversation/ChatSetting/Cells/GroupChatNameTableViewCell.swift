@@ -4,6 +4,7 @@ import CRUICore
 
 class GroupChatNameTableViewCell: UITableViewCell {
     var disposeBag = DisposeBag()
+    var avatarViewTapHandler: (() -> Void)?
     
     let avatarImageView: UIImageView = {
         let v = UIImageView()
@@ -33,6 +34,11 @@ class GroupChatNameTableViewCell: UITableViewCell {
         
         return v
     }()
+    
+    @objc
+    private func avatarImageViewAction() {
+        self.avatarViewTapHandler?()
+    }
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -56,6 +62,10 @@ class GroupChatNameTableViewCell: UITableViewCell {
         nameTextFiled.snp.makeConstraints { make in
             make.edges.equalTo(titleLabel)
         }
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarImageViewAction))
+        avatarImageView.isUserInteractionEnabled = true
+        avatarImageView.addGestureRecognizer(tap)
     }
 
     @available(*, unavailable)

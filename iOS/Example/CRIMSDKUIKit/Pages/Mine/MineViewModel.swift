@@ -71,11 +71,13 @@ class MineViewModel {
         })
     }
 
-    func uploadFile(fullPath: String, onProgress: @escaping (CGFloat) -> Void, onComplete: @escaping () -> Void) {
+    func uploadFile(fullPath: String, onProgress: @escaping (CGFloat) -> Void, onComplete: @escaping () -> Void, onFailure: @escaping () -> Void) {
         IMController.shared.uploadFile(fullPath: fullPath, onProgress: onProgress) { [weak self] url in
             if let url = url {
                 self?.updateFaceURL(url: url, onComplete: onComplete)
             }
+        } onFailure: { errCode, errMsg in
+            onFailure()
         }
     }
 }

@@ -6,6 +6,7 @@ class GroupBasicInfoCell: UITableViewCell {
     
     public var disposeBag = DisposeBag()
     
+    let editImageView = UIImageView(image: UIImage(nameInBundle: "contact_group_setting_edit_icon"))
     let avatarView = AvatarView()
     
     var enableInput: Bool = false {
@@ -16,6 +17,7 @@ class GroupBasicInfoCell: UITableViewCell {
     
     var inputHandler: (() -> Void)!
     var QRCodeTapHandler: (() -> Void)?
+    var avatarViewTapHandler: (() -> Void)?
     
     lazy var textFiled: UITextField = {
         let v = UITextField()
@@ -54,6 +56,11 @@ class GroupBasicInfoCell: UITableViewCell {
         self.QRCodeTapHandler?()
     }
     
+    @objc
+    private func avatarViewAction() {
+        self.avatarViewTapHandler?()
+    }
+    
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
         selectionStyle = .none
@@ -74,6 +81,17 @@ class GroupBasicInfoCell: UITableViewCell {
             hStack.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -.margin16),
             hStack.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -.margin16),
         ])
+        
+        contentView.addSubview(editImageView)
+        editImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            editImageView.trailingAnchor.constraint(equalTo: avatarView.trailingAnchor),
+            editImageView.bottomAnchor.constraint(equalTo: avatarView.bottomAnchor),
+        ])
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(avatarViewAction))
+        avatarView.isUserInteractionEnabled = true
+        avatarView.addGestureRecognizer(tap)
     }
 
     @available(*, unavailable)
@@ -89,7 +107,9 @@ class GroupBasicInfoCell: UITableViewCell {
 
 extension GroupBasicInfoCell: UITextFieldDelegate {
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        inputHandler()
+        if let inputHandler = inputHandler {
+            inputHandler()
+        }
         
         return false
     }

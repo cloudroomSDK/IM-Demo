@@ -87,12 +87,14 @@ class GroupChatSettingViewModel {
         }).disposed(by: _disposeBag)
     }
 
-    func updateGroupName(_ name: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+    func updateGroupName(_ name: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid, onFailure: @escaping () -> Void) {
         guard let group = groupInfoRelay.value else { return }
         group.groupName = name
         IMController.shared.setGrpInfo(group: group) { [weak self] resp in
             self?.groupInfoRelay.accept(group)
             onSuccess(resp)
+        } onFailure: { errCode, errMsg in
+            onFailure()
         }
     }
 
@@ -215,6 +217,23 @@ class GroupChatSettingViewModel {
                 info.needVerification = type
                 self?.groupInfoRelay.accept(info)
             }
+        }
+    }
+    
+    func uploadFile(fullPath: String, onProgress: @escaping (CGFloat) -> Void, onComplete: @escaping () -> Void, onFailure: @escaping () -> Void) {
+        IMController.shared.uploadFile(fullPath: fullPath, onProgress: onProgress) { [weak self] url in
+            if let url = url {
+                guard let groupInfo = self?.groupInfoRelay.value else { return }
+                groupInfo.faceURL = url
+                IMController.shared.setGrpInfo(group: groupInfo) { [weak self] resp in
+                    self?.groupInfoRelay.accept(groupInfo)
+                    onComplete()
+                } onFailure: { errCode, errMsg in
+                    onFailure()
+                }
+            }
+        } onFailure: { errCode, errMsg in
+            onFailure()
         }
     }
 }

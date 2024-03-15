@@ -1,4 +1,6 @@
 
+import UIKit
+import Photos
 import CRUICore
 import CRUICoreView
 import RxSwift
@@ -20,6 +22,48 @@ class NewGroupViewController: UITableViewController {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private lazy var _photoHelper: PhotoHelper = {
+        let v = PhotoHelper()
+        v.setConfigToPickAvatar()
+        v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
+            guard var first = images.first else { return }
+            ProgressHUD.show()
+            first = first.compress(to: 42)
+            let result = FileHelper.shared.saveImage(image: first)
+                        
+            if result.isSuccess {
+                self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
+                    guard progress > 0  else { return }
+                    ProgressHUD.showProgress(progress)
+                }, onComplete: { [weak self] in
+                    ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                    self?.tableView.reloadData()
+                }, onFailure: {
+                    ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                })
+            } else {
+                ProgressHUD.dismiss()
+            }
+        }
+
+        v.didCameraFinished = { [weak self] (photo: UIImage?, _: URL?) in
+            guard let sself = self else { return }
+            if let photo = photo {
+                let result = FileHelper.shared.saveImage(image: photo)
+                if result.isSuccess {
+                    self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
+                        ProgressHUD.showProgress(progress)
+                    }, onComplete: { [weak self] in
+                        ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                        self?.tableView.reloadData()
+                    }, onFailure: {
+                        ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                    })
+                }
+            }
+        }
+        return v
+    }()
     
     private var sectionItems: [[RowType]] = [
         [.header],
@@ -78,8 +122,21 @@ class NewGroupViewController: UITableViewController {
         switch rowType {
         case .header:
             let cell = tableView.dequeueReusableCell(withIdentifier: GroupChatNameTableViewCell.className) as! GroupChatNameTableViewCell
-            cell.avatarImageView.setImage(with: nil, placeHolder: "contact_create_group_icon")
+            cell.avatarImageView.setImage(with: _viewModel.groupFaceURL, placeHolder: "contact_create_group_icon")
             cell.enableInput = true
+            
+            cell.avatarViewTapHandler = { [weak self] in
+                self?.presentActionSheet(action1Title: "相册".innerLocalized(), action1Handler: { [weak self] in
+                    guard let self else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {                    self._photoHelper.presentPhotoLibrary(byController: self)
+                    }
+                }, action2Title: "拍照".innerLocalized()) { [weak self] in
+                    guard let self else { return }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        self._photoHelper.presentCamera(byController: self)
+                    }
+                }
+            }
             
             cell.nameTextFiled.rx
                 .controlEvent([.editingChanged, .editingDidEnd])
@@ -113,12 +170,23 @@ class NewGroupViewController: UITableViewController {
                 guard let sself = self else { return }
                 if userInfo.isAddButton || userInfo.isRemoveButton {
                     let vc = SelectContactsViewController()
-                    vc.selectedContact(blocked: sself._viewModel.users.map { $0.userID }) { [weak vc] (r: [ContactInfo]) in
+                    let selectUids = sself._viewModel.users.map { $0.userID }.filter { !$0.isEmpty }
+                    if userInfo.isRemoveButton && selectUids.isEmpty {
+                        return
+                    }
+                    
+                    vc.selectedContact(blocked: userInfo.isAddButton ? selectUids : nil, specifiedFriends: userInfo.isRemoveButton ? selectUids : nil) { [weak vc] (r: [ContactInfo]) in
                         guard let sself = self else { return }
                         
-                        let users = r.map{UserInfo(userID: $0.ID!, nickname: $0.name, faceURL: $0.faceURL)}
-                        sself._viewModel.updateMembers(users)
-                        sself.navigationController?.popViewController(animated: true)
+                        if userInfo.isAddButton {
+                            let users = r.map{UserInfo(userID: $0.ID!, nickname: $0.name, faceURL: $0.faceURL)}
+                            sself._viewModel.updateMembers(users)
+                            sself.navigationController?.popViewController(animated: true)
+                        } else {
+                            let users = r.map{UserInfo(userID: $0.ID!, nickname: $0.name, faceURL: $0.faceURL)}
+                            sself._viewModel.deleteMembers(users)
+                            sself.navigationController?.popViewController(animated: true)
+                        }
                     }
                     sself.navigationController?.pushViewController(vc, animated: true)
                 }

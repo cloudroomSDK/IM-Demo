@@ -258,12 +258,30 @@ final class DefaultChatController: ChatController {
         }
     }
     
-    func markMessageAsReaded(messageID: String? = nil) {
+    func markMessageAsReaded(messageID: String? = nil, completion: (() -> Void)? = nil) {
         IMController.shared.markConversationMsg(byConID: conversation.conversationID, msgIDList: messageID == nil ? [] : [messageID!]) { [weak self] r in
             if messageID != nil {
                 self?.messages.first(where: { $0.clientMsgID == messageID })?.hasReadTime = Date().timeIntervalSince1970 * 1000
                 self?.repopulateMessages(requiresIsolatedProcess: true)
             }
+            completion?()
+        }
+    }
+    
+    func markAudio(messageId: String, isPlaying: Bool) {
+        var changed = false
+        for (index, item) in messages.enumerated() {
+            if item.clientMsgID == messageId {
+                if item.isPlaying != isPlaying {
+                    item.isPlaying = isPlaying
+                    changed = true
+                }
+            } else {
+                item.isPlaying = false
+            }
+        }
+        if changed {
+            repopulateMessages(requiresIsolatedProcess: true)
         }
     }
     
@@ -277,10 +295,15 @@ final class DefaultChatController: ChatController {
         guard let forwardMsg = selecteMessages.first else { return }
         contacts.forEach { contact in
             if let recvID = contact.ID {
-                IMController.shared.sendForwardMsg(forwardMessage: forwardMsg, to: recvID, conversationType: contact.type == .groups ? .group : .c1v1) { [weak self] msg in
+                IMController.shared.sendForwardMsg(forwardMessage: forwardMsg,
+                                                   to: recvID, 
+                                                   groupName: groupInfo?.groupName,
+                                                   conversationType: contact.type == .groups ? .group : .c1v1) { [weak self] msg in
                     
                 } onComplete: { [weak self] msg in
-                    
+                    if recvID == self?.conversation.userID {
+                        self?.appendMessage(msg, completion: completion)
+                    }
                 }
             }
         }
@@ -289,6 +312,31 @@ final class DefaultChatController: ChatController {
     
     func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
         
+    }
+    
+    func sendCardMsg(_ contact: ContactInfo, completion: @escaping ([Section]) -> Void) {
+        let cardElem = CardElem(userID: contact.ID!, nickname: contact.name!, faceURL: contact.faceURL)
+        IMController.shared.sendCardMsg(card: cardElem, 
+                                        to: receiverId,
+                                        groupName: groupInfo?.groupName,
+                                        conversationType: self.conversationType) { [weak self] msg in
+            
+        } onComplete: { [weak self] msg in
+            self?.appendMessage(msg, completion: completion)
+        }
+    }
+    
+    func sendLocationMsg(_ latitude: Double, _ longitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void) {
+        IMController.shared.sendLocation(latitude: latitude, 
+                                         longitude: longitude,
+                                         desc: desc,
+                                         to: receiverId,
+                                         groupName: groupInfo?.groupName,
+                                         conversationType: self.conversationType) { [weak self] msg in
+            
+        } onComplete: { [weak self] msg in
+            self?.appendMessage(msg, completion: completion)
+        }
     }
     
     func sendMsg(_ data: Message.Data, completion: @escaping ([Section]) -> Void) {
@@ -308,7 +356,13 @@ final class DefaultChatController: ChatController {
             // 发送的时候，图片选择器选择以后，传入的是路径
             sendVideo(source: source, completion: completion)
             
-        case .attributeText(_), .custom(_), .quote(_):
+        case .file(let source, isLocallyStored: _):
+            sendFile(source: source, completion: completion)
+            
+        case .audio(let source, isLocallyStored: _):
+            sendAudio(source: source, completion: completion)
+            
+        case .attributeText(_), .custom(_), .quote(_), .card(_), .location(_):
             break
         }
     }
@@ -347,6 +401,7 @@ final class DefaultChatController: ChatController {
                 self?.cacheImage(image: image, path: url)
             }
             self?.replaceMessage(msg)
+            self?.repopulateMessages()
         }
     }
     
@@ -372,6 +427,55 @@ final class DefaultChatController: ChatController {
                 self?.cacheImage(image: image, path: snapshotUrl)
             }
             self?.replaceMessage(msg)
+            self?.repopulateMessages()
+        }
+    }
+    
+    func sendFile(source: MediaMessageSource, completion: @escaping ([Section]) -> Void) {
+        
+        let sourcPath = source.source.url?.path ?? ""
+        let relativePath = source.source.relativePath ?? ""
+        let fileName = source.fileName ?? ""
+        let fileMagager = FileManager.default
+        if fileMagager.fileExists(atPath: sourcPath) {
+            cacheFile(filePath: relativePath, path: sourcPath)
+        }
+        
+        IMController.shared.sendFileMsg(filePath: sourcPath,
+                                        fileName: fileName,
+                                        to: receiverId,
+                                        groupName: groupInfo?.groupName,
+                                        conversationType: self.conversationType) { [weak self] msg in
+            self?.appendMessage(msg, completion: completion)
+        } onComplete: { [weak self] msg in
+            if let fileUrl = msg.fileElem?.sourceUrl {
+                self?.cacheFile(filePath: relativePath, path: fileUrl)
+            }
+            self?.replaceMessage(msg)
+            self?.repopulateMessages()
+        }
+    }
+    
+    func sendAudio(source: MediaMessageSource, completion: @escaping ([Section]) -> Void) {
+        let sourcPath = source.source.url?.path ?? ""
+        let relativePath = source.source.relativePath ?? ""
+        let fileMagager = FileManager.default
+        if fileMagager.fileExists(atPath: sourcPath) {
+            cacheFile(filePath: relativePath, path: sourcPath)
+        }
+        
+        IMController.shared.sendAudioMsg(path: sourcPath,
+                                         duration: source.duration!,
+                                         to: receiverId,
+                                         groupName: groupInfo?.groupName,
+                                         conversationType: self.conversationType) { [weak self] msg in
+            self?.appendMessage(msg, completion: completion)
+        } onComplete: { [weak self] msg in
+            if let fileUrl = msg.soundElem?.sourceUrl {
+                self?.cacheFile(filePath: relativePath, path: fileUrl)
+            }
+            self?.replaceMessage(msg)
+            self?.repopulateMessages()
         }
     }
     
@@ -382,6 +486,16 @@ final class DefaultChatController: ChatController {
             try imageCache.store(entity: image, for: CacheableImageKey(url: url))
         } catch (let e) {
             print("cache image failure:\(e)")
+        }
+    }
+    
+    private func cacheFile(filePath: String, path: String) {
+        guard let path = path.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed), let url = URL(string: path) else { return }
+        
+        do {
+            try fileCache.store(entity: filePath, for: CacheableFileKey(url: url))
+        } catch (let e) {
+            print("cache file failure:\(e)")
         }
     }
     
@@ -468,6 +582,7 @@ final class DefaultChatController: ChatController {
                     var messageCells = [Cell]()
                     switch message.data {
                     case let .quote(quoteSource):
+                        // 处理引用消息类型
                         messageCells.append(.replyMessage(message, bubbleType: bubble))
                         messageCells.append(.quoteMessage(message, bubbleType: bubble))
                     default:
@@ -483,8 +598,8 @@ final class DefaultChatController: ChatController {
                         return messageCells
                     }
                     
-                    let titleCell = Cell.messageGroup(MessageGroup(id: message.id, title: "\(message.owner.name)", type: message.type))
-                    messageCells.insert(titleCell, at: 0)
+                    //let titleCell = Cell.messageGroup(MessageGroup(id: message.id, title: "\(message.owner.name)", type: message.type))
+                    //messageCells.insert(titleCell, at: 0)
                     return messageCells
                 }.joined())
                 
@@ -520,13 +635,27 @@ final class DefaultChatController: ChatController {
             }
         }
         
+        var status: MessageStatus?
+        if msg.isOutgoing {
+            switch msg.status {
+            case .sending:
+                status = .sending
+            case .sendFailure:
+                status = .sendFailure
+            default:
+                status = msg.isRead ? .read : .sent
+            }
+        } else {
+            status = msg.isRead ? .read : .received
+        }
+        
         return Message(id: msg.clientMsgID,
                        date: Date(timeIntervalSince1970: msg.sendTime / 1000),
                        contentType: contentType,
                        data: convert(msg),
                        owner: User(id: msg.sendID, name: msg.senderNickname ?? "", faceURL: msg.senderFaceUrl),
                        type: msg.isOutgoing ? .outgoing : .incoming,
-                       status: msg.isOutgoing ? .sent : .received,
+                       status: status!,
                        isSelected: msg.isSelected,
                        isAnchor: msg.isAnchor,
                        sessionType: msg.sessionType)
@@ -565,10 +694,61 @@ final class DefaultChatController: ChatController {
             
             return .video(source, isLocallyStored: isPresentLocally)
             
+        case .audio:
+            let soundElem = msg.soundElem!
+            let url = isLocalPath ? URL(string: soundElem.soundPath!)! : URL(string: soundElem.sourceUrl!)!
+            let isPresentLocally = fileCache.isEntityCached(for: CacheableFileKey(url: url))
+            let duration = msg.soundElem!.duration
+            
+            let source = MediaMessageSource(source: MediaMessageSource.Info(url: url),
+                                            duration: duration,
+                                            isPlaying: msg.isPlaying)
+            
+            return .audio(source, isLocallyStored: isPresentLocally)
+            
+        case .card:
+            let cardElem = msg.cardElem!
+            let user = User(id: cardElem.userID, name: cardElem.nickname ?? "", faceURL: cardElem.faceURL)
+            
+            let source = CardMessageSource(user: user)
+            
+            return .card(source)
+            
+        case .location:
+            let locationElem = msg.locationElem!
+            var desc = LocationMessageSource.Desc(name: locationElem.desc)
+            if let descStr = locationElem.desc, let obj = JsonTool.fromJson(descStr ?? "", toClass: LocationMessageSource.Desc.self) {
+                desc = obj
+            }
+            let source = LocationMessageSource(longitude: locationElem.longitude, latitude: locationElem.latitude, desc: desc)
+            
+            return .location(source)
+            
+        case .file:
+            let fileElem = msg.fileElem!
+            var urlStr = isLocalPath ? fileElem.filePath! : fileElem.sourceUrl!
+            urlStr = urlStr.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+            let fileURL = URL(string: urlStr)!
+            let isPresentLocally = fileCache.isEntityCached(for: CacheableFileKey(url: fileURL))
+            let source = MediaMessageSource(source: MediaMessageSource.Info(url: fileURL),
+                                            fileSize: fileElem.fileSize,
+                                            fileName: fileElem.fileName)
+            
+            return .file(source, isLocallyStored: isPresentLocally)
+            
         case .quote:
             let quoteElem = msg.quoteElem!
             let quoteMessage = quoteElem.quoteMessage!
-            let quotedSource = convert(quoteMessage)
+            let contentType = quoteMessage.contentType
+            // 这里对未知的引用消息类型加以保护
+            guard contentType == .text || contentType == .image || contentType == .video || contentType == .audio || contentType == .card || contentType == .location || contentType == .quote || contentType == .revoke || contentType == .file else {
+                let value = MessageHelper.getSystemNotificationOf(message: msg, isSingleChat: msg.sessionType == .c1v1)
+                
+                return .attributeText(value!)
+            }
+            
+            // ⚠️ convert(quoteMessage) 是转换被引用消息
+            let quotedSource = (contentType == .revoke) ? .text(TextMessageSource(text: "引用的消息已撤回".innerLocalized())) : convert(quoteMessage)
             let source = QuoteMessageSource(text: quoteElem.text!, quoteUser: quoteMessage.senderNickname!, quoteData: quotedSource)
             
             return .quote(source)
@@ -692,11 +872,32 @@ extension DefaultChatController: DataProviderDelegate {
     }
     
     func markAllMessagesAsReceived(completion: @escaping () -> Void) {
-        completion()
+        guard let lastReceivedString else {
+            completion()
+            return
+        }
+        
+        markMessageAsReaded(messageID: lastReceivedString, completion: completion)
     }
     
     func markAllMessagesAsRead(completion: @escaping () -> Void) {
-        completion()
+        guard !lastReadIDs.isEmpty else {
+            completion()
+            return
+        }
+        dispatchQueue.async { [weak self] in
+            guard let self else {
+                return
+            }
+            for id in lastReadIDs {
+                if let index = self.messages.firstIndex(where: { $0.clientMsgID == id}) {
+                    self.messages[index].isRead = true
+                }
+            }
+            DispatchQueue.main.async {
+                completion()
+            }
+        }
     }
     
 }

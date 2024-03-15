@@ -12,10 +12,18 @@ typealias URLCollectionCell = ContainerCollectionViewCell<MessageContainerView<E
 
 typealias ImageCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, ImageView, ChatAvatarView>>>
 typealias VideoCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, VideoView, ChatAvatarView>>>
+typealias AudioCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, AudioView, ChatAvatarView>>>
+typealias CardCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, CardView, ChatAvatarView>>>
+typealias LocationCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, LocationView, ChatAvatarView>>>
+typealias FileCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, FileView, ChatAvatarView>>>
 
 typealias TextQuoteMessageCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, TextMessageView, ChatAvatarView>>>
 typealias ImageQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, ImageQuoteView, ChatAvatarView>>>
 typealias VideoQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, VideoQuoteView, ChatAvatarView>>>
+typealias AudioQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, AudioQuoteView, ChatAvatarView>>>
+typealias CardQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, CardQuoteView, ChatAvatarView>>>
+typealias LocationQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, LocationQuoteView, ChatAvatarView>>>
+typealias FileQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, FileQuoteView, ChatAvatarView>>>
 
 typealias UserTitleCollectionCell = ContainerCollectionViewCell<SwappingContainerView<EdgeAligningView<UILabel>, UIImageView>>
 typealias TitleCollectionCell = ContainerCollectionViewCell<TipsTitleView>
@@ -55,11 +63,19 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         collectionView.register(TextMessageCollectionCell.self, forCellWithReuseIdentifier: TextMessageCollectionCell.reuseIdentifier)
         collectionView.register(ImageCollectionCell.self, forCellWithReuseIdentifier: ImageCollectionCell.reuseIdentifier)
         collectionView.register(VideoCollectionCell.self, forCellWithReuseIdentifier: VideoCollectionCell.reuseIdentifier)
-        
+        collectionView.register(AudioCollectionCell.self, forCellWithReuseIdentifier: AudioCollectionCell.reuseIdentifier)
+        collectionView.register(CardCollectionCell.self, forCellWithReuseIdentifier: CardCollectionCell.reuseIdentifier)
+        collectionView.register(LocationCollectionCell.self, forCellWithReuseIdentifier: LocationCollectionCell.reuseIdentifier)
+        collectionView.register(FileCollectionCell.self, forCellWithReuseIdentifier: FileCollectionCell.reuseIdentifier)
+
         collectionView.register(TextQuoteMessageCollectionCell.self, forCellWithReuseIdentifier: TextQuoteMessageCollectionCell.reuseIdentifier)
         collectionView.register(ImageQuoteCollectionCell.self, forCellWithReuseIdentifier: ImageQuoteCollectionCell.reuseIdentifier)
         collectionView.register(VideoQuoteCollectionCell.self, forCellWithReuseIdentifier: VideoQuoteCollectionCell.reuseIdentifier)
-        
+        collectionView.register(AudioQuoteCollectionCell.self, forCellWithReuseIdentifier: AudioQuoteCollectionCell.reuseIdentifier)
+        collectionView.register(CardQuoteCollectionCell.self, forCellWithReuseIdentifier: CardQuoteCollectionCell.reuseIdentifier)
+        collectionView.register(LocationQuoteCollectionCell.self, forCellWithReuseIdentifier: LocationQuoteCollectionCell.reuseIdentifier)
+        collectionView.register(FileQuoteCollectionCell.self, forCellWithReuseIdentifier: FileQuoteCollectionCell.reuseIdentifier)
+
         collectionView.register(UserTitleCollectionCell.self, forCellWithReuseIdentifier: UserTitleCollectionCell.reuseIdentifier)
         collectionView.register(TitleCollectionCell.self, forCellWithReuseIdentifier: TitleCollectionCell.reuseIdentifier)
         collectionView.register(TypingIndicatorCollectionCell.self, forCellWithReuseIdentifier: TypingIndicatorCollectionCell.reuseIdentifier)
@@ -73,6 +89,8 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createTextCell(collectionView: UICollectionView,
                                 messageId: String,
                                 isSelected: Bool,
+                                isPrivateChat: Bool,
+                                isReplyMessage: Bool = false,
                                 indexPath: IndexPath,
                                 text: String? = nil,
                                 attributedString: NSAttributedString? = nil,
@@ -87,7 +105,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TextMessageCollectionCell.reuseIdentifier, for: indexPath) as! TextMessageCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isReplyMessage: isReplyMessage)
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
         let bubbleView = cell.customView.customView.customView
@@ -110,6 +128,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createTextQuoteCell(collectionView: UICollectionView,
                                 messageId: String,
                                 isSelected: Bool,
+                                isPrivateChat: Bool,
                                 indexPath: IndexPath,
                                 text: String? = nil,
                                 attributedString: NSAttributedString? = nil,
@@ -124,7 +143,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TextQuoteMessageCollectionCell.reuseIdentifier, for: indexPath) as! TextQuoteMessageCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
 
         let bubbleView = cell.customView.customView.customView
@@ -147,10 +166,10 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     }
     
     @available(iOS 13, *)
-    private func createURLCell(collectionView: UICollectionView, messageId: String, isSelected: Bool, indexPath: IndexPath, url: URL, date: Date, alignment: ChatItemAlignment, user: User, bubbleType: Cell.BubbleType, status: MessageStatus, messageType: MessageType) -> UICollectionViewCell {
+    private func createURLCell(collectionView: UICollectionView, messageId: String, isSelected: Bool, isPrivateChat: Bool, indexPath: IndexPath, url: URL, date: Date, alignment: ChatItemAlignment, user: User, bubbleType: Cell.BubbleType, status: MessageStatus, messageType: MessageType) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: URLCollectionCell.reuseIdentifier, for: indexPath) as! URLCollectionCell
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
         
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
@@ -170,6 +189,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createImageCell(collectionView: UICollectionView,
                                  messageId: String,
                                  isSelected: Bool,
+                                 isPrivateChat: Bool,
                                  indexPath: IndexPath,
                                  alignment: ChatItemAlignment,
                                  user: User,
@@ -182,7 +202,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageCollectionCell.reuseIdentifier, for: indexPath) as! ImageCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
         
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
@@ -202,6 +222,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createImageQuoteCell(collectionView: UICollectionView,
                                  messageId: String,
                                  isSelected: Bool,
+                                 isPrivateChat: Bool,
                                  indexPath: IndexPath,
                                  alignment: ChatItemAlignment,
                                  user: User,
@@ -215,7 +236,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: ImageQuoteCollectionCell.reuseIdentifier, for: indexPath) as! ImageQuoteCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
         
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
@@ -235,6 +256,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createVideoCell(collectionView: UICollectionView,
                                  messageId: String,
                                  isSelected: Bool,
+                                 isPrivateChat: Bool,
                                  indexPath: IndexPath,
                                  alignment: ChatItemAlignment,
                                  user: User,
@@ -247,7 +269,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoCollectionCell.reuseIdentifier, for: indexPath) as! VideoCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
         
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
@@ -267,6 +289,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
     private func createVideoQuoteCell(collectionView: UICollectionView,
                                  messageId: String,
                                  isSelected: Bool,
+                                 isPrivateChat: Bool,
                                  indexPath: IndexPath,
                                  alignment: ChatItemAlignment,
                                  user: User,
@@ -280,7 +303,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VideoQuoteCollectionCell.reuseIdentifier, for: indexPath) as! VideoQuoteCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
         
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
@@ -288,6 +311,282 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let controller = VideoController(source: source,
                                          messageId: messageId,
                                          bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.quoteView = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createAudioCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MediaMessageSource,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> AudioCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioCollectionCell.reuseIdentifier, for: indexPath) as! AudioCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isAudioMsg: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = AudioController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView,
+                                                                                     messageType: messageType,
+                                                                                     bubbleType: bubbleType),
+                                         messageType: messageType)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.view = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createAudioQuoteCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MediaMessageSource,
+                                 quoteUserName: String,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> AudioQuoteCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: AudioQuoteCollectionCell.reuseIdentifier, for: indexPath) as! AudioQuoteCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = AudioController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView,
+                                                                                     messageType: messageType,
+                                                                                     bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.quoteView = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createCardCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: CardMessageSource,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> CardCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CardCollectionCell.reuseIdentifier, for: indexPath) as! CardCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = CardController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true))
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.view = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createCardQuoteCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: CardMessageSource,
+                                 quoteUserName: String,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> CardQuoteCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: CardQuoteCollectionCell.reuseIdentifier, for: indexPath) as! CardQuoteCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = CardController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName, isQuoted: true)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.quoteView = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createLocationCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: LocationMessageSource,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> LocationCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: LocationCollectionCell.reuseIdentifier, for: indexPath) as! LocationCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = LocationController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true))
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.view = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createLocationQuoteCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: LocationMessageSource,
+                                 quoteUserName: String,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> LocationQuoteCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: LocationQuoteCollectionCell.reuseIdentifier, for: indexPath) as! LocationQuoteCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = LocationController(source: source,
+                                         messageId: messageId,
+                                         bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName, isQuoted: true)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.quoteView = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createFileCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MediaMessageSource,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> FileCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FileCollectionCell.reuseIdentifier, for: indexPath) as! FileCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = FileController(source: source,
+                                        messageId: messageId,
+                                        status: status,
+                                        messageType: messageType,
+                                        bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true))
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.view = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createFileQuoteCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MediaMessageSource,
+                                 quoteUserName: String,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> FileQuoteCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: FileQuoteCollectionCell.reuseIdentifier, for: indexPath) as! FileQuoteCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = FileController(source: source,
+                                        messageId: messageId,
+                                        status: status,
+                                        bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName, isQuoted: true)
         
         controller.delegate = reloadDelegate
         bubbleView.customView.setup(with: controller)
@@ -411,7 +710,11 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
                                       messageID: String,
                                       alignment: ChatItemAlignment,
                                       bubble: Cell.BubbleType,
-                                      status: MessageStatus, isQuoted: Bool = false) {
+                                      status: MessageStatus,
+                                      isPrivateChat: Bool = false,
+                                      isReplyMessage: Bool = false,
+                                      isQuoted: Bool = false,
+                                      isAudioMsg: Bool = false) {
         cellView.containerView.alignment = .top
         cellView.containerView.leadingView?.isHiddenSafe = !alignment.isIncoming
         cellView.containerView.leadingView?.alpha = alignment.isIncoming ? 1 : 0
@@ -419,6 +722,13 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         cellView.containerView.trailingView?.alpha = 0
         cellView.leadingCountdownLabel.isHiddenSafe = alignment.isIncoming
         cellView.trailingCountdownLabel.isHiddenSafe = !alignment.isIncoming
+        cellView.trailingAudioRedLabel.isHiddenSafe = true// !alignment.isIncoming || (!isAudioMsg || status == .read)
+        cellView.containerView.customView.statusLabel.isHiddenSafe = alignment.isIncoming || isReplyMessage || status == .sending || status == .sendFailure || !isPrivateChat
+        cellView.containerView.customView.statusLabel.alpha = (alignment.isIncoming || !isPrivateChat || (isQuoted && alignment.isIncoming)) ? 0 : 1
+        cellView.containerView.customView.setup(with: status)
+        let nicknameLabel = cellView.containerView.customView.nicknameLabel
+        nicknameLabel.isHiddenSafe = !alignment.isIncoming || isQuoted || isPrivateChat
+        nicknameLabel.text = nicknameLabel.isHiddenSafe ? nil : user.name
         
         if let avatarView = cellView.containerView.leadingView {
             avatarView.customView.isHiddenSafe = isQuoted
@@ -516,40 +826,62 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
             
             return cell
         case let .message(message, bubbleType: bubbleType):
+            let privateChat = message.sessionType == .c1v1
+            
             switch message.data {
             case let .text(source):
-                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
                 
             case let .attributeText(text):
-                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, attributedString: text, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, attributedString: text, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
             case let .custom(source):
-                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, attributedString: source.attributedString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, attributedString: source.attributedString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
                 
             case let .url(url, isLocallyStored: _):
                 if #available(iOS 13.0, *) {
-                    return createURLCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, url: url, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    return createURLCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, url: url, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 } else {
-                    return createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: url.absoluteString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    return createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: url.absoluteString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 }
             case let .image(source, isLocallyStored: _):
-                let cell = createImageCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createImageCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
             case let .video(source, isLocallyStored: _):
-                let cell = createVideoCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createVideoCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                
+                return cell
+                
+            case let .audio(source, isLocallyStored: _):
+                let cell = createAudioCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                
+                return cell
+                
+            case let .card(source):
+                let cell = createCardCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                
+                return cell
+                
+            case let .location(source):
+                let cell = createLocationCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                
+                return cell
+                
+            case let .file(source, isLocallyStored: _):
+                let cell = createFileCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
                 
             case let .quote(source):
                 switch source.quoteData {
                 case let .text(textSource):
-                    let cell = createTextQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: textSource.text, quoteUserName: source.quoteUser, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createTextQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: textSource.text, quoteUserName: source.quoteUser, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                 default:
@@ -557,9 +889,11 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
                 }
             }
         case let .replyMessage(message, bubbleType: bubbleType):
+            let privateChat = message.sessionType == .c1v1
+            
             switch message.data {
             case let .quote(source):
-                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, isReplyMessage: true, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
                 
@@ -568,35 +902,56 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
             }
             
         case let .quoteMessage(message, bubbleType: bubbleType):
+            let privateChat = message.sessionType == .c1v1
             switch message.data {
             case let .quote(quoteSource):
                 switch quoteSource.quoteData {
                 case let .text(source):
-                    let cell = createTextQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: source.text, quoteUserName: quoteSource.quoteUser, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createTextQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: source.text, quoteUserName: quoteSource.quoteUser, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                     
                 case let .attributeText(text):
-                    let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, attributedString: text, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: false, indexPath: indexPath, attributedString: text, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                 case let .custom(source):
-                    let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, attributedString: source.attributedString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: false, indexPath: indexPath, attributedString: source.attributedString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                     
                 case let .url(url, isLocallyStored: _):
                     if #available(iOS 13.0, *) {
-                        return createURLCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, url: url, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                        return createURLCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: false, indexPath: indexPath, url: url, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     } else {
-                        return createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, text: url.absoluteString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                        return createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: false, indexPath: indexPath, text: url.absoluteString, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     }
                 case let .image(source, isLocallyStored: _):
-                    let cell = createImageQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createImageQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                 case let .video(source, isLocallyStored: _):
-                    let cell = createVideoQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    let cell = createVideoQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    
+                    return cell
+                    
+                case let .audio(source, isLocallyStored: _):
+                    let cell = createAudioQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    
+                    return cell
+                    
+                case let .card(source):
+                    let cell = createCardQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    
+                    return cell
+                    
+                case let .location(source):
+                    let cell = createLocationQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    
+                    return cell
+                    
+                case let .file(source, isLocallyStored: _):
+                    let cell = createFileQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
                     
                     return cell
                     
@@ -662,8 +1017,16 @@ extension DefaultChatCollectionDataSource: ChatLayoutDelegate {
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: isDownloaded ? 60 : 36))
                 case let .video(_, isLocallyStored: isDownloaded):
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: isDownloaded ? 120 : 80))
+                case let .audio(_, isLocallyStored: isDownloaded):
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                case let .card(_):
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                case let .location(_):
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                case let .file(_):
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
                 default:
-                    fatalError()
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 36))
                 }
             case let .replyMessage(message, bubbleType: _):
                 return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 36))
@@ -685,8 +1048,16 @@ extension DefaultChatCollectionDataSource: ChatLayoutDelegate {
                         return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: isDownloaded ? 60 : 36))
                     case let .video(_, isLocallyStored: isDownloaded):
                         return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: isDownloaded ? 120 : 80))
+                    case let .audio(_, isLocallyStored: isDownloaded):
+                        return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                    case let .file(_, isLocallyStored: isDownloaded):
+                        return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                    case let .card(_):
+                        return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                    case let .location(_):
+                        return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
                     default:
-                        fatalError()
+                        return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 36))
                     }
                 default:
                     fatalError()

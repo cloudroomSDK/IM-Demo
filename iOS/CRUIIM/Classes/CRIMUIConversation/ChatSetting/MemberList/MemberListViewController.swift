@@ -211,7 +211,7 @@ class MemberListViewController: UIViewController {
         _viewModel.ownerAndAdminRelay.bind(to: headerTableView.rx.items(cellIdentifier: FriendListUserTableViewCell.className,
                                                                         cellType: FriendListUserTableViewCell.self)) {[weak self] _, model, cell in
             
-            // 展示创建者 和 管理员
+            // 展示群主 和 管理员
             if model.isOwnerOrAdmin {
                 let width = 12 * model.roleLevelString.length
                 let textLabel = UILabel()
@@ -243,7 +243,7 @@ class MemberListViewController: UIViewController {
         
         headerTableView.rx.modelSelected(GroupMemberInfo.self).subscribe(onNext: { [weak self] member in
             
-            guard let `self` = self, self._viewModel.groupInfo.lookMemberInfo == 1 else { return }
+            guard let `self` = self, self._viewModel.groupInfo.lookMemberInfo == 0 else { return }
             
             let vc = UserDetailTableViewController(userId: member.userID ?? "", groupId: member.groupID)
             self.navigationController?.pushViewController(vc, animated: true)

@@ -3,7 +3,7 @@ import Lottie
 import RxSwift
 import UIKit
 
-class ChatRecordView: UIView {
+public class ChatRecordView: UIView {
     let recordBtn: UIButton = {
         let v = UIButton()
         v.isSelected = true
@@ -47,7 +47,7 @@ class ChatRecordView: UIView {
         return v
     }()
 
-    lazy var convertRecordingImageView: AnimationView = {
+    public lazy var convertRecordingImageView: AnimationView = {
         let bundle = ViewControllerFactory.getBundle() ?? Bundle.main
         let v = AnimationView(name: "voice_record", bundle: bundle)
         v.loopMode = .autoReverse
@@ -55,7 +55,7 @@ class ChatRecordView: UIView {
         return v
     }()
 
-    lazy var cancelLabel: UILabel = {
+    public lazy var cancelLabel: UILabel = {
         let v = UILabel()
         v.text = "松开取消".innerLocalized()
         v.font = .systemFont(ofSize: 14, weight: .medium)
@@ -64,7 +64,7 @@ class ChatRecordView: UIView {
         return v
     }()
 
-    lazy var cancelBtn: UIButton = {
+    public lazy var cancelBtn: UIButton = {
         let v = UIButton()
         v.setImage(UIImage(nameInBundle: "inputbar_record_cancel_btn_icon_selected"), for: .selected)
         v.setImage(UIImage(nameInBundle: "inputbar_record_cancel_btn_icon_unselected"), for: .normal)
@@ -80,7 +80,7 @@ class ChatRecordView: UIView {
         return v
     }()
 
-    lazy var convertLabel: UILabel = {
+    public lazy var convertLabel: UILabel = {
         let v = UILabel()
         v.text = "转文字".innerLocalized()
         v.font = .systemFont(ofSize: 14, weight: .medium)
@@ -89,7 +89,7 @@ class ChatRecordView: UIView {
         return v
     }()
 
-    lazy var convertBtn: UIButton = {
+    public lazy var convertBtn: UIButton = {
         let v = UIButton()
         v.setImage(UIImage(nameInBundle: "inputbar_record_convert_btn_icon_selected"), for: .selected)
         v.setImage(UIImage(nameInBundle: "inputbar_record_convert_btn_icon_unselected"), for: .normal)
@@ -112,7 +112,7 @@ class ChatRecordView: UIView {
 
         addSubview(cancelBtn)
         cancelBtn.snp.makeConstraints { make in
-            make.centerX.equalToSuperview().multipliedBy(0.5)
+            make.centerX.equalToSuperview().multipliedBy(1.0)
             make.bottom.equalTo(recordBtn.snp.top).offset(-25)
         }
 
@@ -122,6 +122,7 @@ class ChatRecordView: UIView {
             make.bottom.equalTo(cancelBtn.snp.top).offset(-2)
         }
 
+        /*
         addSubview(convertBtn)
         convertBtn.snp.makeConstraints { make in
             make.centerX.equalToSuperview().multipliedBy(1.5)
@@ -133,6 +134,7 @@ class ChatRecordView: UIView {
             make.centerX.equalTo(convertBtn)
             make.bottom.equalTo(convertBtn.snp.top).offset(-2)
         }
+        */
 
         addSubview(recordingBackgroundImageView)
         recordingBackgroundImageView.snp.makeConstraints { make in
@@ -147,12 +149,14 @@ class ChatRecordView: UIView {
             make.centerY.equalToSuperview()
         }
 
+        /*
         addSubview(convertRecordingImageView)
         convertRecordingImageView.snp.makeConstraints { make in
             make.centerX.equalTo(convertBtn)
             make.size.equalTo(CGSize(width: 104, height: 95))
             make.centerY.equalToSuperview()
         }
+        */
         bindData()
     }
 
@@ -222,7 +226,7 @@ class ChatRecordView: UIView {
         #endif
     }
 
-    override func removeFromSuperview() {
+    public override func removeFromSuperview() {
         super.removeFromSuperview()
         _cancelBtnSelectedObservable.onNext(false)
         _convertBtnSelectedObservable.onNext(false)
@@ -234,12 +238,12 @@ class ChatRecordView: UIView {
         convertRecordingImageView.stop()
     }
 
-    override func didMoveToSuperview() {
+    public override func didMoveToSuperview() {
         super.didMoveToSuperview()
         recordingImageView.play()
     }
 
-    override func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
+    public override func touchesMoved(_ touches: Set<UITouch>, with _: UIEvent?) {
         if let touch = touches.first {
             let point = touch.location(in: self)
             _cancelBtnSelectedObservable.onNext(cancelBtn.frame.contains(point))
