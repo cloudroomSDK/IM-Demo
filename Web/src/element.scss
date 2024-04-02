@@ -1,0 +1,35 @@
+@forward 'element-plus/theme-chalk/src/common/var.scss' with (
+  $colors: (
+    'primary': (
+      'base': #3981fc,
+    ),
+    'success': (
+      'base': #67c23a,
+    ),
+    'warning': (
+      'base': #e6a23c,
+    ),
+    'danger': (
+      'base': #f56c6c,
+    ),
+    'error': (
+      'base': #f56c6c,
+    ),
+    'info': (
+      'base': #909399,
+    ),
+  ),
+  // $button-padding-horizontal: (
+  //   'default': 80px,
+  // )
+);
+:root {
+  --el-color-danger-light-9: #fff;
+  --el-box-shadow: 0px 0px 6px rgba(0, 0, 0, 0.4)
+}
+.el-dialog__body {
+  padding: 0;
+}
+.el-checkbox__inner {
+  border-radius: 50%;
+}
