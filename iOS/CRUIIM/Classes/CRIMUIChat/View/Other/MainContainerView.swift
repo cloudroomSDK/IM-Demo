@@ -49,6 +49,15 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
         return v
     }()
     
+    lazy var trailingDateLabel: UILabel = {
+        let v = UILabel()
+        v.textColor = .c353535
+        v.font = .preferredFont(forTextStyle: .footnote)
+        v.textAlignment = .right
+        
+        return v
+    }()
+    
     @objc
     private func tapAction() {
         didTapRead?()
@@ -122,8 +131,14 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
             trailingAudioRedLabel.heightAnchor.constraint(equalTo: trailingAudioRedLabel.widthAnchor, multiplier: 1),
         ])
         
-        let containerStack = UIStackView(arrangedSubviews: [leadingCountdownLabel, statusContainerStack, trailingCountdownLabel])
-        containerStack.spacing = 8
+        let containerStack_1 = UIStackView(arrangedSubviews: [leadingCountdownLabel, statusContainerStack, trailingCountdownLabel])
+        containerStack_1.spacing = 8
+        containerStack_1.translatesAutoresizingMaskIntoConstraints = false
+        
+        let containerStack = UIStackView(arrangedSubviews: [containerStack_1, trailingDateLabel])
+        containerStack.spacing = 5
+        containerStack.alignment = .leading
+        containerStack.distribution = .fill
         containerStack.translatesAutoresizingMaskIntoConstraints = false
         
         addSubview(containerStack)

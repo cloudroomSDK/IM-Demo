@@ -205,7 +205,7 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
 
         _viewModel.loginUserPublish.subscribe(onNext: { [weak self] (userInfo: UserInfo?) in
             let nickname = userInfo?.nickname?.isEmpty == false ? userInfo?.nickname : userInfo?.userID
-            self?._headerView.avatarImageView.setAvatar(url: userInfo?.faceURL, text: nickname, onTap: nil)
+            self?._headerView.avatarImageView.setAvatar(url: userInfo?.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
             self?._headerView.nameLabel.text = userInfo?.nickname
             self?._headerView.statusLabel.titleLabel.text = "在线".innerLocalized()
             self?._headerView.statusLabel.statusView.backgroundColor = StandardUI.color_10CC64
@@ -214,6 +214,8 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
 
     public func tableView(_: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         let item = _viewModel.conversationsRelay.value[indexPath.row]
+        
+        var swipeActions = [UIContextualAction]()
 
         let pinActionTitle = item.isPinned ? "取消置顶".innerLocalized() : "置顶".innerLocalized()
         let setTopAction = UIContextualAction(style: .normal, title: pinActionTitle) { [weak self] _, _, completion in
@@ -222,6 +224,7 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
             })
         }
         setTopAction.backgroundColor = UIColor.c0089FF
+        swipeActions.append(setTopAction)
         
         let markReadTitle = "标记已读".innerLocalized()
         let markReadAction = UIContextualAction(style: .normal, title: markReadTitle) { [weak self] _, _, completion in
@@ -230,15 +233,30 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
             })
         }
         markReadAction.backgroundColor = UIColor.ffbd4c1
+        
+        let hideTitle = "隐藏".innerLocalized()
+        let hideAction = UIContextualAction(style: .normal, title: hideTitle) { [weak self] _, _, completion in
+            self?._viewModel.hideConversation(conversationID: item.conversationID, onSuccess: { _ in
+                completion(true)
+            })
+        }
+        markReadAction.backgroundColor = UIColor.ffbd4c1
+        
+        if item.unreadCount > 0 {
+            swipeActions.append(markReadAction)
+        } else {
+            swipeActions.append(hideAction)
+        }
 
         let deleteAction = UIContextualAction(style: .destructive, title: "移除".innerLocalized()) { [weak self] _, _, completion in
             self?._viewModel.deleteConversation(conversationID: item.conversationID, completion: { _ in
                 completion(true)
             })
         }
-
         deleteAction.backgroundColor = UIColor.cFF381F
-        let configure = UISwipeActionsConfiguration(actions: [deleteAction, markReadAction, setTopAction])
+        swipeActions.append(deleteAction)
+        
+        let configure = UISwipeActionsConfiguration(actions: swipeActions)
         return configure
     }
 }

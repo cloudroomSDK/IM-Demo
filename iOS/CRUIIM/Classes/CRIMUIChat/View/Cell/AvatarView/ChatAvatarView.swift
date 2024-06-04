@@ -52,7 +52,7 @@ final class ChatAvatarView: UIView, StaticViewFactory {
             return
         }
         UIView.performWithoutAnimation {
-            avatarView.customView.setAvatar(url: controller.faceURL, text: controller.name) {
+            avatarView.customView.setAvatar(url: controller.faceURL, text: nil, placeHolder: "contact_my_friend_icon") {
                 controller.action()
             }
         }

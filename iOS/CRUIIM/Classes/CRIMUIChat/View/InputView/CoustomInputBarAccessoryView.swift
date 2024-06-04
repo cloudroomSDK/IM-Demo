@@ -7,6 +7,7 @@ import Photos
 import MobileCoreServices
 import RxCocoa
 import RxSwift
+import Toast_Swift
 
 enum CustomAttachment {
     case image(String, String)
@@ -15,21 +16,24 @@ enum CustomAttachment {
     case audio(String, String, Int)
 }
 
+enum MessageHandlerType {
+    case clearQuote
+    case deleteSelected
+    case forward
+    case atMember
+}
+
 // MARK: - CameraInputBarAccessoryViewDelegate
 protocol CoustomInputBarAccessoryViewDelegate: InputBarAccessoryViewDelegate {
     func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith attachments: [CustomAttachment])
     func inputBar(_ inputBar: InputBarAccessoryView, didPressPadItemWith type: PadItemType)
-    func clearSelectQuoteMessage(_ inputBar: InputBarAccessoryView)
-    func deleteMessages(_ inputBar: InputBarAccessoryView)
-    func forwardMessages(_ inputBar: InputBarAccessoryView)
+    func inputBar(_ inputBar: InputBarAccessoryView, messageHandlerWith type: MessageHandlerType)
 }
 
 extension CoustomInputBarAccessoryViewDelegate {
     func inputBar(_: InputBarAccessoryView, didPressSendButtonWith _: [CustomAttachment]) { }
     func inputBar(_: InputBarAccessoryView, didPressPadItemWith _: PadItemType) {}
-    func clearSelectQuoteMessage(_: InputBarAccessoryView) {}
-    func deleteMessages(_: InputBarAccessoryView) {}
-    func forwardMessages(_: InputBarAccessoryView) {}
+    func inputBar(_: InputBarAccessoryView, messageHandlerWith _: MessageHandlerType) {}
 }
 
 // MARK: - CameraInputBarAccessoryView
@@ -104,6 +108,24 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         return v
     }()
     
+    lazy var emojiButton: InputBarButtonItem = {
+        let v = InputBarButtonItem()
+            .configure {
+                $0.spacing = .fixed(8)
+                $0.image = UIImage(nameInBundle: "inputbar_emoji_btn_normal_icon")
+                $0.setImage(UIImage(nameInBundle: "inputbar_keyboard_btn_icon"), for: .selected)
+                $0.setImage(UIImage(nameInBundle: "inputbar_emoji_btn_disable_icon"), for: .disabled)
+                $0.setSize(CGSize(width: buttonSize, height: buttonSize), animated: false)
+            }.onTouchUpInside { [weak self] item in
+                print("Item Tapped:\(item.isSelected)")
+                guard let self else { return }
+                item.isSelected = !item.isSelected
+                self.showEmojiView(item.isSelected)
+            }
+        
+        return v
+    }()
+    
     lazy var moreButton: InputBarButtonItem = {
         let v = InputBarButtonItem()
             .configure {
@@ -150,7 +172,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         v.setTitle("松开 结束".innerLocalized(), for: .highlighted)
         v.titleLabel?.font = .boldSystemFont(ofSize: 15)
         v.titleLabel?.textAlignment = .center
-        v.setTitleColor(StandardUI.color_333333, for: .normal)
+        v.setTitleColor(StandardUI.color_0089FF, for: .normal)
         v.backgroundColor = .white
         v.layer.cornerRadius = 8
         v.layer.masksToBounds = true
@@ -219,6 +241,14 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         return v
     }()
     
+    private lazy var emojiView: ChatEmojiView = {
+        let v =  ChatEmojiView(frame: CGRect(x: 0, y: 0, width: kScreenWidth, height: 200))
+        v.backgroundColor = .white
+        v.delegate = self
+        return v
+    }()
+    
+    private var conversation: ConversationInfo!
     private weak var parentView: UIView!
             
     override init(frame: CGRect) {
@@ -241,7 +271,8 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         return manager
     }()
     
-    func weakReferenceParentView(superView: UIView) {
+    func weakReferenceParentView(superView: UIView, conversation: ConversationInfo) {
+        self.conversation = conversation
         parentView = superView
     }
     
@@ -304,7 +335,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         multipleMenuStackView.arrangedSubviews.forEach { v in
             v.removeFromSuperview()
         }
-        let views = [space_1, deleteBtn, space_2, space_3]
+        let views = [space_1, deleteBtn, space_2, forwardBtn, space_3]
         views.forEach { v in
             multipleMenuStackView.addArrangedSubview(v)
         }
@@ -322,13 +353,14 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
     func updateMiddleContentView(_ quote: Bool = false, _ text: String? = nil, _ attributedText: NSAttributedString? = nil) {
         if quote {
             let hStack: UIStackView = {
-                let quoteLabel: UILabel = {
-                    let v = UILabel()
-                    v.textColor = .c999999
+                let quoteLabel: PaddedUILabel = {
+                    let v = PaddedUILabel()
+                    v.textColor = .c353535
                     v.font = UIFont.preferredFont(forTextStyle: .footnote)
                     v.numberOfLines = 2
                     v.lineBreakMode = .byTruncatingTail
                     v.text = text
+                    v.textInsets = UIEdgeInsets(top: 5, left: 5, bottom: 5, right: 5)
                     
                     return v
                 }()
@@ -357,37 +389,13 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
                 
                 return hStack
             }()
-            
-            let containerLeft: UIView = {
-                let v = UIView()
-                v.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    v.widthAnchor.constraint(equalToConstant: 5)
-                ])
-                
-                return v
-            }()
-            
-            let containerRight: UIView = {
-                let v = UIView()
-                v.translatesAutoresizingMaskIntoConstraints = false
-                NSLayoutConstraint.activate([
-                    v.widthAnchor.constraint(equalToConstant: 5)
-                ])
-                
-                return v
-            }()
 
             middleContentStackView.arrangedSubviews.forEach { v in
                 v.removeFromSuperview()
             }
-            let views = [containerLeft, hStack, containerRight]
-            views.forEach { v in
-                middleContentStackView.addArrangedSubview(v)
-            }
+            middleContentStackView.addArrangedSubview(hStack)
    
             setMiddleContentView(nil, animated: false) // 注意设置前先清理老的
-            
             let vStack = UIStackView(arrangedSubviews: [inputTextView, middleContentStackView])
             vStack.axis = .vertical
             vStack.alignment = .fill
@@ -398,18 +406,69 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         }
     }
     
+    func hideBottomButtons() {
+        guard !inputTextView.isFirstResponder else {
+            inputTextView.resignFirstResponder()
+            return
+        }
+        configBottomButtons(false)
+    }
+    
+    func updateInputBar(groupInfo: GroupInfo, memberInfo: GroupMemberInfo? = nil) {
+        guard groupInfo.status != .ok else { return }
+        if let memberInfo, memberInfo.isOwnerOrAdmin, groupInfo.status == .muted {
+            return
+        }
+
+        if inputTextView.isFirstResponder {
+            inputTextView.resignFirstResponder()
+        }
+        configBottomButtons(false)
+        
+        // 去除左右的按钮
+        setLeftStackViewWidthConstant(to: 0, animated: false)
+        setStackViewItems([], forStack: .left, animated: false)
+        setRightStackViewWidthConstant(to: 0, animated: false)
+        setStackViewItems([], forStack: .right, animated: false)
+        
+        let maskLabel: PaddedUILabel = {
+            let v = PaddedUILabel()
+            v.textColor = .c0C1C33
+            v.font = UIFont.preferredFont(forTextStyle: .body)
+            v.textAlignment = .center
+            v.backgroundColor = .white
+            v.layer.cornerRadius = 8
+            v.layer.masksToBounds = true
+            v.textInsets = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+            
+            return v
+        }()
+        
+        switch groupInfo.status {
+        case .dismissed:
+            maskLabel.text = "此群已解散"
+        case .muted:
+            maskLabel.text = "全员禁言中"
+        default:
+            break
+        }
+        setMiddleContentView(maskLabel, animated: false)
+    }
+    
     @objc private func clearQuoteMessageAction() {
         updateMiddleContentView(false)
+        (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
+            .inputBar(self, messageHandlerWith: .clearQuote)
     }
     
     @objc private func deleteMessagesAction() {
         (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
-            .deleteMessages(self)
+            .inputBar(self, messageHandlerWith: .deleteSelected)
     }
     
     @objc private func forwardMessagesAction() {
         (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
-            .forwardMessages(self)
+            .inputBar(self, messageHandlerWith: .forward)
     }
     
     private func setupSubViews() {
@@ -420,6 +479,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         inputTextView.textColor = .c0C1C33
         inputTextView.font = .preferredFont(forTextStyle: .body)
         inputTextView.placeholder = nil
+        inputTextView.delegate = self
         topStackViewPadding = UIEdgeInsets(top: 8, left: 5, bottom: 8, right: 5)
         leftStackView.alignment = .center
         rightStackView.alignment = .center
@@ -447,8 +507,8 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
             $0.layer.cornerRadius = 6.0
             $0.layer.masksToBounds = true
         }
-        setRightStackViewWidthConstant(to: 2 * (buttonSize + 10), animated: false)
-        setStackViewItems([moreButton, sendButton], forStack: .right, animated: false)
+        setRightStackViewWidthConstant(to: 3 * (buttonSize + 10), animated: false)
+        setStackViewItems([emojiButton, moreButton, sendButton], forStack: .right, animated: false)
     }
     
     private func configVoiceInputButton() {
@@ -506,6 +566,27 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         moreButton.isSelected = false
     }
     
+    // 切换到表情选择
+    private func showEmojiView(_ show: Bool) {
+        print("点击按钮：\(show)")
+        
+        if show {
+            inputTextView.inputView = emojiView
+        } else {
+            inputTextView.inputView = nil
+            inputTextView.font = .preferredFont(forTextStyle: .body)
+            emojiButton.isSelected = false
+        }
+        configBottomButtons(false)
+        inputTextView.reloadInputViews()
+        if !inputTextView.isFirstResponder {
+            inputTextView.becomeFirstResponder()
+        }
+        
+        voiceInputBtn.isHidden = true
+        moreButton.isSelected = false
+    }
+    
     // 发送
     private func sendAttachments(attachments: [CustomAttachment]) {
         DispatchQueue.main.async { [self] in
@@ -550,7 +631,25 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         AVAudioSession.sharedInstance().requestRecordPermission { [weak self] granted in
             guard let sself = self else { return }
             if !granted {
+                sself.recordView.removeFromSuperview()
+                sself.stopRecord()
+                
                 // TODO: Toast弹窗提示开启权限
+                let sheet = SPAlertController.alertController(withTitle:"麦克风权限未开启".innerLocalized(), message: "无法录制声音，前往「设置 > 微信」中打开麦克风权限".innerLocalized(), preferredStyle: .alert)
+                sheet.titleColor = .c353535
+                sheet.messageColor = .c666666
+                let cancelAction = SPAlertAction.action(withTitle: "我知道了".innerLocalized(), style: .default) { [weak self] (action) in
+                    
+                }
+                let toSettingAction = SPAlertAction.action(withTitle: "前往设置".innerLocalized(), style: .default) { [weak self] (action) in
+                    UIApplication.shared.open(URL(string: UIApplication.openSettingsURLString)!)
+                }
+                
+                cancelAction.titleColor = .c353535
+                toSettingAction.titleColor = .c0584FE
+                sheet.addAction(action: cancelAction)
+                sheet.addAction(action: toSettingAction)
+                sself.currentViewController().present(sheet, animated: true, completion: nil)
                 return
             }
             let session = AVAudioSession.sharedInstance()
@@ -660,6 +759,73 @@ extension CoustomInputBarAccessoryView: AVAudioRecorderDelegate {
             }
         }
         try? FileManager.default.removeItem(at: _recorder.url)
+    }
+}
+
+extension CoustomInputBarAccessoryView: ChatEmojiViewDelegate {
+    func emojiViewDidSelect(emojiStr: String) {
+        let selectedRange = inputTextView.selectedRange
+        let emojiAttrString = NSMutableAttributedString(string: emojiStr)
+        EmojiHelper.shared.markReplaceableRange(inAttributedString: emojiAttrString, withString: emojiStr)
+
+        let attrText = NSMutableAttributedString(attributedString: inputTextView.attributedText)
+        attrText.replaceCharacters(in: selectedRange, with: emojiAttrString)
+        inputTextView.attributedText = attrText
+        inputTextView.selectedRange = NSRange(location: selectedRange.location + emojiAttrString.length, length: 0)
+        refreshDisplayText()
+        //sendBtn.isHidden = false
+    }
+
+    private func refreshDisplayText() {
+        if inputTextView.text.isEmpty {
+            return
+        }
+
+        if let markedRange = inputTextView.markedTextRange {
+            let position = inputTextView.position(from: markedRange.start, offset: 0)
+            if position == nil {
+                // 处于输入拼音还未确定的中间状态
+                return
+            }
+        }
+
+        let selectedRange = inputTextView.selectedRange
+        let plainText = EmojiHelper.shared.getPlainTextIn(attributedString: inputTextView.attributedText, atRange: NSRange(location: 0, length: inputTextView.attributedText.length))
+
+        let attr: [NSAttributedString.Key: Any] = [
+            NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .body),
+            NSAttributedString.Key.foregroundColor: StandardUI.color_333333,
+        ]
+        let attributedContent = EmojiHelper.shared.replaceTextWithEmojiIn(attributedString: NSAttributedString(string: plainText as String, attributes: attr))
+
+        let offset = inputTextView.attributedText.length - attributedContent.length
+        inputTextView.attributedText = attributedContent
+        inputTextView.selectedRange = NSRange(location: selectedRange.location - offset, length: 0)
+    }
+}
+
+// MARK: - UITextViewDelegate
+
+extension CoustomInputBarAccessoryView: UITextViewDelegate {
+    func textView(_: UITextView, shouldChangeTextIn _: NSRange, replacementText text: String) -> Bool {
+
+        var needUpdateText = false
+        if conversation.conversationType == .group {
+            if text == "@" {
+                print("弹出选择群成员窗口")
+                (self.delegate as? CoustomInputBarAccessoryViewDelegate)?
+                    .inputBar(self, messageHandlerWith: .atMember)
+            }
+
+            if text.isEmpty {
+                print("执行删除@联系人的逻辑")
+            }
+        }
+        return true
+    }
+
+    func textViewDidChange(_: UITextView) {
+        refreshDisplayText()
     }
 }
 

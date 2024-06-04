@@ -86,7 +86,7 @@ public class GroupListResultViewController: UIViewController, UISearchResultsUpd
         attString.addAttribute(NSAttributedString.Key.foregroundColor, value: highLightColor, range: person.textRange)
         cell.titleLabel.attributedText = attString
         if let group = dataList.first{ person.personId.contains($0.groupID) } {
-            cell.avatarImageView.setAvatar(url: group.faceURL, text: group.groupName, onTap: nil)
+            cell.avatarImageView.setAvatar(url: group.faceURL, text: nil, placeHolder: "contact_group_setting_icon", onTap: nil)
         }
         return cell
     }

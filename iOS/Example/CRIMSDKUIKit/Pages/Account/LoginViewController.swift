@@ -20,6 +20,18 @@ class LoginViewController: UIViewController {
         return v
     }()
     
+    private let versionLabel: UILabel = {
+        let v = UILabel()
+        v.textColor = DemoUI.color_666666
+        v.numberOfLines = 2
+        v.textAlignment = .center
+        
+        let infoDictionary = Bundle.main.infoDictionary
+        let majorVersion = infoDictionary!["CFBundleShortVersionString"] as! String //主程序版本号
+        v.text = "V " + majorVersion
+        
+        return v
+    } ()
     
     private let settingButton: UIButton = {
         let v = UIButton()
@@ -176,6 +188,12 @@ class LoginViewController: UIViewController {
             make.size.equalTo(150)
         }
         
+        view.addSubview(versionLabel)
+        versionLabel.snp.makeConstraints { make in
+            make.centerX.equalToSuperview()
+            make.top.equalTo(logoImageView.snp.bottom).offset(5)
+        }
+        
         settingButton.rx.tap.subscribe(onNext: { [weak self] _ in
             guard let sself = self else { return }
             sself.showConfigViewController()
@@ -196,7 +214,7 @@ class LoginViewController: UIViewController {
         
         view.addSubview(container)
         container.snp.makeConstraints { make in
-            make.top.equalTo(logoImageView.snp.bottom).offset(60)
+            make.top.equalTo(versionLabel.snp.bottom).offset(60)
             make.leading.trailing.equalToSuperview().inset(32)
         }
         

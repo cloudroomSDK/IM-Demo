@@ -144,7 +144,7 @@ class ApplicationViewController: UIViewController {
             nickName = groupApplication.nickname
         }
         
-        avatarView.setAvatar(url: faceURL, text: nickName, onTap: nil)
+        avatarView.setAvatar(url: faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
         nickNameLabel.text = nickName
         descTextView.text = viewModel.requestDescString
         

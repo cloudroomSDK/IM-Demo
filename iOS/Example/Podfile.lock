@@ -24,6 +24,7 @@ PODS:
     - RxKeyboard (~> 2.0)
     - RxSwift (~> 6.5)
     - SnapKit (~> 4.0)
+    - Toast-Swift (~> 5.1.1)
     - ZLPhotoBrowser (= 4.3.0)
   - CRUICoreView (0.0.1):
     - CRUICore
@@ -87,6 +88,7 @@ PODS:
   - RxSwift (6.5.0)
   - SGCodeTextField (0.1.4)
   - SnapKit (4.2.0)
+  - Toast-Swift (5.1.1)
   - ZLPhotoBrowser (4.3.0):
     - ZLPhotoBrowser/Core (= 4.3.0)
   - ZLPhotoBrowser/Core (4.3.0)
@@ -133,6 +135,7 @@ SPEC REPOS:
     - RxSwift
     - SGCodeTextField
     - SnapKit
+    - Toast-Swift
     - ZLPhotoBrowser
     - ZXSDK-Noidfa
 
@@ -151,7 +154,7 @@ SPEC CHECKSUMS:
   Bugly: b8715e6ec4004b7f7fbffab0643ba80545aee3da
   ChatLayout: e07c2fd8ac2ba7a78684e5a8aa32291eb746cab1
   CRIMSDK: 800897397ed963c420485bfab7ff226175a82630
-  CRUICore: d66bb4b39c28f8a9b0cce5cbb14ce8b4914d0f60
+  CRUICore: a49b6333a5cb8666fc3734a5d4d4afc22226d38b
   CRUICoreView: 84d8d4dc4ae79021bf9ebab8f5b2e4890ec6513f
   CRUIIM: e1ce1d93a555ee2a1b3a9e6bf558542a62c7b5ac
   DifferenceKit: ab185c4d7f9cef8af3fcf593e5b387fb81e999ca
@@ -177,6 +180,7 @@ SPEC CHECKSUMS:
   RxSwift: 5710a9e6b17f3c3d6e40d6e559b9fa1e813b2ef8
   SGCodeTextField: 6b65291a52a092c24bd08cc32873e024223b2371
   SnapKit: fe8a619752f3f27075cc9a90244d75c6c3f27e2a
+  Toast-Swift: 7a03a532afe3a560d4044bc7c237e2864d295173
   ZLPhotoBrowser: 7c5c3ea5e42428d26dc74a52fe821aa2a9274fa3
   ZXSDK-Noidfa: 475cd9d5ad96b1762cb97efd4738bc3f55e68cde
 

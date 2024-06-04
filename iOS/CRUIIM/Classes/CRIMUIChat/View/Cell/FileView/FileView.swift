@@ -41,7 +41,7 @@ final class FileView: UIView, ContainerCollectionViewCellDelegate {
         v.trackTintColor = .c999999
         v.progressTintColor = .c5AD439
         v.progress = 0
-        v.transform = CGAffineTransformMakeScale(1.0, 0.3)
+        v.transform = CGAffineTransformMakeScale(1.0, 0.5)
         
         return v
     }()
@@ -68,7 +68,9 @@ final class FileView: UIView, ContainerCollectionViewCellDelegate {
 
     func prepareForReuse() {
         imageView.image = nil
-        progressView.isHidden = true
+        progressView.alpha = 0
+        titleLabel.text = nil
+        detailLabel.text = nil
     }
 
     func apply(_ layoutAttributes: ChatLayoutAttributes) {
@@ -92,7 +94,7 @@ final class FileView: UIView, ContainerCollectionViewCellDelegate {
             }
             let imageName = DocumentType.detectDocumentType(for: controller.fileName)?.getIconImageName()
             imageView.image = UIImage(nameInBundle: imageName ?? "chat_msg_file_unknown_normal_icon")
-            progressView.alpha = 0
+            progressView.alpha = controller.status == .sending ? 1 : 0
         }
     }
     

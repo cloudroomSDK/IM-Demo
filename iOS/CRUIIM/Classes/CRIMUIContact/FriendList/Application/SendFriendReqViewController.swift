@@ -134,6 +134,10 @@ class SendFriendReqViewController: UIViewController {
                 ProgressHUD.showError("该用户已设置不可添加！".innerLocalized())
             } else if errCode == SDKError.differentAppID.rawValue {
                 ProgressHUD.showError("不同项目下不可添加！".innerLocalized())
+            } else if errCode == SDKError.relationshipAlready.rawValue {
+                ProgressHUD.showError("已经是好友关系或拉黑中！".innerLocalized())
+            } else {
+                ProgressHUD.showError(errMsg)
             }
         })
     }

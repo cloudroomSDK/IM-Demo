@@ -8,6 +8,7 @@ import CRUICoreView
 
 class GroupChatSettingTableViewController: UITableViewController {
     public var groupMembersCountCallback: (() -> Void)!
+    var clearRecordComplete: (() -> Void)?
     private let _viewModel: GroupChatSettingViewModel
     private let _disposeBag = DisposeBag()
     init(conversation: ConversationInfo, style: UITableView.Style) {
@@ -84,9 +85,7 @@ class GroupChatSettingTableViewController: UITableViewController {
             [.members],
             [.groupName, .myGroupNickname],
             [.qrCode],
-            [.groupId],
-            [.messageRecvOpt, .pinConversation, .clearRecord],
-            [.quitGrp],
+            [.groupId]
         ]
     }
     
@@ -113,8 +112,17 @@ class GroupChatSettingTableViewController: UITableViewController {
         sectionItems = defaultSectionItems()
         
         _viewModel.groupInfoRelay.subscribe(onNext: { [weak self] (groupInfo: GroupInfo?) in
-
             self?.tableView.reloadData()
+        }).disposed(by: _disposeBag)
+        
+        _viewModel.myInfoInGroup.subscribe(onNext: { [weak self] myGroupMemberInfo in
+            guard let self, let myGroupMemberInfo, self.sectionItems.count <= 5 else { return }
+            if myGroupMemberInfo.isOwnerOrAdmin {
+                self.sectionItems.append([.mute])
+            }
+            self.sectionItems.append(contentsOf: [[.messageRecvOpt, .pinConversation, .clearRecord],
+                                                  [.quitGrp]])
+            self.tableView.reloadData()
         }).disposed(by: _disposeBag)
     }
     
@@ -224,7 +232,7 @@ class GroupChatSettingTableViewController: UITableViewController {
                 } else if item.isRemoveButton {
                     cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "setting_remove_btn_icon")
                 } else {
-                    cell.avatarView.setAvatar(url: item.faceURL, text: item.nickname)
+                    cell.avatarView.setAvatar(url: item.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
                     //cell.levelLabel.text = item.roleLevelString
                 }
                 
@@ -244,7 +252,7 @@ class GroupChatSettingTableViewController: UITableViewController {
 
                     let vc = SelectContactsViewController(types: userInfo.isRemoveButton ? [.members] : [.friends], sourceID:  sself._viewModel.groupInfoRelay.value?.groupID)
                     vc.title = userInfo.isAddButton ? "邀请群成员".innerLocalized() : "移除群成员".innerLocalized()
-                    vc.selectedContact(blocked: userInfo.isAddButton ? sself._viewModel.allMembers + [IMController.shared.userID] : nil) { [weak vc] (r: [ContactInfo]) in
+                    vc.selectedContact(blocked: userInfo.isAddButton ? sself._viewModel.allMembers : nil) { [weak vc] (r: [ContactInfo]) in
                         guard let sself = self, let groupID = sself._viewModel.groupInfoRelay.value?.groupID else { return }
                         
                         let uids = r.compactMap { $0.ID }
@@ -313,6 +321,18 @@ class GroupChatSettingTableViewController: UITableViewController {
             cell.subtitleLabel.text = groupInfo?.groupID
             cell.subtitleLabel.textColor = .c3D3D3D
             cell.subtitleLabel.textAlignment = .right
+            
+            return cell
+        case .mute:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            _viewModel.mutedAllRelay.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                self?._viewModel.toggleMuteAll()
+            }).disposed(by: cell.disposeBag)
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.switcher.isHidden = false
+            cell.accessoryType = .none
             
             return cell
         case .messageRecvOpt:
@@ -393,10 +413,8 @@ class GroupChatSettingTableViewController: UITableViewController {
             presentAlert(title: "确认清空所有聊天记录吗？".innerLocalized()) {
                 self._viewModel.clearRecord(completion: { [weak self] _ in
                     ProgressHUD.showSuccess("清空成功".innerLocalized())
-                    /*
                     guard let handler = self?.clearRecordComplete else { return }
                     handler()
-                    */
                 })
             }
         default:
@@ -413,6 +431,7 @@ class GroupChatSettingTableViewController: UITableViewController {
         case myGroupNickname
         case qrCode
         case groupId
+        case mute
         case messageRecvOpt
         case pinConversation
         case clearRecord
@@ -435,6 +454,8 @@ class GroupChatSettingTableViewController: UITableViewController {
                 return "群聊二维码".innerLocalized()
             case .groupId:
                 return "群聊ID号".innerLocalized()
+            case .mute:
+                return "设置群禁言".innerLocalized()
             case .messageRecvOpt:
                 return "消息免打扰".innerLocalized()
             case .pinConversation:

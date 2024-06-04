@@ -1,5 +1,6 @@
 
 import CRUICore
+import CRUICoreView
 import ProgressHUD
 import RxSwift
 
@@ -258,7 +259,7 @@ class UserDetailTableViewController: UIViewController {
                 return
             }
             
-            sself.avatarView.setAvatar(url: userInfo.faceURL, text: userInfo.showName) { [weak self] in
+            sself.avatarView.setAvatar(url: userInfo.faceURL, text: nil, placeHolder: "contact_my_friend_icon") { [weak self] in
                 guard let self else { return }
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -282,6 +283,7 @@ class UserDetailTableViewController: UIViewController {
                 sself.unfriendStack.isHidden = false
                 
                 sself.rowItems.append([.remark, .gender, .birthday, .phone])
+                sself.rowItems.append([.recommendCard])
                 sself.rowItems.append([.blocked])
                 
                 sself.navigationItem.title = "好友名片"
@@ -298,7 +300,7 @@ class UserDetailTableViewController: UIViewController {
             self?.sendMsgStack.isHidden = true
             self?.unfriendStack.isHidden = true
             
-            sself.avatarView.setAvatar(url: userInfo.faceURL, text: userInfo.nickname) { [weak self] in
+            sself.avatarView.setAvatar(url: userInfo.faceURL, text: nil, placeHolder: "contact_my_friend_icon") { [weak self] in
                 guard let self else { return }
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -436,6 +438,9 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
             cell.subtitleLabel.text = user?.friendInfo?.phoneNumber
             cell.accessoryType = .none
             
+        case .recommendCard:
+            cell.accessoryType = .disclosureIndicator
+            
         case .blocked:
             cell.switcher.isHidden = false
             cell.switcher.isOn = inBlackList
@@ -468,6 +473,20 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
             print("跳转个人资料页")
             let vc = ProfileTableViewController(userID: _viewModel.userId)
             navigationController?.pushViewController(vc, animated: true)
+        case .recommendCard:
+            let vc = SelectContactsViewController()
+            vc.selectedContact() { [weak self] r in
+                guard let self else { return }
+                self.navigationController?.popViewController(animated: true)
+                let contact = ContactInfo(ID: self.user?.userID, name: self.user?.showName, faceURL: self.user?.faceURL)
+                self._viewModel.sendCardMsg(contact, r) { msg in
+                    
+                }
+                
+            }
+            vc.hidesBottomBarWhenPushed = true
+            self.navigationController?.pushViewController(vc, animated: true)
+            
         case .nickName, .joinTime, .joinSource: break
         default:
             break
@@ -530,6 +549,7 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
         case gender
         case birthday
         case phone
+        case recommendCard
         case blocked
         
         var title: String {
@@ -552,6 +572,8 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
                 return "生日".innerLocalized()
             case .phone:
                 return "手机号码".innerLocalized()
+            case .recommendCard:
+                return "把他推荐给朋友".innerLocalized()
             case .blocked:
                 return "加入黑名单".innerLocalized()
             case .spacer:

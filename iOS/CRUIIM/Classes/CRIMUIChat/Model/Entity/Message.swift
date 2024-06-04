@@ -160,6 +160,11 @@ struct LocationMessageSource: Hashable {
     var desc: Desc?
 }
 
+struct MergerMessageSource: Hashable {
+    var title: String?
+    var abstract: [String]?
+}
+
 struct QuoteMessageSource: Hashable {
     var text: String
     var type: TextMessageType = .text
@@ -217,6 +222,8 @@ struct Message: Hashable {
         case card(CardMessageSource)
         
         case location(LocationMessageSource)
+        
+        case merger(MergerMessageSource)
         
         case quote(QuoteMessageSource)
         

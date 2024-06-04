@@ -16,6 +16,7 @@ typealias AudioCollectionCell = ContainerCollectionViewCell<MessageContainerView
 typealias CardCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, CardView, ChatAvatarView>>>
 typealias LocationCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, LocationView, ChatAvatarView>>>
 typealias FileCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, FileView, ChatAvatarView>>>
+typealias MergerCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, MergerView, ChatAvatarView>>>
 
 typealias TextQuoteMessageCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, TextMessageView, ChatAvatarView>>>
 typealias ImageQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, ImageQuoteView, ChatAvatarView>>>
@@ -24,10 +25,12 @@ typealias AudioQuoteCollectionCell = ContainerCollectionViewCell<MessageContaine
 typealias CardQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, CardQuoteView, ChatAvatarView>>>
 typealias LocationQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, LocationQuoteView, ChatAvatarView>>>
 typealias FileQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, FileQuoteView, ChatAvatarView>>>
+typealias MergerQuoteCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<ChatAvatarView, MergerQuoteView, ChatAvatarView>>>
 
 typealias UserTitleCollectionCell = ContainerCollectionViewCell<SwappingContainerView<EdgeAligningView<UILabel>, UIImageView>>
 typealias TitleCollectionCell = ContainerCollectionViewCell<TipsTitleView>
 typealias TypingIndicatorCollectionCell = ContainerCollectionViewCell<MessageContainerView<EditingAccessoryView, MainContainerView<VoidViewFactory, TypingIndicator, VoidViewFactory>>>
+typealias SeparatorCollectionCell = ContainerCollectionViewCell<EdgeAligningView<SeparatorView>>
 
 typealias TextTitleView = ContainerCollectionReusableView<UILabel>
 
@@ -67,6 +70,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         collectionView.register(CardCollectionCell.self, forCellWithReuseIdentifier: CardCollectionCell.reuseIdentifier)
         collectionView.register(LocationCollectionCell.self, forCellWithReuseIdentifier: LocationCollectionCell.reuseIdentifier)
         collectionView.register(FileCollectionCell.self, forCellWithReuseIdentifier: FileCollectionCell.reuseIdentifier)
+        collectionView.register(MergerCollectionCell.self, forCellWithReuseIdentifier: MergerCollectionCell.reuseIdentifier)
 
         collectionView.register(TextQuoteMessageCollectionCell.self, forCellWithReuseIdentifier: TextQuoteMessageCollectionCell.reuseIdentifier)
         collectionView.register(ImageQuoteCollectionCell.self, forCellWithReuseIdentifier: ImageQuoteCollectionCell.reuseIdentifier)
@@ -75,6 +79,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         collectionView.register(CardQuoteCollectionCell.self, forCellWithReuseIdentifier: CardQuoteCollectionCell.reuseIdentifier)
         collectionView.register(LocationQuoteCollectionCell.self, forCellWithReuseIdentifier: LocationQuoteCollectionCell.reuseIdentifier)
         collectionView.register(FileQuoteCollectionCell.self, forCellWithReuseIdentifier: FileQuoteCollectionCell.reuseIdentifier)
+        collectionView.register(MergerQuoteCollectionCell.self, forCellWithReuseIdentifier: MergerQuoteCollectionCell.reuseIdentifier)
 
         collectionView.register(UserTitleCollectionCell.self, forCellWithReuseIdentifier: UserTitleCollectionCell.reuseIdentifier)
         collectionView.register(TitleCollectionCell.self, forCellWithReuseIdentifier: TitleCollectionCell.reuseIdentifier)
@@ -596,6 +601,73 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         return cell
     }
     
+    private func createMergerCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MergerMessageSource,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> MergerCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MergerCollectionCell.reuseIdentifier, for: indexPath) as! MergerCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = MergerController(source: source,
+                                        messageId: messageId,
+                                        bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true))
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.view = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
+    private func createMergerQuoteCell(collectionView: UICollectionView,
+                                 messageId: String,
+                                 isSelected: Bool,
+                                 isPrivateChat: Bool,
+                                 indexPath: IndexPath,
+                                 alignment: ChatItemAlignment,
+                                 user: User,
+                                 source: MergerMessageSource,
+                                 quoteUserName: String,
+                                 forVideo: Bool = false,
+                                 date: Date,
+                                 bubbleType: Cell.BubbleType,
+                                 status: MessageStatus,
+                                 messageType: MessageType) -> MergerQuoteCollectionCell {
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: MergerQuoteCollectionCell.reuseIdentifier, for: indexPath) as! MergerQuoteCollectionCell
+        
+        setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment, isQuoted: true)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isQuoted: true)
+        
+        setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
+        
+        let bubbleView = cell.customView.customView.customView
+        let controller = MergerController(source: source,
+                                        messageId: messageId,
+                                        bubbleController: buildTextBubbleController(bubbleView: bubbleView, messageType: messageType, bubbleType: bubbleType, isQuoted: true), senderNickname: quoteUserName, isQuoted: true)
+        
+        controller.delegate = reloadDelegate
+        bubbleView.customView.setup(with: controller)
+        controller.quoteView = bubbleView.customView
+        cell.delegate = bubbleView.customView
+
+        return cell
+    }
+    
     private func createTypingIndicatorCell(collectionView: UICollectionView, indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TypingIndicatorCollectionCell.reuseIdentifier, for: indexPath) as! TypingIndicatorCollectionCell
         let alignment = ChatItemAlignment.leading
@@ -878,6 +950,11 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
                 
                 return cell
                 
+            case let .merger(source):
+                let cell = createMergerCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                
+                return cell
+                
             case let .quote(source):
                 switch source.quoteData {
                 case let .text(textSource):
@@ -955,6 +1032,11 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
                     
                     return cell
                     
+                case let .merger(source):
+                    let cell = createMergerQuoteCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, alignment: cell.alignment, user: message.owner, source: source, quoteUserName: quoteSource.quoteUser, date: message.date, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                    
+                    return cell
+                    
                 default:
                     fatalError()
                 }
@@ -1023,7 +1105,9 @@ extension DefaultChatCollectionDataSource: ChatLayoutDelegate {
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
                 case let .location(_):
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
-                case let .file(_):
+                case let .file(_, _):
+                    return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
+                case let .merger(_):
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 120))
                 default:
                     return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 36))
@@ -1032,7 +1116,7 @@ extension DefaultChatCollectionDataSource: ChatLayoutDelegate {
                 return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 36))
             case .date, .systemMessage:
                 return .estimated(CGSize(width: chatLayout.layoutFrame.width, height: 18))
-            case .typingIndicator:
+            case .typingIndicator, .separator:
                 return .estimated(CGSize(width: 60, height: 36))
             case .messageGroup:
                 return .estimated(CGSize(width: min(85, chatLayout.layoutFrame.width / 3), height: 18))
@@ -1079,7 +1163,7 @@ extension DefaultChatCollectionDataSource: ChatLayoutDelegate {
                 return .center
             case .message, .replyMessage, .quoteMessage:
                 return .fullWidth
-            case .messageGroup, .typingIndicator:
+            case .messageGroup, .typingIndicator, .separator:
                 return .leading
             }
         case .footer:

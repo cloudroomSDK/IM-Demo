@@ -12,8 +12,8 @@ enum Cell: Hashable {
     }
 
     case message(Message, bubbleType: BubbleType)
-    case replyMessage(Message, bubbleType: BubbleType)
-    case quoteMessage(Message, bubbleType: BubbleType)
+    case replyMessage(Message, bubbleType: BubbleType) // 回复的内容
+    case quoteMessage(Message, bubbleType: BubbleType) // 被引用的消息
     
     case systemMessage(SystemGroup)
 
@@ -22,6 +22,8 @@ enum Cell: Hashable {
     case messageGroup(MessageGroup)
 
     case date(DateGroup)
+    
+    case separator
 
 //    case deliveryStatus
 
@@ -31,6 +33,8 @@ enum Cell: Hashable {
             return message.type == .incoming ? .leading : .trailing
 //        case .deliveryStatus:
 //            return .trailing
+        case .separator:
+            return .fullWidth
         case .typingIndicator:
             return .leading
         case let .messageGroup(group):
@@ -56,6 +60,8 @@ extension Cell: Differentiable {
             return message.differenceIdentifier
 //        case .deliveryStatus:
 //            return hashValue
+        case .separator:
+            return hashValue
         case .typingIndicator:
             return hashValue
         case let .messageGroup(group):

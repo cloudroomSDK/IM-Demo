@@ -14,6 +14,27 @@ public enum UsedFor: Int {
 
 typealias CompletionHandler = (_ errCode: Int, _ errMsg: String?) -> Void
 
+class CustomSessionManagerWrapper {
+    var sessionManager: SessionManager!
+
+    init() {
+        let serverTrustPolicies: [String: ServerTrustPolicy] = [
+            "192.168.0.43": .disableEvaluation,
+        ]
+
+        let serverTrustPolicyManager = ServerTrustPolicyManager(policies: serverTrustPolicies)
+
+        let configuration = URLSessionConfiguration.default
+        configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
+
+        sessionManager = SessionManager(configuration: configuration, serverTrustPolicyManager: serverTrustPolicyManager)
+    }
+
+    func request(_ url: URLConvertible, method: HTTPMethod, parameters: Parameters? = nil, completion: @escaping (DataResponse<Any>) -> Void) {
+        sessionManager?.request(url, method: method, parameters: parameters).responseJSON(completionHandler: completion)
+    }
+}
+
 open class AccountViewModel {
     
     // 业务服务器地址
@@ -37,6 +58,7 @@ open class AccountViewModel {
     private static let GetClientConfigAPI = "/client_config/get"
     private static let BlockAddAPI = "/block/add"
     
+    private static let sessionManagerWrapper = CustomSessionManagerWrapper()
     
     private let _disposeBag = DisposeBag()
     
@@ -100,7 +122,7 @@ open class AccountViewModel {
 
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -134,7 +156,7 @@ open class AccountViewModel {
 
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<AdminEntity>.self) {
@@ -167,7 +189,7 @@ open class AccountViewModel {
 
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<AdminEntity>.self) {
@@ -221,7 +243,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -253,7 +275,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -285,7 +307,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -320,7 +342,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -349,7 +371,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
@@ -402,7 +424,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<UpdateUserInfoRequest>.self) {
@@ -435,7 +457,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<QueryUserInfoData>.self) {
@@ -472,7 +494,7 @@ open class AccountViewModel {
         
         print("输入地址：\(req)")
         IMController.writeLog(content: "输入地址：\(req)")
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<QueryUserInfoData>.self) {
@@ -562,7 +584,7 @@ open class AccountViewModel {
         req.httpBody = body
         req.addValue(UUID().uuidString, forHTTPHeaderField: "operationID")
         
-        Alamofire.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
             switch response.result {
             case .success(let result):
                 if let res = JsonTool.fromJson(result, toClass: Response<ClientConfigData>.self) {

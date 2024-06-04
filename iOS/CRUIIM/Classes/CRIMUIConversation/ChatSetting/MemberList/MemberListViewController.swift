@@ -238,7 +238,7 @@ class MemberListViewController: UIViewController {
             } else {
                 cell.titleLabel.text = model.nickname
             }
-            cell.avatarImageView.setAvatar(url: model.faceURL, text: model.nickname, onTap: nil)
+            cell.avatarImageView.setAvatar(url: model.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
         }.disposed(by: _disposeBag)
         
         headerTableView.rx.modelSelected(GroupMemberInfo.self).subscribe(onNext: { [weak self] member in
@@ -297,7 +297,7 @@ extension MemberListViewController: UITableViewDataSource, UITableViewDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: FriendListUserTableViewCell.className) as! FriendListUserTableViewCell
         let user: GroupMemberInfo = _viewModel.contactSections[indexPath.section][indexPath.row]
         cell.titleLabel.text = user.nickname
-        cell.avatarImageView.setAvatar(url: user.faceURL, text: user.nickname, onTap: nil)
+        cell.avatarImageView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
         return cell
     }
 

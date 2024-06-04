@@ -132,7 +132,7 @@ class SearchFriendViewController: UIViewController, UITableViewDelegate, UITable
             guard let user = _viewModel.userInfoRelay.value else { return }
             let vc = QRCodeViewController(idString: IMController.addFriendPrefix.append(string: user.userID))
             vc.nameLabel.text = user.nickname
-            vc.avatarView.setAvatar(url: user.faceURL, text: user.nickname)
+            vc.avatarView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
             vc.tipLabel.text = "扫一扫上面的二维码，添加为好友"
             navigationController?.pushViewController(vc, animated: true)
         case .scanQrcode:

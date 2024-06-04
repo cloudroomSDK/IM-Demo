@@ -52,7 +52,7 @@ final class ImageController {
             quoteView?.reloadData()
         } else {
             guard let url = source.source.url else { return }
-            if let image = try? imageCache.getEntity(for: .init(url: url)) {
+            if let image = try? imageCache.getEntity(for: CacheableImageKey(url: url)) {
                 self.image = image
                 view?.reloadData()
                 quoteView?.reloadData()

@@ -76,6 +76,7 @@ let sdkAPPSecretKey = "com.crimuikit.sdk.appSecret"
 let sdkTokenKey = "com.crimuikit.sdk.token"
 let sdkObjectStorageKey = "com.crimuikit.sdk.os"
 let useTokenKey = "com.crimuikit.use.Token"
+let protocolKey = "com.crimuikit.use.protocol"
 
 class ConfigViewController: UIViewController {
 
@@ -85,12 +86,14 @@ class ConfigViewController: UIViewController {
     let authenTypeAppID = "帐号密码鉴权"
     let authenTypeToken = "动态Token鉴权"
     
+    var currentProtocol = UserDefaults.standard.integer(forKey: protocolKey)
+    let protocolTypes = ["http", "https(CA证书)", "https(自签名SSL证书)"]
+    
     // 读取鉴权方式
     let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil ? false : UserDefaults.standard.bool(forKey: useTokenKey)
     lazy var currentAuthen = enableToken ? authenTypeToken : authenTypeAppID
 
-    let ports = [bussinessSeverAddrKey: bussinessPort]
-    let scheme = [bussinessSeverAddrKey: "http", sdkAPIAddrKey: "http"]
+    //let scheme = [bussinessSeverAddrKey: "http", sdkAPIAddrKey: "http"]
 
     private var severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultDomain
     private var bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? "http://\(defaultIP)\(bussinessPort)"
@@ -155,8 +158,8 @@ class ConfigViewController: UIViewController {
         tap.rx.event.subscribe(onNext: { [weak self] _ in
             guard let sself = self else { return }
             
-            ConfigAuthenTypeView.show(onWindowOf: sself.view, alertTitle: "鉴权方式", currentItem: sself.currentAuthen, options: [sself.authenTypeAppID, sself.authenTypeToken], confirmTitle: "确定") { rslt  in
-                sself.currentAuthen = rslt ?? ""
+            ConfigPickerView.show(onWindowOf: sself.view, alertTitle: "鉴权方式", currentItem: sself.currentAuthen, options: [sself.authenTypeAppID, sself.authenTypeToken], confirmTitle: "确定") { index, title in
+                sself.currentAuthen = title
                 sself.authenTypeCell.subtitleLabel.text = sself.currentAuthen
                 sself.reloadRelatedRows()
             }
@@ -205,6 +208,27 @@ class ConfigViewController: UIViewController {
         v.titleLabel.text = value.title
         v.titleLabel.textColor = DemoUI.color_666666
         v.inputTextFiled.text = token
+        return v
+    }()
+    
+    private lazy var protocolTypeCell: OptionTableViewCell = {
+        let v = getOptionTableViewCell()
+        let value = ConfigCellType.protocolType
+        v.titleLabel.text = value.title
+        v.titleLabel.textColor = DemoUI.color_666666
+        v.subtitleLabel.text = protocolTypes[currentProtocol]
+        
+        let tap = UITapGestureRecognizer()
+        tap.rx.event.subscribe(onNext: { [weak self] _ in
+            guard let sself = self else { return }
+            
+            ConfigPickerView.show(onWindowOf: sself.view, alertTitle: "通讯协议", currentItem: sself.protocolTypes[sself.currentProtocol], options: sself.protocolTypes, confirmTitle: "确定") { index, title in
+                sself.currentProtocol = index
+                sself.protocolTypeCell.subtitleLabel.text = title
+                sself.reloadRelatedRows()
+            }
+        }).disposed(by: disposeBag)
+        v.addGestureRecognizer(tap)
         return v
     }()
     
@@ -301,11 +325,14 @@ class ConfigViewController: UIViewController {
         let spacer = UIView()
         spacer.backgroundColor = .viewBackgroundColor
         
+        let spacer2 = UIView()
+        spacer2.backgroundColor = .viewBackgroundColor
+        
         var arrangedViews = [UIView]()
         if currentAuthen == authenTypeToken {
-            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, tokenCell]
+            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, tokenCell, spacer2, protocolTypeCell]
         } else {
-            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, appIDCell, appSecretCell]
+            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, appIDCell, appSecretCell, spacer2, protocolTypeCell]
         }
         for value in arrangedViews {
             vStack.addArrangedSubview(value)
@@ -329,8 +356,14 @@ class ConfigViewController: UIViewController {
         appSecretCell.snp.remakeConstraints { make in
             make.height.equalTo(rowHeight)
         }
+        spacer2.snp.remakeConstraints { make in
+            make.height.equalTo(16)
+        }
+        protocolTypeCell.snp.remakeConstraints { make in
+            make.height.equalTo(rowHeight)
+        }
         
-        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * (arrangedViews.count - 1) + 16)
+        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * (arrangedViews.count - 2) + 16*2)
         list.tableHeaderView = vStack
     }
     
@@ -376,9 +409,9 @@ class ConfigViewController: UIViewController {
         self.view.endEditing(true)
         
         severAddress = bussinessServerCell.inputTextFiled.text ?? defaultHost
-        bussinessSeverAddr = scheme[bussinessSeverAddrKey]! + "://" + severAddress + ports[bussinessSeverAddrKey]!
+        bussinessSeverAddr = (currentProtocol == 0 ? "http" : "https") + "://" + severAddress + (currentProtocol == 0 ? bussinessPort : httpsBussinessPort)
         sdkAPIAddr = sdkServerCell.inputTextFiled.text ?? defaultSDKApi
-        let newSdkAPIAddr = scheme[sdkAPIAddrKey]! + "://" + sdkAPIAddr
+        let newSdkAPIAddr = (currentProtocol == 0 ? "http" : "https") + "://" + sdkAPIAddr
         
         token = tokenCell.inputTextFiled.text ?? defaultToken
         appID = appIDCell.inputTextFiled.text ?? defaultAppID
@@ -392,6 +425,7 @@ class ConfigViewController: UIViewController {
         ud.set(currentAuthen == authenTypeToken, forKey: useTokenKey)
         ud.set(token, forKey: sdkTokenKey)
         ud.set(appSecret, forKey: sdkAPPSecretKey)
+        ud.setValue(currentProtocol, forKey: protocolKey)
         
         // 更新业务地址
         AccountViewModel.API_BASE_URL = bussinessSeverAddr
@@ -410,11 +444,14 @@ class ConfigViewController: UIViewController {
         IMController.shared.unInitSDK()
         // 初始化SDK
         IMController.shared.setup(sdkAPIAdrr: newSdkAPIAddr,
+                                  skipVerifyCert: currentProtocol == 3,
                                   sdkOS: sdkObjectStorage) {
             IMController.shared.currentUserRelay.accept(nil)
             AccountViewModel.saveUser(uid: nil, imToken: nil, chatToken: nil)
             NotificationCenter.default.post(name: .init("logout"), object: nil)
         }
+        
+        CRIMSessionManagerWrapper.shared.updateCertificateValidation()
     }
     
     private func getConfigCell() -> ConfigCell {
@@ -440,6 +477,7 @@ class ConfigViewController: UIViewController {
         case appID
         case appSecret
         case token
+        case protocolType
 
         var title: String {
             switch self {
@@ -455,6 +493,8 @@ class ConfigViewController: UIViewController {
                 return "AppSecret:".innerLocalized()
             case .token:
                 return "Token:".innerLocalized()
+            case .protocolType:
+                return "通讯协议:".innerLocalized()
             }
         }
     }

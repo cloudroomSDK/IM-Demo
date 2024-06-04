@@ -175,6 +175,11 @@ final class DefaultDataProvider: DataProvider {
                 self.receivedNewMessages(message: message)
             }
         }).disposed(by: _disposeBag)
+        
+        IMController.shared.syncLocalMsgSentSubject.subscribe(onNext: { [weak self] (message: MessageInfo) in
+            guard let self else { return }
+            self.appendSentMessage(message: message)
+        }).disposed(by: _disposeBag)
 
         IMController.shared.c2cReadReceiptReceived.subscribe(onNext: { [weak self] (receiptInfos: [ReceiptInfo]) in
             let msgIDs = receiptInfos.flatMap { $0.msgIDList ?? [] }
@@ -250,5 +255,9 @@ final class DefaultDataProvider: DataProvider {
 
         delegate?.received(message: message)
         delegate?.lastReceivedIdChanged(to: message.clientMsgID)
+    }
+    
+    private func appendSentMessage(message: MessageInfo) {
+        delegate?.appendSentMessage(message: message)
     }
 }

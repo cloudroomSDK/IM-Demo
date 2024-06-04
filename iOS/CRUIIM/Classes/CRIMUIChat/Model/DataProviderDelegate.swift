@@ -14,4 +14,7 @@ protocol DataProviderDelegate: AnyObject {
     func isInGroup(with isIn: Bool)
     
     func receivedRevokedInfo(info: MessageRevoked)
+    
+    // 处理转发消息到当前会话的刷新
+    func appendSentMessage(message: MessageInfo)
 }

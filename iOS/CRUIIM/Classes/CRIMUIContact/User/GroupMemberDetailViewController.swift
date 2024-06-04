@@ -86,7 +86,7 @@ class GroupMemberDetailViewController: UIViewController {
     private lazy var _tableView: UITableView = {
         let v = UITableView()
         v.backgroundColor = .clear
-        v.separatorStyle = .none
+        v.separatorStyle = .singleLine
         let headerView: UIView = {
             let v = UIView(frame: CGRect(x: 0, y: 0, width: kScreenWidth, height: 96))
             v.backgroundColor = .tertiarySystemBackground
@@ -118,11 +118,16 @@ class GroupMemberDetailViewController: UIViewController {
         v.register(SpacerCell.self, forCellReuseIdentifier: SpacerCell.className)
         v.delegate = self
         v.dataSource = self
-        v.tableFooterView = UIView()
+        v.estimatedSectionHeaderHeight = 0
+        v.tableFooterView = UIView(frame: CGRect(x: 0, y: 0, width: kScreenWidth, height: .leastNormalMagnitude))
+        
+        if #available(iOS 15.0, *) {
+            v.sectionHeaderTopPadding = 0
+        }
         return v
     }()
     
-    private var rowItems: [RowType] = [.spacer]
+    private var rowItems: [[RowType]] = [[.spacer]]
     
     init(userId: String, groupId: String?, groupInfo: GroupInfo? = nil, userDetailFor: UserDetailFor = .groupMemberInfo) {
         _viewModel = UserDetailViewModel(userId: userId, groupId: groupId, groupInfo: groupInfo, userDetailFor: userDetailFor)
@@ -206,7 +211,7 @@ class GroupMemberDetailViewController: UIViewController {
                 return
             }
             
-            sself.avatarView.setAvatar(url: userInfo.faceURL, text: userInfo.showName) { [weak self] in
+            sself.avatarView.setAvatar(url: userInfo.faceURL, text: nil, placeHolder: "contact_my_friend_icon") { [weak self] in
                 guard let self else { return }
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -222,10 +227,10 @@ class GroupMemberDetailViewController: UIViewController {
             if userInfo.userID == IMController.shared.userID {
                 sself.addFriendBtn.isHidden = true
                 sself.sendMsgBtn.isHidden = true
-            } else if userInfo.friendInfo != nil, !sself.rowItems.contains(.profile) {
+            } else if userInfo.friendInfo != nil, !sself.rowItems.contains([.profile]) {
                 //是好友可以查看详细
-                sself.rowItems.append(.spacer)
-                sself.rowItems.append(.profile)
+                //sself.rowItems.append([.spacer])
+                sself.rowItems.append([.profile])
                 sself.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "ellipsis"), style: .plain, target: self, action: #selector(sself.rightButtonAction))
             }
             sself._tableView.reloadData()
@@ -238,7 +243,7 @@ class GroupMemberDetailViewController: UIViewController {
                 return
             }
             
-            sself.avatarView.setAvatar(url: userInfo.faceURL, text: userInfo.nickname) { [weak self] in
+            sself.avatarView.setAvatar(url: userInfo.faceURL, text: nil, placeHolder: "contact_my_friend_icon") { [weak self] in
                 guard let self else { return }
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -257,22 +262,24 @@ class GroupMemberDetailViewController: UIViewController {
         
         _viewModel.memberInfoRelay.subscribe(onNext: { [weak self] (memberInfo: GroupMemberInfo?) in
             guard let memberInfo, let sself = self else { return }
-            sself.avatarView.setAvatar(url: memberInfo.faceURL, text: memberInfo.nickname, onTap: nil)
+            sself.avatarView.setAvatar(url: memberInfo.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
             sself.nameLabel.text = memberInfo.nickname
             sself.IDLabel.text = memberInfo.userID
             sself.addFriendBtn.isHidden = true
             
             guard sself._viewModel.groupId != nil else { return }
             // 群聊才有以下信息
-            sself.rowItems = sself.rowItems.count > 1 ? sself.rowItems : [.nickName, .joinTime]
+            guard sself.rowItems.count < 2 else { return }
+            sself.rowItems = sself.rowItems.count > 1 ? sself.rowItems : [[.identifier]]
             
-            if sself._viewModel.showJoinSource == true, !sself.rowItems.contains(.joinSource) {
-                sself.rowItems.append(.joinSource)
-            }
-            
+            var rowItems: [RowType] = [.nickName]
             if sself._viewModel.showSetAdmin == true {
-                sself.rowItems.append(.spacer)
+                rowItems.append(.showSetAdmin)
             }
+            if sself._viewModel.showMute == true {
+                rowItems.append(.showMute)
+            }
+            sself.rowItems.append(rowItems)
             
         }).disposed(by: _disposeBag)
     }
@@ -280,13 +287,17 @@ class GroupMemberDetailViewController: UIViewController {
 }
 
 extension GroupMemberDetailViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         return rowItems.count
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return rowItems[section].count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        let rowType: RowType = rowItems[indexPath.row]
+        let rowType: RowType = rowItems[indexPath.section][indexPath.row]
         
         if rowType == .spacer {
             return tableView.dequeueReusableCell(withIdentifier: SpacerCell.className, for: indexPath)
@@ -301,30 +312,49 @@ extension GroupMemberDetailViewController: UITableViewDataSource, UITableViewDel
             cell.titleLabel.isHidden = true
             cell.subtitleLabel.text = rowType.title
             cell.accessoryType = .disclosureIndicator
+            
         }
         
         guard let info = _viewModel.memberInfoRelay.value else { return cell }
         cell.titleLabel.text = rowType.title
         
-        if rowType == .nickName {
-            cell.subtitleLabel.text = info.nickname
-        } else if rowType == .joinTime {
-            cell.subtitleLabel.text = FormatUtil.getFormatDate(formatString: "yyyy年MM月dd日", of: info.joinTime/1000)
-        } else if rowType == .joinSource {
-            cell.subtitleLabel.text = info.joinWay
+        if rowType == .identifier {
+            cell.subtitleLabel.text = info.userID
+            cell.subtitleLabel.textAlignment = .right
+        } else if rowType == .nickName {
+            cell.subtitleLabel.text = _viewModel.groupInfo?.groupName
+            cell.subtitleLabel.textAlignment = .right
+        } else if rowType == .showSetAdmin {
+            cell.switcher.isHidden = false
+            _viewModel.memberInfoRelay.map{
+                $0?.roleLevel == .admin
+            }.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                guard let self, let roleLevel = self._viewModel.memberInfoRelay.value?.roleLevel else { return }
+                self._viewModel.toggleSetAdmin(toAdmin: roleLevel != .admin) { _ in
+                    
+                }
+            }).disposed(by: cell.disposeBag)
+        } else if rowType == .showMute {
+            cell.accessoryType = .disclosureIndicator
+            cell.subtitleLabel.textAlignment = .right
+            cell.subtitleLabel.text = (_viewModel.memberInfoRelay.value?.muteEndTime ?? 0) > Date().timeIntervalSince1970 ? "禁言中" : nil
         }
         
         return cell
     }
     
     func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let rowType: RowType = rowItems[indexPath.row]
+        let rowType: RowType = rowItems[indexPath.section][indexPath.row]
         switch rowType {
         case .profile:
             print("跳转个人资料页")
             let vc = ProfileTableViewController(userID: _viewModel.userId)
             navigationController?.pushViewController(vc, animated: true)
-        case .nickName, .joinTime, .joinSource: break
+        case .showMute:
+            let vc = MuteMemberTableViewController(viewModel: _viewModel)
+            navigationController?.pushViewController(vc, animated: true)
+        case .nickName: break
         default:
             break
         }
@@ -335,7 +365,7 @@ extension GroupMemberDetailViewController: UITableViewDataSource, UITableViewDel
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        let rowType: RowType = rowItems[indexPath.row]
+        let rowType: RowType = rowItems[indexPath.section][indexPath.row]
         
         if rowType == .spacer {
             return 10
@@ -343,38 +373,45 @@ extension GroupMemberDetailViewController: UITableViewDataSource, UITableViewDel
         return UITableView.automaticDimension
     }
     
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        .leastNormalMagnitude
+    }
+    
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        10
+    }
+    
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        UIView()
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        UIView()
+    }
+    
     enum RowType {
+        case identifier
         case nickName
-        case joinTime
-        case joinSource
+        case organization
+        case showSetAdmin
+        case showMute
         case profile
         case spacer
-        case remark
-        case gender
-        case birthday
-        case phone
-        case blocked
         
         var title: String {
             switch self {
+            case .identifier:
+                return "ID号".innerLocalized()
+            case .organization:
+                return "组织信息".innerLocalized()
             case .nickName:
                 return "群昵称".innerLocalized()
-            case .joinTime:
-                return "入群时间".innerLocalized()
-            case .joinSource:
-                return "入群方式".innerLocalized()
+            case .showSetAdmin:
+                return "设为管理员".innerLocalized()
+            case .showMute:
+                return "设置禁言".innerLocalized()
             case .profile:
                 return "个人资料".innerLocalized()
-            case .remark:
-                return "备注".innerLocalized()
-            case .gender:
-                return "性别".innerLocalized()
-            case .birthday:
-                return "生日".innerLocalized()
-            case .phone:
-                return "手机号码".innerLocalized()
-            case .blocked:
-                return "加入黑名单".innerLocalized()
             case .spacer:
                 return ""
             }

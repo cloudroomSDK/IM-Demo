@@ -17,7 +17,7 @@ final class AudioView: UIView, ContainerCollectionViewCellDelegate {
         
     private lazy var audioIconLeftImageView: AnimationView = {
         let bundle = ViewControllerFactory.getBundle() ?? Bundle.main
-        let v = AnimationView(name: "voice_black", bundle: bundle)
+        let v = AnimationView(name: "voice_blue", bundle: bundle)
         v.loopMode = .loop
         v.currentProgress = 1
         v.setContentHuggingPriority(.required, for: .horizontal)
@@ -37,7 +37,7 @@ final class AudioView: UIView, ContainerCollectionViewCellDelegate {
     
     private lazy var audioIconRightImageView: AnimationView = {
         let bundle = ViewControllerFactory.getBundle() ?? Bundle.main
-        let v = AnimationView(name: "voice_black", bundle: bundle)
+        let v = AnimationView(name: "voice_blue", bundle: bundle)
         v.loopMode = .loop
         v.currentProgress = 1
         v.setContentHuggingPriority(.required, for: .horizontal)
@@ -77,7 +77,7 @@ final class AudioView: UIView, ContainerCollectionViewCellDelegate {
     
     func reloadData() {
         UIView.performWithoutAnimation {
-            durationLabel.text = #"\#(FormatUtil.getMediaFormat(of: controller.duration))"#
+            durationLabel.text = #"\#(String(format: "%d", controller.duration))""#
             
             if controller.messageType.isIncoming {
                 audioIconRightImageView.isHidden = true

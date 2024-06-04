@@ -136,10 +136,10 @@ public class GroupFriendsListViewController: UIViewController {
             if model is GroupInfo, let m = model as? GroupInfo {
                 cell.titleLabel.text = m.groupName
                 cell.subtitleLabel.text = "\(m.memberCount)人"
-                cell.avatarImageView.setAvatar(url: m.faceURL, text: m.groupName, onTap: nil)
+                cell.avatarImageView.setAvatar(url: m.faceURL, text: nil, placeHolder: "contact_group_setting_icon", onTap: nil)
             } else if model is UserInfo, let m = model as? UserInfo {
                 cell.titleLabel.text = m.nickname
-                cell.avatarImageView.setAvatar(url: m.faceURL, text: m.nickname, onTap: nil)
+                cell.avatarImageView.setAvatar(url: m.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
             }
         }.disposed(by: _disposeBag)
         

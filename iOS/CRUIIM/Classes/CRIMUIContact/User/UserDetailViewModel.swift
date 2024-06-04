@@ -118,7 +118,7 @@ class UserDetailViewModel {
                             sself.showSetAdmin = true
                             sself.showJoinSource = true
                         } else if mine.roleLevel == .admin {
-                            sself.showMute = true
+                            sself.showMute = memberInfo?.roleLevel != .owner && memberInfo?.roleLevel != .admin
                             sself.showJoinSource = true
                         }
                         
@@ -158,18 +158,23 @@ class UserDetailViewModel {
         IMController.shared.setGrpMemberRoleLevel(groupId: groupId!, userID: userId, roleLevel: toAdmin ? .admin : .member, onSuccess: onSuccess)
     }
     
-    func setMutedSeconds(seconds: Int, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
-        guard let groupId = groupId else {
-            return
+    func setGroupMuted(isMute: Bool, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+        guard let groupId = groupId else { return }
+        
+        IMController.shared.changeGrpMute(groupID: groupId, isMute: isMute) { r in
+            onSuccess(r)
         }
+    }
+    
+    func setMutedSeconds(seconds: Int, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+        guard let groupId = groupId else { return }
 
         IMController.shared.changeGrpMemberMute(groupID: groupId, userID: userId, seconds: seconds) { [weak self] r in
-            
             guard let sself = self else { return }
+            
             var info = sself.memberInfoRelay.value!
             info.muteEndTime = NSDate().timeIntervalSince1970 + Double(seconds)
             sself.memberInfoRelay.accept(info)
-            
             onSuccess(r)
         }
     }
@@ -186,6 +191,20 @@ class UserDetailViewModel {
                 IMController.shared.deleteConversation(conversationID: conv.conversationID) { r in
                     onSuccess(res)
                 }
+            }
+        }
+    }
+    
+    func sendCardMsg(_ contact: ContactInfo, _ receivers : [ContactInfo], completion: @escaping (MessageInfo) -> Void) {
+        let cardElem = CardElem(userID: contact.ID!, nickname: contact.name!, faceURL: contact.faceURL)
+        receivers.forEach { receiver in
+            IMController.shared.sendCardMsg(card: cardElem,
+                                            to: receiver.ID!,
+                                            groupName: groupInfo?.groupName,
+                                            conversationType: receiver.type == .groups ? .group: .c1v1) { [weak self] msg in
+                
+            } onComplete: { [weak self] msg in
+                IMController.shared.syncLocalMsgSentSubject.onNext(msg)
             }
         }
     }

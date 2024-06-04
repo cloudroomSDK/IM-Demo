@@ -46,6 +46,24 @@ extension UIViewController {
         present(sheet, animated: true, completion: nil)
     }
     
+    public func presentForwardConfirmAlert(contacts: [ContactInfo], abstruct: String, confirmHandler: (() -> Void)? = nil) {
+        let alertHeaderView = SendConfirmationAlertView()
+        alertHeaderView.reloadCollectionView(contacts: contacts, msgAbstract: abstruct)
+        
+        let sheet = SPAlertController.alertController(withCustomHeaderView: alertHeaderView, preferredStyle: .alert, animationType: .default)
+        let cancelAction = SPAlertAction.action(withTitle: "取消".innerLocalized(), style: .default) { [weak self] (action) in
+            
+        }
+        let sendAction = SPAlertAction.action(withTitle: "发送".innerLocalized(), style: .default) { [weak self] (action) in
+            confirmHandler?()
+        }
+        
+        cancelAction.titleColor = .c353535
+        sendAction.titleColor = .c0584FE
+        sheet.addAction(action: cancelAction)
+        sheet.addAction(action: sendAction)
+        self.present(sheet, animated: true, completion: nil)
+    }
     
 }
 

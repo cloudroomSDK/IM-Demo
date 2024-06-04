@@ -35,3 +35,23 @@ public struct ChatViewControllerBuilder {
     
     public init() {}
 }
+
+
+public struct ChatHistoryViewControllerBuilder {
+
+    // 跳转到聊天记录，使用。
+    public func build(_ title: String, _ messages: [MessageInfo]) -> UIViewController {
+        let messageController = ChatHistoryController(title: title, messages: messages)
+ 
+        let extractedExpr = ChatHistoryCollectionDataSource(reloadDelegate: messageController)
+        let dataSource = extractedExpr
+        
+        let messageViewController = ChatHistoryViewController(chatController: messageController,
+                                                              dataSource: dataSource)
+        messageController.delegate = messageViewController
+        
+        return messageViewController
+    }
+    
+    public init() {}
+}

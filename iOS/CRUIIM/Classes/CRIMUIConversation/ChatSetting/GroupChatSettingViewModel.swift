@@ -167,6 +167,12 @@ class GroupChatSettingViewModel {
             self?.noDisturbRelay.accept(false)
         })
     }
+    
+    func hideConversation(onSuccess: @escaping CallBack.VoidReturnVoid) {
+        IMController.shared.hideConversation(conversationID: conversation.conversationID) { _ in
+            onSuccess()
+        }
+    }
 
     func dismissGrp(onSuccess: @escaping CallBack.VoidReturnVoid) {
         guard let groupId = conversation.groupID else { return }

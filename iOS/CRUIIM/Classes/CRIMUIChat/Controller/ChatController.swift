@@ -15,8 +15,9 @@ protocol ChatController {
     func defaultSelecteMessage(with id: String?)
     func clearSelectedStatus()
     func deleteMsgs()
-    func deleteAllMsg()
+    func clearChatHistory()
     func getConversation() -> ConversationInfo
+    func getGroupInfo() -> GroupInfo?
     func getGroupMembers(completion: @escaping ([GroupMemberInfo]) -> Void)
     func getGrpInfo(requirePull: Bool, completion: @escaping (GroupInfo) -> Void)
     func getOtherInfo(completion: @escaping (FullUserInfo) -> Void)
@@ -28,9 +29,22 @@ protocol ChatController {
     
     func markAudio(messageId: String, isPlaying: Bool)
     func isMsgRevokedExpired(timestamp: TimeInterval) -> Bool
+    
+    func call()
 }
 
 extension ChatController {
     func getMessageInfo( _: [String]) -> [MessageInfo] { [] }
     func getSelfInfo() -> UserInfo? { nil }
+}
+
+
+protocol ChatHisotryController {
+    
+    func loadInitialMessages(completion: @escaping ([Section]) -> Void)
+    func getMessageInfo(ids: [String]) -> [MessageInfo]
+    func getMergerMessageTitle() -> String
+    
+    func defaultSelecteMessage(with id: String?)
+    func sendForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
 }

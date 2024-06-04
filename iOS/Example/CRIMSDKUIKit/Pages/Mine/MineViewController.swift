@@ -119,13 +119,13 @@ extension MineViewController: UITableViewDataSource, UITableViewDelegate {
             let cell = tableView.dequeueReusableCell(withIdentifier: BasicInfoCell.className, for: indexPath) as! BasicInfoCell
 
             let user = _viewModel.currentUserRelay.value
-            cell.avatarView.setAvatar(url: user?.faceURL, text: user?.nickname)
+            cell.avatarView.setAvatar(url: user?.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
             cell.nameLabel.text = user?.nickname
             cell.IDTextFiled.text = "ID : " + (user?.userID ?? "")
             cell.QRCodeTapHandler = { [weak self] in
                 guard let user: QueryUserInfo = self?._viewModel.currentUserRelay.value else { return }
                 let vc = QRCodeViewController(idString: IMController.addFriendPrefix.append(string: user.userID!))
-                vc.avatarView.setAvatar(url: user.faceURL, text: user.nickname)
+                vc.avatarView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
                 vc.nameLabel.text = user.nickname
                 vc.tipLabel.text = "扫一扫上面的二维码，添加我为好友".innerLocalized()
                 vc.hidesBottomBarWhenPushed = true

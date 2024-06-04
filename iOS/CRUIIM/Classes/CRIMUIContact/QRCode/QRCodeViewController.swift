@@ -46,8 +46,11 @@ public class QRCodeViewController: UIViewController {
     }()
 
     private let codeContentImageView: UIImageView = .init()
+    
+    private let naviTitle: String
 
     public init(idString: String) {
+        self.naviTitle = idString.contains(IMController.joinGrpPrefix) ? "群二维码".innerLocalized() : "二维码名片".innerLocalized()
         super.init(nibName: nil, bundle: nil)
         DispatchQueue.global().async {
             let image = CodeImageGenerator.createQRCodeImage(content: idString, size: CGSize(width: 140, height: 140), foregroundColor: UIColor.black, backgroundColor: UIColor.clear)
@@ -65,7 +68,7 @@ public class QRCodeViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        navigationItem.title = "二维码名片".innerLocalized()
+        navigationItem.title = naviTitle
         replaceSystemBackBarButtonItem()
         initView()
         bindData()

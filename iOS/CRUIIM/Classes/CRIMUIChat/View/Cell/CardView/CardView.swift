@@ -60,7 +60,7 @@ final class CardView: UIView, ContainerCollectionViewCellDelegate {
     func reloadData() {
         UIView.performWithoutAnimation {
             titleLabel.text = controller.cardNickname
-            avatarView.customView.setAvatar(url: controller.faceURL, text: controller.cardNickname) {
+            avatarView.customView.setAvatar(url: controller.faceURL, text: nil, placeHolder: "contact_my_friend_icon") {
 
             }
         }

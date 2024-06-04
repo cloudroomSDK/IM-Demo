@@ -133,13 +133,17 @@ final class DefaultChatController: ChatController {
         }
     }
     
-    func deleteAllMsg() {
+    func clearChatHistory() {
         messages.removeAll()
         repopulateMessages()
     }
     
     func getConversation() -> ConversationInfo {
         return conversation
+    }
+    
+    func getGroupInfo() -> GroupInfo? {
+        return groupInfo
     }
     
     func getGroupMembers(completion: @escaping ([GroupMemberInfo]) -> Void) {
@@ -285,6 +289,10 @@ final class DefaultChatController: ChatController {
         }
     }
     
+    func call() {
+        IMController.shared.signalingInvite(inviterUserID: receiverId)
+    }
+    
     // MARK: 发送消息
     
     func typing(doing: Bool) {
@@ -292,13 +300,35 @@ final class DefaultChatController: ChatController {
     }
     
     func sendForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
-        guard let forwardMsg = selecteMessages.first else { return }
+        guard selecteMessages.isEmpty == false else { return }
         contacts.forEach { contact in
             if let recvID = contact.ID {
-                IMController.shared.sendForwardMsg(forwardMessage: forwardMsg,
-                                                   to: recvID, 
-                                                   groupName: groupInfo?.groupName,
-                                                   conversationType: contact.type == .groups ? .group : .c1v1) { [weak self] msg in
+                selecteMessages.forEach { message in
+                    IMController.shared.sendForwardMsg(forwardMessage: message,
+                                                       to: recvID,
+                                                       groupName: groupInfo?.groupName,
+                                                       conversationType: contact.type == .groups ? .group : .c1v1) { [weak self] msg in
+                        
+                    } onComplete: { [weak self] msg in
+                        if recvID == self?.conversation.userID {
+                            self?.appendMessage(msg, completion: completion)
+                        }
+                    }
+                }
+            }
+        }
+        selecteMessages.removeAll()
+    }
+    
+    func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
+        guard selecteMessages.isEmpty == false else { return }
+        contacts.forEach { contact in
+            if let recvID = contact.ID {
+                IMController.shared.sendMergeMsg(messages: selecteMessages,
+                                                 title: conversation.conversationType == .c1v1 ? "聊天记录".innerLocalized() : "群聊天记录".innerLocalized(),
+                                                 to: recvID,
+                                                 groupName: groupInfo?.groupName,
+                                                 conversationType: contact.type == .groups ? .group : .c1v1) { [weak self] msg in
                     
                 } onComplete: { [weak self] msg in
                     if recvID == self?.conversation.userID {
@@ -308,10 +338,6 @@ final class DefaultChatController: ChatController {
             }
         }
         selecteMessages.removeAll()
-    }
-    
-    func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
-        
     }
     
     func sendCardMsg(_ contact: ContactInfo, completion: @escaping ([Section]) -> Void) {
@@ -362,7 +388,7 @@ final class DefaultChatController: ChatController {
         case .audio(let source, isLocallyStored: _):
             sendAudio(source: source, completion: completion)
             
-        case .attributeText(_), .custom(_), .quote(_), .card(_), .location(_):
+        case .attributeText(_), .custom(_), .quote(_), .card(_), .location(_), .merger(_):
             break
         }
     }
@@ -736,12 +762,18 @@ final class DefaultChatController: ChatController {
             
             return .file(source, isLocallyStored: isPresentLocally)
             
+        case .merge:
+            let mergeElem = msg.mergeElem!
+            let source = MergerMessageSource(title: mergeElem.title, abstract: mergeElem.abstractList)
+            
+            return .merger(source)
+            
         case .quote:
             let quoteElem = msg.quoteElem!
             let quoteMessage = quoteElem.quoteMessage!
             let contentType = quoteMessage.contentType
             // 这里对未知的引用消息类型加以保护
-            guard contentType == .text || contentType == .image || contentType == .video || contentType == .audio || contentType == .card || contentType == .location || contentType == .quote || contentType == .revoke || contentType == .file else {
+            guard contentType == .text || contentType == .image || contentType == .video || contentType == .audio || contentType == .card || contentType == .location || contentType == .quote || contentType == .revoke || contentType == .file || contentType == .merge else {
                 let value = MessageHelper.getSystemNotificationOf(message: msg, isSingleChat: msg.sessionType == .c1v1)
                 
                 return .attributeText(value!)
@@ -828,8 +860,8 @@ extension DefaultChatController: DataProviderDelegate {
     
     func received(message: MessageInfo) {
         // 收到当前界面的消息
-        if (conversation.conversationType == .c1v1 && message.sessionType == .c1v1 && conversation.userID == message.sendID) ||
-            (conversation.conversationType == .group && conversation.groupID == message.groupID) {
+        if (conversation.conversationType == .c1v1 && message.sessionType == conversation.conversationType && conversation.userID == message.sendID) ||
+            (conversation.conversationType == .group && message.sessionType == conversation.conversationType && conversation.groupID == message.groupID) {
             appendConvertingToMessages([message])
             markAllMessagesAsReceived { [weak self] in
                 self?.markAllMessagesAsRead { [weak self] in
@@ -900,6 +932,15 @@ extension DefaultChatController: DataProviderDelegate {
         }
     }
     
+    func appendSentMessage(message: MessageInfo) {
+        if (conversation.conversationType == .c1v1 && message.sessionType == conversation.conversationType && (conversation.userID == message.sendID || conversation.userID == message.recvID)) ||
+            (conversation.conversationType == .group && message.sessionType == conversation.conversationType && conversation.groupID == message.groupID) {
+            appendMessage(message) { [weak self] _ in
+                guard let self else { return }
+                self.repopulateMessages()
+            }
+        }
+    }
 }
 
 extension DefaultChatController: ReloadDelegate {

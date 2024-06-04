@@ -13,15 +13,17 @@ public class SelectContactsViewController: UIViewController {
     private var contacTypes: [ContactType] = []
     private var sourceID: String? // 可能是群ID，可能是部门ID
     private var multipleSelected: Bool = false // 可多选
+    private var maxSelectionLimit: Bool = false // 最大数量选择限制
     private var hasSelectedItems: [ContactInfo] = [] // 上一次已经选择过的ID
     private var blockedIDs: [String] = [] // 不能选择的ID
     private var specifiedFriends: [String] = [] // 指定获取好友信息的ID
     
-    public init(types: [ContactType] = [.friends], multiple: Bool = true, sourceID: String? = nil) {
+    public init(types: [ContactType] = [.friends], multiple: Bool = true, maxSelectionLimit: Bool = false, sourceID: String? = nil) {
         super.init(nibName: nil, bundle: nil)
         self.contacTypes = types
         self.sourceID = sourceID
         self.multipleSelected = multiple
+        self.maxSelectionLimit = maxSelectionLimit
     }
     
     required init?(coder: NSCoder) {
@@ -274,7 +276,6 @@ public class SelectContactsViewController: UIViewController {
             let count = self.hasSelectedItems.count
             let total = _viewModel.contacts.count - blockedIDs.count
             bottomBar.selectCountBtn.setTitle("已选择：(\(count))", for: .normal)
-            bottomBar.completeBtn.setTitle("确定(\(count)/\(total))", for: .normal)
         } else {
             self.selectedHandler?(self.hasSelectedItems.map{ContactInfo(ID: $0.ID, name: $0.name, faceURL: $0.faceURL)})
         }
@@ -304,7 +305,7 @@ public class SelectContactsViewController: UIViewController {
             v.setTitleColor(.white, for: .normal)
             v.setTitle("确定".innerLocalized(), for: .normal)
             v.titleLabel?.font = .f14
-            v.contentEdgeInsets = UIEdgeInsets(top: 3, left: 6, bottom: 3, right: 6)
+            v.contentEdgeInsets = UIEdgeInsets(top: 3, left: 10, bottom: 3, right: 10)
             
             return v
         }()
@@ -374,6 +375,19 @@ extension SelectContactsViewController: UITableViewDataSource, UITableViewDelega
     }
     
     public func tableView(_: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
+        if maxSelectionLimit, hasSelectedItems.count >= 9 {
+            let sheet = SPAlertController.alertController(withTitle: "最多只能选择9个".innerLocalized(), message: nil, preferredStyle: .alert)
+            sheet.messageColor = .c353535
+            let okayAction = SPAlertAction.action(withTitle: "确定".innerLocalized(), style: .default) { [weak self] (action) in
+                
+            }
+            
+            okayAction.titleColor = .c0089FF
+            sheet.addAction(action: okayAction)
+            present(sheet, animated: true, completion: nil)
+            return nil
+        }
+        
         var userID = _viewModel.contactsSections[indexPath.section][indexPath.row].ID!
         
         if blockedIDs.contains(userID) {

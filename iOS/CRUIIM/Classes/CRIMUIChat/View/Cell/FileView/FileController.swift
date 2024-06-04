@@ -96,10 +96,6 @@ final class FileController {
             self?.view?.updateProgress()
         }.disposed(by: _disposeBag)
     }
-    
-    private func loadImage() {
-       
-    }
 
     func action() {
         guard fileExist else {

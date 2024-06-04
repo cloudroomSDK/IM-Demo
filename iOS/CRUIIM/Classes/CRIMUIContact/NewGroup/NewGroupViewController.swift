@@ -155,7 +155,7 @@ class NewGroupViewController: UITableViewController {
                 } else if item.isRemoveButton {
                     cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "setting_remove_btn_icon")
                 } else {
-                    cell.avatarView.setAvatar(url: item.faceURL, text: item.nickname)
+                    cell.avatarView.setAvatar(url: item.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
                 }
                 
                 cell.nameLabel.text = item.nickname

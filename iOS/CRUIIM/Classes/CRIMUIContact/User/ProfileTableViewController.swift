@@ -99,7 +99,7 @@ open class ProfileTableViewController: UITableViewController {
             cell.accessoryType = isSelf ? .disclosureIndicator : .none
             cell.titleLabel.text = rowType.title
             if rowType == .avatar {
-                cell.avatarView.setAvatar(url: user?.faceURL, text: user?.nickname)
+                cell.avatarView.setAvatar(url: user?.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
             } else {
                 cell.avatarView.setAvatar(url: nil, text: nil, placeHolder: "common_qrcode_icon")
                 cell.avatarView.backgroundColor = .clear

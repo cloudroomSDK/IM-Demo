@@ -41,6 +41,7 @@ public enum ConnectionStatus: Int {
 public enum SDKError: Int {
     case deletedByFriend = 601 // 被对方删除
     case blockedByFriend = 1302 // 被对方拉黑
+    case relationshipAlready = 1304 // 已经是好友或者已拉黑对方
     case differentAppID = 1305 // 不同个项目下不能添加
     case mutedInGroup = 1402 // 被禁言
     case refuseToAddFriends = 10007 // 该用户已设置不可添加
@@ -86,6 +87,8 @@ public class IMController: NSObject {
     public let momentsReceivedSubject: PublishSubject<String?> = .init()
     public let organizationUpdated: PublishSubject<String?> = .init()
     public let msgSendProgressSubject: BehaviorSubject<(String?, Int)> = .init(value: (nil, 0))
+    // 本地发出的消息，例如转发，推荐名片
+    public let syncLocalMsgSentSubject: PublishSubject<MessageInfo> = .init()
     // 连接状态
     public let connectionRelay: BehaviorRelay<ConnectionStatus> = .init(value: .connecting)
     
@@ -109,7 +112,7 @@ public class IMController: NSObject {
         self.businessToken = businessToken
     }
     
-    public func setup(sdkAPIAdrr: String, sdkOS: String, onKickedOffline: (() -> Void)? = nil) {
+    public func setup(sdkAPIAdrr: String, skipVerifyCert: Bool = false, sdkOS: String, onKickedOffline: (() -> Void)? = nil) {
         self.sdkAPIAdrr = sdkAPIAdrr
         let manager = CRIMManager.manager
         
@@ -117,6 +120,7 @@ public class IMController: NSObject {
         config.sdkServer = sdkAPIAdrr
         config.objectStorage = sdkOS
         config.logLevel = 6
+        config.skipVerifyCert = skipVerifyCert
         
         manager.initSDK(with: config)
         Self.shared.imManager = manager
@@ -143,6 +147,7 @@ public class IMController: NSObject {
         CRIMSDK.CRIMManager.callbacker.addGroupListener(listener: self)
         CRIMSDK.CRIMManager.callbacker.addConversationListener(listener: self)
         CRIMSDK.CRIMManager.callbacker.addAdvancedMsgListener(listener: self)
+        CRIMSDK.CRIMManager.callbacker.addSignalingListener(listener: self)
         
         UINavigationBar.appearance().isTranslucent = true
         UINavigationBar.appearance().isOpaque = true
@@ -715,8 +720,9 @@ extension IMController {
                     model.status = .sendSuccess
                     onComplete(model)
                 }
-            } onProgress: { (progress: Int) in
-                print("sending message progress: \(progress)")
+            } onProgress: { [weak self] (progress: Int) in
+                self?.msgSendProgressSubject.onNext((model.clientMsgID, progress))
+                print("sending message id: \(model.clientMsgID)  progress: \(progress)")
             } onFailure: { [weak self] (errCode: Int, msg: String?) in
                 print("send message error:", msg)
                 var customMessage: MessageInfo?
@@ -938,7 +944,7 @@ extension IMController {
         
         let summaryList = messages.map { ($0.senderNickname ?? "") + ":" +  MessageHelper.getSummary(by: $0) }
         
-        let message = CRIMMessageInfo.createMergeMsg(messages.map { $0.toCRIMMessageInfo() }, title: title, summaryList: summaryList)
+        let message = CRIMMessageInfo.createMergerMsg(messages.map { $0.toCRIMMessageInfo() }, title: title, summaryList: summaryList)
         
         message.status = .sending
         sending(message.toMessageInfo())
@@ -1005,7 +1011,7 @@ extension IMController {
     
     public func clearGrpHistoryMsgs(conversationID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
         Self.shared.imManager.clearConversationAndDeleteAllMsg(conversationID) { r in
-            
+            onSuccess(r)
         } onFailure: { code, msg in
             print("清空群聊天记录失败:\(code), \(msg)")
         }
@@ -1137,6 +1143,10 @@ extension IMController {
     public func setBurnDuration(conversationID: String, burnDuration: Int, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
         Self.shared.imManager.setConversationBurnDuration(conversationID, duration: burnDuration, onSuccess: onSuccess)
     }
+    
+    public func hideConversation(conversationID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+        Self.shared.imManager.hideConversation(conversationID, onSuccess: onSuccess)
+    }
 }
 
 // MARK: - User方法
@@ -1174,6 +1184,28 @@ extension IMController {
     
     public func getLoginUserID() -> String {
         return imManager.getLoginUserID()
+    }
+}
+
+// MARK: - Signaling方法
+extension IMController {
+    
+    public func signalingInvite(inviterUserID: String) {
+        let invitation = CRIMInvitationInfo()
+        invitation.inviteeUserIDList = [inviterUserID]
+        invitation.mediaType = "audio"
+        invitation.roomID = "12345678"
+        
+        let push = OfflinePushInfo()
+        push.title = "语音呼叫"
+        push.desc = "你收到了一条语音通话邀请"
+        push.iOSBadgeCount = true
+        push.iOSPushSound = "default"
+        let offlinePush = push.toCRIMOfflinePushInfo()
+        
+        Self.shared.imManager.signalingInvite(invitation, offlinePushInfo: offlinePush) { info in
+            
+        }
     }
 }
 
@@ -1297,6 +1329,38 @@ extension IMController: CRIMAdvancedMsgListener {
     
     public func onRecvMsgRevoked(_ messageRevoked: CRIMMessageRevokedInfo) {
         msgRevokeReceived.onNext(messageRevoked.toMessageRevoked())
+    }
+}
+
+// MARK: CRIMSignalingListener
+
+extension IMController: CRIMSignalingListener {
+    public func onReceiveNewInvitation(_ signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onInviteeAccepted(_ signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onInviteeRejected(_ signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onInvitationCancelled(_ signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onInviteeRejected(byOtherDevice signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onInviteeAccepted(byOtherDevice signalingInfo: CRIMSignalingInfo) {
+        
+    }
+    
+    public func onHunguUp(_ signalingInfo: CRIMSignalingInfo) {
+        
     }
 }
 
@@ -1463,7 +1527,7 @@ open class MessageInfo: Encodable {
     public func getAbstruct() -> String? {
         switch contentType {
         case .text:
-            return content
+            return textElem?.content
         case .quote:
             return quoteElem?.text
         case .at:

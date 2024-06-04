@@ -92,7 +92,7 @@ public class FriendListResultViewController: UIViewController, UISearchResultsUp
         attString.addAttribute(NSAttributedString.Key.foregroundColor, value: highLightColor, range: person.textRange)
         cell.titleLabel.attributedText = attString
         if let user = dataList.first { person.personId.contains($0.userID) } {
-            cell.avatarImageView.setAvatar(url: user.faceURL, text: user.nickname, onTap: nil)
+            cell.avatarImageView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon", onTap: nil)
         }
         return cell
     }

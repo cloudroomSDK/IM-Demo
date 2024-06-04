@@ -103,7 +103,7 @@ public class SelectContactsResultViewController: UIViewController, UITableViewDa
         cell.subtitleLabel.text = person.sub
         
         if let user = dataList.first(where: { $0.ID == person.personId }) {
-            cell.avatarImageView.setAvatar(url: user.faceURL, text: user.name)
+            cell.avatarImageView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
         }
         
         if selectedUsers.contains(where: { $0.ID == person.personId }) {

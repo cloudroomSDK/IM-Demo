@@ -78,12 +78,24 @@ final class ChatViewController: UIViewController {
         return gesture
     }()
     
+    lazy var callButton: UIBarButtonItem = {
+        let v = UIBarButtonItem(image: UIImage(nameInBundle: "chat_call_btn_icon"), style: .done, target: self, action: #selector(callButtonAction))
+        v.tintColor = .black
+        
+        return v
+    }()
+    
     lazy var settingButton: UIBarButtonItem = {
         let v = UIBarButtonItem(image: UIImage(nameInBundle: "common_more_btn_icon"), style: .done, target: self, action: #selector(settingButtonAction))
         v.tintColor = .black
         
         return v
     }()
+    
+    @objc
+    private func callButtonAction() {
+        chatController.call()
+    }
     
     @objc
     private func settingButtonAction() {
@@ -96,13 +108,19 @@ final class ChatViewController: UIViewController {
             let viewModel = SingleChatSettingViewModel(conversation: conversation)
             let vc = SingleChatSettingTableViewController(viewModel: viewModel, style: .grouped)
             vc.clearRecordComplete = { [weak self] in
-                self?.chatController.deleteAllMsg()
+                guard let self else { return }
+                self.chatController.clearChatHistory()
             }
             self.navigationController?.pushViewController(vc, animated: true)
         case .group:
             let vc = GroupChatSettingTableViewController(conversation: conversation, style: .grouped)
             vc.groupMembersCountCallback = { [weak self] in
-                self?.setupGroupTitle()
+                guard let self else { return }
+                self.setupGroupTitle()
+            }
+            vc.clearRecordComplete = { [weak self] in
+                guard let self else { return }
+                self.chatController.clearChatHistory()
             }
             self.navigationController?.pushViewController(vc, animated: true)
         }
@@ -253,6 +271,14 @@ final class ChatViewController: UIViewController {
                 guard let self else { return }
                 self.setRightButtons(show: info.status == .ok || info.status == .muted)
                 self.navigationItem.title = "\(info.groupName!)(\(info.memberCount))"
+                if info.status == .muted {
+                    self.chatController.getGroupMembers { members in
+                        guard let mineInfo = members.filter { $0.userID == IMController.shared.userID }.first else { return }
+                        self.inputBarView.updateInputBar(groupInfo: info, memberInfo: mineInfo)
+                    }
+                } else {
+                    self.inputBarView.updateInputBar(groupInfo: info)
+                }
             }
         }
     }
@@ -271,13 +297,17 @@ final class ChatViewController: UIViewController {
                 self?.navigationController?.popViewController(animated: true)
             }
         } else {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelEdit))
+            navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .cancel, target: self, action: #selector(cancelEditAction))
         }
     }
     
     private func setRightButtons(show: Bool) {
         if show {
+#if DEBUG
+            navigationItem.rightBarButtonItems = [settingButton, callButton]
+#else
             navigationItem.rightBarButtonItems = [settingButton]
+#endif
         } else {
             navigationItem.rightBarButtonItems = nil
         }
@@ -286,10 +316,16 @@ final class ChatViewController: UIViewController {
     private func setupInputBar() {
         inputBarView.delegate = self
         inputBarView.shouldAnimateTextDidChangeLayout = true
-        inputBarView.weakReferenceParentView(superView: self.view)
+        inputBarView.weakReferenceParentView(superView: self.view, conversation: chatController.getConversation())
     }
     
-    @objc private func cancelEdit() {
+    @objc
+    private func cancelEditAction() {
+        cancelEdit()
+        chatController.defaultSelecteMessage(with: nil)
+    }
+    
+    private func cancelEdit() {
         setEditNotEdit(forceEnd: true)
         updateLeftButtons()
         chatController.clearSelectedStatus()
@@ -447,7 +483,11 @@ extension ChatViewController: ChatControllerDelegate {
 
     func isInGroup(with isIn: Bool) {
         if isIn {
+#if DEBUG
+            navigationItem.rightBarButtonItems = [settingButton, callButton]
+#else
             navigationItem.rightBarButtonItems = [settingButton]
+#endif
         } else {
             navigationItem.rightBarButtonItems = nil
         }
@@ -456,8 +496,11 @@ extension ChatViewController: ChatControllerDelegate {
     func didTapAvatar(with id: String) {
         print("点击头像")
         if let groupID = chatController.getConversation().groupID, !groupID.isEmpty {
-            let vc = GroupMemberDetailViewController(userId: id, groupId: groupID)
-            navigationController?.pushViewController(vc, animated: true)
+            chatController.getGrpInfo(requirePull: false) { [weak self] info in
+                guard let self else { return }
+                let vc = GroupMemberDetailViewController(userId: id, groupId: groupID, groupInfo: info)
+                self.navigationController?.pushViewController(vc, animated: true)
+            }
         } else {
             let vc = UserDetailTableViewController(userId: id)
             navigationController?.pushViewController(vc, animated: true)
@@ -553,6 +596,14 @@ extension ChatViewController: ChatControllerDelegate {
             let vc = LocationViewController(locationFor: .locationForShow, latitude: source.latitude, longitude: source.longitude, name: source.desc?.name, addr: source.desc?.addr)
             navigationController?.pushViewController(vc, animated: true)
             
+        case .merger(let source):
+            guard let msg = chatController.getMessageInfo(ids: [id]).first(where: { $0.clientMsgID == id }), msg.contentType == .merge, let messages = msg.mergeElem?.multiMessage else {
+                return
+            }
+            
+            let vc = ChatHistoryViewControllerBuilder().build(msg.mergeElem?.title ?? "", messages)
+            self.navigationController?.pushViewController(vc, animated: true)
+            
         case .quote(let source):
             break
             
@@ -599,7 +650,7 @@ extension ChatViewController: ChatControllerDelegate {
             toolItems = [.delete, .forward, .reply, .muiltSelection]
             break
         case .audio(let source, let isLocallyStored):
-            toolItems = [.delete, .forward, .reply, .muiltSelection]
+            toolItems = [.delete, .reply, .muiltSelection]
             break
         case .file(let source, let isLocallyStored):
             toolItems = [.delete, .forward, .reply, .muiltSelection]
@@ -608,6 +659,9 @@ extension ChatViewController: ChatControllerDelegate {
             toolItems = [.delete, .forward, .reply, .muiltSelection]
         case .location(let source):
             toolItems = [.delete, .forward, .reply, .muiltSelection]
+        case .merger(let source):
+            toolItems = [.delete, .forward, .reply, .muiltSelection]
+            break
         case .quote(let source):
             toolItems = [.copy, .delete, .forward, .reply, .muiltSelection]
         case .custom(let source):
@@ -629,51 +683,78 @@ extension ChatViewController: ChatControllerDelegate {
         let menu = ChatToolController(sourceView: bubbleView, items: toolItems)
 
         menu.collectionView.rx.itemSelected.subscribe(onNext: { [weak self, weak menu] (indexPath: IndexPath) in
+            guard let self else {
+                return
+            }
+            
             let menuItem = toolItems[indexPath.item]
             switch menuItem {
             case .revoke:
-                self?.chatController.revokeMsg(with: id)
+                self.chatController.revokeMsg(with: id)
                 break
             case .reply:
-                self?.chatController.defaultSelecteMessage(with: id)
+                self.chatController.defaultSelecteMessage(with: id)
                 
                 let quoteText = (messageInfo?.senderNickname ?? "") + ":" + " "
                 switch data {
                 case .text(let string):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + string.text)
+                    self.inputBarView.updateMiddleContentView(true, quoteText + string.text)
                 case .quote(let sourrce):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + sourrce.text)
+                    self.inputBarView.updateMiddleContentView(true, quoteText + sourrce.text)
                 case .attributeText(let nSAttributedString):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + nSAttributedString.string)
+                    self.inputBarView.updateMiddleContentView(true, quoteText + nSAttributedString.string)
                 case .image(let source, let isLocallyStored):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[图片]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[图片]".innerLocalized())
                 case .video(let source, let isLocallyStored):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[视频]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[视频]".innerLocalized())
                 case .audio(let source, let isLocallyStored):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[语音]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[语音]".innerLocalized())
                 case .file(let source, let isLocallyStored):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[文件]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[文件]".innerLocalized())
                 case .card(let source):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[名片]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[名片]".innerLocalized())
                 case .location(let source):
-                    self?.inputBarView.updateMiddleContentView(true, quoteText + "[位置]".innerLocalized())
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[位置]".innerLocalized())
+                case .merger(let source):
+                    self.inputBarView.updateMiddleContentView(true, quoteText + "[聊天记录]".innerLocalized())
                 default:
                     break
                 }
             case .delete:
-                self?.chatController.defaultSelecteMessage(with: id)
-                self?.chatController.deleteMsgs()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1, execute: {
+                    let sheet = SPAlertController.alertController(withTitle: nil, message: "是否删除该条消息?".innerLocalized(), preferredStyle: .actionSheet)
+                    sheet.messageColor = .c666666
+                    let deleteAction = SPAlertAction.action(withTitle: "删除".innerLocalized(), style: .default) { [weak self] (action) in
+                        guard let self else { return }
+                        self.chatController.defaultSelecteMessage(with: id)
+                        self.chatController.deleteMsgs()
+                        self.cancelEdit()
+                    }
+                    let cancelAction = SPAlertAction.action(withTitle: "取消".innerLocalized(), style: .default) { [weak self] (action) in
+                        
+                    }
+                    
+                    deleteAction.titleColor = .c0584FE
+                    cancelAction.titleColor = .c353535
+                    sheet.addAction(action: deleteAction)
+                    sheet.addAction(action: cancelAction)
+                    self.present(sheet, animated: true, completion: nil)
+                })
             case .forward:
-                guard let self else { return }
                 let completion = self.completionHandler()
-                let vc = SelectContactsViewController()
+                let vc = SelectContactsViewController(maxSelectionLimit: true)
                 vc.selectedContact() { [weak self] r in
                     guard let self else { return }
-                    self.navigationController?.popViewController(animated: true)
-                    self.chatController.defaultSelecteMessage(with: id)
-                    self.scrollToBottom(completion: {
-                        self.chatController.sendForwardMsg(r, completion: completion)
-                    })
+                    
+                    self.presentForwardConfirmAlert(contacts: r, abstruct: messageInfo?.getAbstruct() ?? "") { [weak self] in
+                        guard let self else { return }
+                        self.navigationController?.popViewController(animated: true)
+                        self.cancelEdit()
+                        self.chatController.defaultSelecteMessage(with: id)
+                        self.scrollToBottom(completion: {
+                            self.chatController.sendForwardMsg(r, completion: completion)
+                        })
+                    }
                 }
                 vc.hidesBottomBarWhenPushed = true
                 self.navigationController?.pushViewController(vc, animated: true)
@@ -692,9 +773,10 @@ extension ChatViewController: ChatControllerDelegate {
                 UIPasteboard.general.string = content
                 ProgressHUD.showSuccess("复制成功".innerLocalized())
             case .muiltSelection:
-                self?.setEditNotEdit(forceEnd: false)
-                self?.updateLeftButtons()
-                self?.inputBarView.showChatToolMultipleMenu()
+                self.inputBarView.hideBottomButtons()
+                self.setEditNotEdit(forceEnd: false)
+                self.updateLeftButtons()
+                self.inputBarView.showChatToolMultipleMenu()
              default:
              break
              }
@@ -875,8 +957,12 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
     }
     
     public func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith text: String) {
-        let messageText = inputBar.inputTextView.text
-        // 发送结束的操作
+        var messageText = inputBar.inputTextView.text
+        if inputBar.inputTextView.attributedText != nil {
+            messageText = EmojiHelper.shared.getPlainTextIn(attributedString: inputBar.inputTextView.attributedText, atRange: NSRange(location: 0, length: inputBar.inputTextView.attributedText.length)) as String
+        }
+        
+        // 发送结束的操作abcd
         let completion = completionHandler()
         
         currentInterfaceActions.options.insert(.sendingMessage)
@@ -891,7 +977,7 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
             
             self.scrollToBottom(completion: {
                 inputBar.sendButton.startAnimating()
-                self.chatController.sendMsg(.text(TextMessageSource(text: text.trimmingCharacters(in: .whitespacesAndNewlines))), completion: completion)
+                self.chatController.sendMsg(.text(TextMessageSource(text: messageText.trimmingCharacters(in: .whitespacesAndNewlines))), completion: completion)
             })
         }
         inputBar.inputTextView.text = String()
@@ -955,22 +1041,45 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
             
             let vc = SelectContactsViewController(multiple: false)
             vc.selectedContact() { [weak self] r in
+                guard let `self` = self, r.count > 0 else { return }
                 
-                self?.currentInterfaceActions.options.insert(.sendingMessage)
-                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) { [weak self] in
-                    inputBar.inputTextView.text = String()
-                    inputBar.invalidatePlugins()
-                    guard let self, let contact = r.first else { 
-                        self?.currentInterfaceActions.options.remove(.sendingMessage)
-                        return
+                func sendCardMsg(contacts: [ContactInfo]) {
+                    currentInterfaceActions.options.insert(.sendingMessage)
+                    DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + 0.1) { [weak self] in
+                        inputBar.inputTextView.text = String()
+                        inputBar.invalidatePlugins()
+                        guard let self, let contact = r.first else {
+                            self?.currentInterfaceActions.options.remove(.sendingMessage)
+                            return
+                        }
+                        
+                        self.scrollToBottom(completion: {
+                            inputBar.sendButton.startAnimating()
+                            self.chatController.sendCardMsg(contact, completion: completion)
+                            self.navigationController?.popViewController(animated: true)
+                        })
                     }
-                    
-                    self.scrollToBottom(completion: {
-                        inputBar.sendButton.startAnimating()
-                        self.chatController.sendCardMsg(contact, completion: completion)
-                        self.navigationController?.popViewController(animated: true)
-                    })
                 }
+                
+                if chatController.getConversation().conversationType == .group {
+                    guard let groupInfo = chatController.getGroupInfo() else { return }
+                    let contact = ContactInfo(ID: groupInfo.groupID, name: groupInfo.groupName, faceURL: groupInfo.faceURL)
+                    presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] in
+                        guard let `self` = self else { return }
+                        
+                        sendCardMsg(contacts: r)
+                    }
+                } else {
+                    chatController.getOtherInfo { [weak self] otherUserInfo in
+                        let contact = ContactInfo(ID: otherUserInfo.userID, name: otherUserInfo.friendInfo?.nickname, faceURL: otherUserInfo.faceURL)
+                        self?.presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] in
+                            guard let `self` = self else { return }
+                            
+                            sendCardMsg(contacts: r)
+                        }
+                    }
+                }
+                
             }
             vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)
@@ -1001,25 +1110,88 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
         }
     }
     
-    func clearSelectQuoteMessage(_ inputBar: InputBarAccessoryView) {
-        chatController.defaultSelecteMessage(with: nil)
-    }
-    
-    func deleteMessages(_ inputBar: InputBarAccessoryView) {
-        chatController.deleteMsgs()
-    }
-    
-    func forwardMessages(_ inputBar: InputBarAccessoryView) {
-        let vc = SelectContactsViewController()
-        vc.selectedContact() { [weak self] r in
-            guard let self else { return }
-            self.navigationController?.popViewController(animated: true)
-            self.chatController.sendMergeForwardMsg(r) { _ in
-                
+    func inputBar(_ inputBar: InputBarAccessoryView, messageHandlerWith type: MessageHandlerType) {
+        switch type {
+        case .clearQuote:
+            chatController.defaultSelecteMessage(with: nil)
+        case .deleteSelected:
+            let sheet = SPAlertController.alertController(withTitle: nil, message: nil, preferredStyle: .actionSheet)
+            sheet.messageColor = .c353535
+            let deleteAction = SPAlertAction.action(withTitle: "删除".innerLocalized(), style: .default) { [weak self] (action) in
+                guard let self else { return }
+                self.chatController.deleteMsgs()
+                self.cancelEdit()
             }
+            let cancelAction = SPAlertAction.action(withTitle: "取消".innerLocalized(), style: .default) { [weak self] (action) in
+                guard let self else { return }
+                self.cancelEdit()
+            }
+            
+            deleteAction.titleColor = .c0584FE
+            cancelAction.titleColor = .c353535
+            sheet.addAction(action: deleteAction)
+            sheet.addAction(action: cancelAction)
+            present(sheet, animated: true, completion: nil)
+        case .forward:
+            func showSelectContactsViewController(merger: Bool = false) {
+                let completion = self.completionHandler()
+                let vc = SelectContactsViewController(maxSelectionLimit: true)
+                vc.selectedContact() { [weak self] r in
+                    guard let self else { return }
+                    
+                    self.presentForwardConfirmAlert(contacts: r, abstruct: "[聊天记录]".innerLocalized()) { [weak self] in
+                        guard let self else { return }
+                        self.navigationController?.popViewController(animated: true)
+                        if merger {
+                            self.scrollToBottom {
+                                self.chatController.sendMergeForwardMsg(r, completion: completion)
+                            }
+                        } else {
+                            self.scrollToBottom {
+                                self.chatController.sendForwardMsg(r, completion: completion)
+                            }
+                        }
+                        self.cancelEdit()
+                    }
+                }
+                vc.hidesBottomBarWhenPushed = true
+                navigationController?.pushViewController(vc, animated: true)
+            }
+            
+            let sheet = SPAlertController.alertController(withTitle: nil, message: nil, preferredStyle: .actionSheet)
+            sheet.messageColor = .c353535
+            let forwardPerAction = SPAlertAction.action(withTitle: "逐条转发".innerLocalized(), style: .default) { [weak self] (action) in
+                showSelectContactsViewController()
+            }
+            let mergerForwardAction = SPAlertAction.action(withTitle: "合并转发".innerLocalized(), style: .default) { [weak self] (action) in
+                showSelectContactsViewController(merger: true)
+            }
+            let cancelAction = SPAlertAction.action(withTitle: "取消".innerLocalized(), style: .default) { (action) in
+            }
+            
+            forwardPerAction.titleColor = .c353535
+            mergerForwardAction.titleColor = .c353535
+            cancelAction.titleColor = .c353535
+            sheet.addAction(action: forwardPerAction)
+            sheet.addAction(action: mergerForwardAction)
+            sheet.addAction(action: cancelAction)
+            present(sheet, animated: true, completion: nil)
+            
+        case .atMember:
+            guard let groupID = chatController.getGroupInfo()?.groupID else { return }
+            
+            let vc = SelectContactsViewController(types: [.members], multiple: false, sourceID: groupID)
+            vc.selectedContact() { [weak self] r in
+                guard let self, r.count > 0 else { return }
+                
+                self.navigationController?.popViewController(animated: true)
+
+            }
+            vc.hidesBottomBarWhenPushed = true
+            navigationController?.pushViewController(vc, animated: true)
+        default:
+            break
         }
-        vc.hidesBottomBarWhenPushed = true
-        navigationController?.pushViewController(vc, animated: true)
     }
 }
 

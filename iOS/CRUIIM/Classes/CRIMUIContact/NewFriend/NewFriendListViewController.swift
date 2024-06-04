@@ -50,7 +50,7 @@ class NewFriendListViewController: UIViewController {
                 cell.setApplyState(state)
             }
 
-            cell.avatarView.setAvatar(url: item.fromFaceURL, text: item.fromNickname)
+            cell.avatarView.setAvatar(url: item.fromFaceURL, text: nil, placeHolder: "contact_my_friend_icon")
 
             cell.agreeBtn.rx.tap.subscribe { [weak self] _ in
 

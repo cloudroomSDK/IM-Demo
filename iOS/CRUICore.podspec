@@ -35,5 +35,6 @@ Pod::Spec.new do |s|
   s.dependency 'IQKeyboardManagerSwift'
   s.dependency 'Localize-Swift', '~> 3.2'
   s.dependency 'Alamofire', '4.9.1'
+  s.dependency 'Toast-Swift', '~> 5.1.1'
   
 end

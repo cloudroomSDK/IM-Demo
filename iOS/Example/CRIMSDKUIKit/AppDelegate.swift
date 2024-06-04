@@ -23,7 +23,9 @@ let defaultIP = "demo.cloudroom.com"
 let defaultDomain = "demo.cloudroom.com"
 
 let bussinessPort = ":8018"
-let adminPort = ":8019"
+//let adminPort = ":8019"
+
+let httpsBussinessPort = ":8218"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, GeTuiSdkDelegate {
@@ -36,15 +38,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
         UINavigationBar.appearance().tintColor = .c0C1C33
         
-        let httpScheme = "http://"
+        let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
+        let httpScheme = protocolType == 0 ? "http://" : "https://"
         
         let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
         
         // 设置获取全局配置
-        UserDefaults.standard.setValue(httpScheme + severAddress + adminPort, forKey: adminSeverAddrKey)
+        //UserDefaults.standard.setValue(httpScheme + severAddress + adminPort, forKey: adminSeverAddrKey)
         
         // 设置登录注册等 - AccountViewModel
-        UserDefaults.standard.setValue(httpScheme + severAddress + bussinessPort, forKey: bussinessSeverAddrKey)
+        UserDefaults.standard.setValue(httpScheme + severAddress + (protocolType == 0 ? bussinessPort : httpsBussinessPort), forKey: bussinessSeverAddrKey)
         
         // 设置sdk接口地址
         var sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
@@ -53,13 +56,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         // 设置对象存储
         let sdkObjectStorage = UserDefaults.standard.string(forKey: sdkObjectStorageKey) ?? "minio"
         
+        CRIMSessionManagerWrapper.shared.updateCertificateValidation()
+        
         // 初始化SDK
         IMController.shared.setup(sdkAPIAdrr: sdkAPIAddr,
+                                  skipVerifyCert: protocolType == 3,
                                   sdkOS: sdkObjectStorage) {
             IMController.shared.currentUserRelay.accept(nil)
             GeTuiSdk.unbindAlias(IMController.shared.userID, andSequenceNum: "crim", andIsSelf: true)
             AccountViewModel.saveUser(uid: nil, imToken: nil, chatToken: nil)
-            NotificationCenter.default.post(name: .init("logout"), object: nil)
+            NotificationCenter.default.post(name: .init("kickLineOff"), object: nil)
         }
         
         GeTuiSdk.runBackgroundEnable(false)
@@ -67,6 +73,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         GeTuiSdk.registerRemoteNotification([.alert, .badge, .sound])
         
         Bugly.start(withAppId: "326fea6cd9")
+        debugPrint("HomeDirectory: \(NSHomeDirectory())")
     
         return true
     }

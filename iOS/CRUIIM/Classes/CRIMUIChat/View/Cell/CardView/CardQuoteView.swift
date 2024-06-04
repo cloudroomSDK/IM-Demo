@@ -61,7 +61,7 @@ final class CardQuoteView: UIView, ContainerCollectionViewCellDelegate {
         UIView.performWithoutAnimation {
             titleLabel.text = controller.senderNickname
             nameLabel.text = "[名片]".innerLocalized() + (controller.cardNickname ?? "")
-            avatarView.customView.setAvatar(url: controller.faceURL, text: controller.cardNickname) {
+            avatarView.customView.setAvatar(url: controller.faceURL, text: nil, placeHolder: "contact_my_friend_icon") {
 
             }
         }

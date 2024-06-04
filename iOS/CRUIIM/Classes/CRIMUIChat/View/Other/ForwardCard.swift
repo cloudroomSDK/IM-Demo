@@ -204,7 +204,7 @@ extension ForwardCard: UICollectionViewDelegate, UICollectionViewDataSource, UIC
         let item = itemForIndex(indexPath.item)
         
         cell.titleLabel.text = item.name
-        cell.avatarView.setAvatar(url: item.faceURL, text: item.name)
+        cell.avatarView.setAvatar(url: item.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
         cell.type = numberOfItems() > 1 ? .vertical : .horizontal
         
         return cell

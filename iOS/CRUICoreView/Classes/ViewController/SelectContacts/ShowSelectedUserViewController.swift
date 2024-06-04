@@ -102,7 +102,7 @@ extension ShowSelectedUserViewController: UITableViewDataSource, UITableViewDele
         let user = users[indexPath.row]
 
         cell.titleLabel.text = user.name
-        cell.avatarView.setAvatar(url: user.faceURL, text: user.name)
+        cell.avatarView.setAvatar(url: user.faceURL, text: nil, placeHolder: "contact_my_friend_icon")
         cell.removeButtonTappedHandler = { [weak self, weak cell] in
             self?.removeUsers.append(user)
             self?.users.removeAll(where: {$0.ID == user.ID})

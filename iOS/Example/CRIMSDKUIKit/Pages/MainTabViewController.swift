@@ -8,10 +8,12 @@ import ProgressHUD
 import Localize_Swift
 import MJExtension
 import GTSDK
+import Toast_Swift
 
 class MainTabViewController: UITabBarController {
     private let _disposeBag = DisposeBag()
     private var _contactNav: UINavigationController?
+    private var isKickLineOff = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -94,6 +96,12 @@ class MainTabViewController: UITabBarController {
         }
         
         NotificationCenter.default.addObserver(self, selector: #selector(presentLoginController), name: .init("logout"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(kickLineOffAccount), name: .init("kickLineOff"), object: nil)
+    }
+    
+    @objc private func kickLineOffAccount() {
+        isKickLineOff = true
+        presentLoginController()
     }
     
     @objc private func presentLoginController() {
@@ -173,6 +181,11 @@ class MainTabViewController: UITabBarController {
         nav.modalPresentationStyle = .fullScreen
         
         self.present(nav, animated: false)
+        
+        if isKickLineOff {
+            nav.view.makeToast("账号已在其他地方登录，当前设备被踢下线!".innerLocalized(), duration: 3.0, position: .bottom)
+        }
+        isKickLineOff = false
     }
     
 }

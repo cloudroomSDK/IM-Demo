@@ -49,6 +49,13 @@ class ChatListViewModel {
             completion?(r)
         }
     }
+    
+    func hideConversation(conversationID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+        IMController.shared.hideConversation(conversationID: conversationID) { [weak self] r in
+            self?.getAllConversations()
+            onSuccess(r)
+        }
+    }
 
     init() {
         IMController.shared.newConversationSubject.subscribe(onNext: { [weak self] (conversations: [ConversationInfo]) in

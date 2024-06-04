@@ -38,7 +38,7 @@ class GroupApplicationTableViewController: UITableViewController {
                 if let state = GroupApplicationTableViewCell.ApplyState(rawValue: item.handleResult.rawValue) {
                     cell.setApplyState(state)
                 }
-                cell.avatarView.setAvatar(url: item.groupFaceURL, text: item.groupName)
+                cell.avatarView.setAvatar(url: item.groupFaceURL, text: nil, placeHolder: "contact_my_friend_icon")
                 cell.agreeBtn.rx.tap.subscribe { [weak self] _ in
                     if let uid = item.userID {
                         let vc = ApplicationViewController(groupApplication: item, friendApplication: nil)

@@ -7,9 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1617322E2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1617322D2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift */; };
 		169A67A42AAB352A0011C5EC /* AboutUsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169A67A32AAB352A0011C5EC /* AboutUsViewController.swift */; };
 		16D65CFF2B16EC420012BB00 /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16D65CFE2B16EC420012BB00 /* AppConfig.swift */; };
-		16E32BC12ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E32BC02ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift */; };
+		16E32BC12ABD6E5600D9F3BC /* ConfigPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */; };
 		170A2B3928F29C5000CA68EA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170A2B3828F29C5000CA68EA /* NotificationService.swift */; };
 		170A2B3D28F29C5000CA68EA /* NotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 170A2B3628F29C5000CA68EA /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1780764A29260BF50024399B /* InputPasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1780764929260BF50024399B /* InputPasswordViewController.swift */; };
@@ -66,12 +67,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1617322D2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRIMSessionManagerWrapper.swift; sourceTree = "<group>"; };
 		169A67A32AAB352A0011C5EC /* AboutUsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutUsViewController.swift; sourceTree = "<group>"; };
 		16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = VersionConfig.xcconfig; sourceTree = "<group>"; };
 		16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
 		16D65CFE2B16EC420012BB00 /* AppConfig.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
-		16E32BC02ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigAuthenTypeView.swift; sourceTree = "<group>"; };
+		16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigPickerView.swift; sourceTree = "<group>"; };
 		170A2B3628F29C5000CA68EA /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		170A2B3828F29C5000CA68EA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		170A2B3A28F29C5000CA68EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -174,9 +176,10 @@
 		1790EE642921EAFC00C4024A /* Account */ = {
 			isa = PBXGroup;
 			children = (
+				1617322D2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift */,
 				1790EE802922294600C4024A /* AccountViewModel.swift */,
 				1790EE662921EAFC00C4024A /* ConfigViewController.swift */,
-				16E32BC02ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift */,
+				16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */,
 				1790EE692921EAFC00C4024A /* LoginViewController.swift */,
 				17BBFABF2925C6330025B686 /* InputAccountViewController.swift */,
 				1780764929260BF50024399B /* InputPasswordViewController.swift */,
@@ -432,6 +435,7 @@
 				"${BUILT_PRODUCTS_DIR}/RxSwift/RxSwift.framework",
 				"${BUILT_PRODUCTS_DIR}/SGCodeTextField/SGCodeTextField.framework",
 				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
+				"${BUILT_PRODUCTS_DIR}/Toast-Swift/Toast_Swift.framework",
 				"${BUILT_PRODUCTS_DIR}/ZLPhotoBrowser/ZLPhotoBrowser.framework",
 				"${BUILT_PRODUCTS_DIR}/lottie-ios/Lottie.framework",
 			);
@@ -460,6 +464,7 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RxSwift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SGCodeTextField.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Toast_Swift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ZLPhotoBrowser.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Lottie.framework",
 			);
@@ -560,12 +565,13 @@
 				17BBFAC42925D4C10025B686 /* CountDownTimerButton.swift in Sources */,
 				1790EE722921EAFC00C4024A /* MineViewModel.swift in Sources */,
 				1790EE742921EAFC00C4024A /* MineViewController.swift in Sources */,
+				1617322E2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift in Sources */,
 				169A67A42AAB352A0011C5EC /* AboutUsViewController.swift in Sources */,
 				1790EE812922294600C4024A /* AccountViewModel.swift in Sources */,
 				17BBFAC22925CDBB0025B686 /* InputCodeViewController.swift in Sources */,
 				1790EE712921EAFC00C4024A /* MineOptionTableViewCell.swift in Sources */,
 				1780764A29260BF50024399B /* InputPasswordViewController.swift in Sources */,
-				16E32BC12ABD6E5600D9F3BC /* ConfigAuthenTypeView.swift in Sources */,
+				16E32BC12ABD6E5600D9F3BC /* ConfigPickerView.swift in Sources */,
 				1790EE7F2922220D00C4024A /* ProfileTableViewController.swift in Sources */,
 				DC0B7DF2282DFA09003896C1 /* UnderlineButton.swift in Sources */,
 			);

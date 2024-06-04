@@ -80,7 +80,7 @@ final class AudioQuoteView: UIView, ContainerCollectionViewCellDelegate {
     func reloadData() {
         UIView.performWithoutAnimation {
             titleLabel.text = controller.senderNickname
-            durationLabel.text = #"\#(FormatUtil.getMediaFormat(of: controller.duration))"#
+            durationLabel.text = #"\#((String(format: "%d", controller.duration)))""#
         }
     }
     
