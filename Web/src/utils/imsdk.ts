@@ -9,6 +9,10 @@ import { MemberSelect } from "~/components";
 import SDK_WASM_URL from "@cloudroom/im-wasm-sdk/dist/CRIM.wasm?url";
 import SQL_WASM_URL from "@jlongster/sql.js/dist/sql-wasm.wasm?url";
 
+/* import { getSDK } from "@/index";
+export type { IMTYPE } from "@/index";
+import SDK_WASM_URL from "@/assets/CRIM.wasm?url"; */
+
 export const IMSDK = getSDK({
   assetsUrl: {
     sdkWasm: SDK_WASM_URL,
@@ -48,7 +52,8 @@ export const createImageMessage = async (file: File) => {
     sourcePath: "",
     file,
   };
-  return (await IMSDK.createImageMsgByFile(options)).data;
+  const { data } = await IMSDK.createImageMsgByFile(options);
+  return data;
 };
 export const createVideoMessage = async (file: File, snapShotFile: File) => {
   const { width, height } = await getPicInfo(snapShotFile);
@@ -69,8 +74,8 @@ export const createVideoMessage = async (file: File, snapShotFile: File) => {
     snapshotHeight: height,
     snapShotType: snapShotFile.type,
   };
-
-  return (await IMSDK.createVideoMsgByFile(options)).data;
+  const { data } = await IMSDK.createVideoMsgByFile(options);
+  return data;
 };
 
 export const setDraft = (conversationID: string, draftText: string) => {

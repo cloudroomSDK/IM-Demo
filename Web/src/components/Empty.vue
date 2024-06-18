@@ -1,8 +1,18 @@
 <template>
   <div>
-    <el-empty description="暂无内容" />
+    <el-empty :description="text" />
   </div>
 </template>
+<script setup lang="ts">
+withDefaults(
+  defineProps<{
+    text?: string;
+  }>(),
+  {
+    text: "暂无内容",
+  }
+);
+</script>
 
 <style lang="scss" scoped>
 div {

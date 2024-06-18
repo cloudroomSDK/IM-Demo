@@ -4,7 +4,7 @@
       <el-image class="img" :src="CRLogo"></el-image>
     </div>
     <p>应用版本: {{ version }}</p>
-    <p>SDK版本: {{ IMSDK.sdkVersion() }}</p>
+    <p>SDK版本: {{ IMSDK.sdkVersion }}</p>
   </div>
 </template>
 <script lang="ts" setup>

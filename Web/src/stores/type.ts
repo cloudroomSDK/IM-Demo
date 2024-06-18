@@ -14,7 +14,7 @@ export interface ConfigStore {
 export interface Dialog {
   component?: ComponentOptions;
   show: boolean;
-  title?: string | null;
+  title?: string;
   data?: any;
   width?: number;
   confirm?: Function;

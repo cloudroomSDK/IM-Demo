@@ -1,7 +1,12 @@
 <template>
   <div class="header">
     <div class="container">
-      <Avatar :src="conversationStore.currentConversation?.faceURL"></Avatar>
+      <Avatar
+        :src="conversationStore.currentConversation?.faceURL"
+        :type="
+          conversationStore.currentConversation?.groupID ? 'group' : 'user'
+        "
+      />
       <div class="title">
         <p>{{ conversationStore.currentConversation?.showName }}</p>
         <span v-if="conversationStore.isCurrentGroupChat">

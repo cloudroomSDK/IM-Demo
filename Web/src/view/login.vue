@@ -8,41 +8,83 @@
     <div class="bg">
       <div class="box">
         <div v-if="!isSetting" class="login">
+          <el-icon class="setting" @click="isSetting = true">
+            <i-ep-setting />
+          </el-icon>
           <div class="logo">
             <img :src="Logo" alt="" />
           </div>
-          <p class="big">验证码登录</p>
-          <p class="desc">未注册的手机号通过验证后自动注册</p>
-
-          <div class="input">
-            <el-input v-model="phone" placeholder="请输入手机号" class="input">
-              <template #prepend>
-                <el-select
-                  v-model="select"
-                  placeholder="Select"
-                  style="width: 80px; height: 100%"
+          <template v-if="!isPwd">
+            <p class="big">验证码登录</p>
+            <p class="desc">未注册的手机号通过验证后自动注册</p>
+            <el-form ref="phoneFormRef" :model="phoneForm" :rules="phoneRules">
+              <el-form-item class="formItem" prop="phoneNumber">
+                <el-input
+                  v-model="phoneForm.phoneNumber"
+                  placeholder="请输入手机号"
+                  class="input"
+                  maxlength="11"
                 >
-                  <el-option label="+86" value="1" />
-                </el-select>
-              </template>
-            </el-input>
-          </div>
-          <div class="input" style="margin-top: 10px">
-            <el-input v-model="vCode" placeholder="请输入验证码" class="input">
-              <template #append>
-                <div
-                  class="timeCount"
-                  :style="{
-                    cursor: timeCount > 0 ? 'no-drop' : 'pointer',
-                  }"
-                  @click="getCodeBtn"
+                  <template #prepend>
+                    <el-select
+                      v-model="select"
+                      placeholder="Select"
+                      style="width: 80px; height: 100%"
+                    >
+                      <el-option label="+86" value="1" />
+                    </el-select>
+                  </template>
+                </el-input>
+              </el-form-item>
+              <el-form-item class="formItem" prop="code">
+                <el-input
+                  v-model="phoneForm.code"
+                  placeholder="请输入验证码"
+                  class="input"
+                  @keydown.enter="login"
                 >
-                  <span v-if="timeCount === -1">获取验证码</span>
-                  <span v-else>{{ timeCount }}s</span>
-                </div>
-              </template>
-            </el-input>
-          </div>
+                  <template #append>
+                    <div
+                      class="timeCount"
+                      :style="{
+                        cursor: timeCount > 0 ? 'no-drop' : 'pointer',
+                      }"
+                      @click="getCodeBtn"
+                    >
+                      <span v-if="timeCount === -1">获取验证码</span>
+                      <span v-else>{{ timeCount }}s</span>
+                    </div>
+                  </template>
+                </el-input>
+              </el-form-item>
+              <p class="toast" v-if="showCodeToast">私有云验证码用8888</p>
+            </el-form>
+          </template>
+          <template v-else>
+            <el-form
+              ref="accountFormRef"
+              :model="accountForm"
+              :rules="accountRules"
+              style="margin-top: 60px"
+            >
+              <el-form-item class="formItem" prop="account">
+                <el-input
+                  v-model="accountForm.account"
+                  placeholder="请输入账号"
+                  class="input"
+                />
+              </el-form-item>
+              <el-form-item class="formItem" prop="pwd">
+                <el-input
+                  v-model="accountForm.pwd"
+                  placeholder="请输入密码"
+                  class="input"
+                  type="password"
+                  @keydown.enter="login"
+                />
+              </el-form-item>
+            </el-form>
+          </template>
           <el-button
             class="btn"
             type="primary"
@@ -50,61 +92,20 @@
             :loading="isLoading"
             :disabled="isLoading"
           >
-            登录/注册
+            登录<template v-if="!isPwd">/注册</template>
           </el-button>
-          <span class="loginSettingBtn" @click="isSetting = true">
-            登录设置
-          </span>
-        </div>
-        <div v-else class="setting">
-          <div class="title">
-            <el-icon @click="isSetting = false" style="cursor: pointer"
-              ><i-ep-arrowLeft /></el-icon
-            ><span>登录设置</span>
-          </div>
-          <div class="input-group">
-            <div class="input-item">
-              <span class="left">SDK服务器：</span>
-              <input type="text" v-model="form.sdkServer" />
-            </div>
-            <div class="input-item">
-              <span class="left">业务服务器：</span>
-              <input type="text" v-model="form.businessServer" />
-            </div>
-            <div class="input-item">
-              <span class="left">鉴权方式：</span>
-              <el-select v-model="form.useToken" style="width: 240px">
-                <el-option label="账号密码鉴权" :value="false" />
-                <el-option label="动态Token鉴权" :value="true" />
-              </el-select>
-            </div>
-            <template v-if="!form.useToken">
-              <div class="input-item">
-                <span class="left">AppID：</span>
-                <input type="text" v-model="form.appId" />
-              </div>
-              <div class="input-item">
-                <span class="left">AppSecret：</span>
-                <input type="password" v-model="form.appSecret" />
-              </div>
-            </template>
-            <div v-else class="input-item">
-              <span class="left">Token：</span>
-              <input type="text" v-model="form.token" />
-            </div>
-            <div>
-              <el-button class="btn" type="primary" @click="sava">
-                保存
-              </el-button>
-            </div>
-            <div>
-              <el-button class="btn" type="danger" plain @click="reset">
-                重置为默认
-              </el-button>
-            </div>
+          <div class="togglePswd">
+            <el-link type="primary" v-if="isPwd" @click="isPwd = false">
+              验证码登录
+            </el-link>
+            <el-link type="primary" v-else @click="isPwd = true">
+              密码登录
+            </el-link>
           </div>
         </div>
+        <LoginSetting v-else @close="isSetting = false" />
       </div>
+      <p class="version">v{{ version }}</p>
     </div>
   </div>
 </template>
@@ -113,44 +114,72 @@
 import { useConfigStore, useUserStore } from "~/stores";
 import Logo from "~/assets/logo.svg";
 import { useRouter } from "vue-router";
-import { ref } from "vue";
+import { computed, reactive, ref } from "vue";
 import { ElMessage } from "element-plus";
+import type { FormInstance, FormRules } from "element-plus";
 import loginApi from "~/api/login";
 import { API } from "~/api/typings";
-import { base64Parms, md5 } from "~/utils/index";
-
-import {
-  businessServer as defaultBusinessServer,
-  sdkServer as defaultSdkServer,
-  appId as defaultAppId,
-  appSecret as defaultAppSecret,
-  useToken as defaultUseToken,
-  token as defaultToken,
-} from "~/config"; //获取默认值
+import { base64Parms, md5, commonValidator } from "~/utils";
+import { LoginSetting } from "~/components";
 
 const configStore = useConfigStore();
 const router = useRouter();
 const userStore = useUserStore();
 
-const phone = ref("");
-const vCode = ref(""); //验证码
 const select = ref("1");
 const timeCount = ref(-1);
 const isSetting = ref(false);
+const isPwd = ref(false);
 const isLoading = ref(false);
+const accountFormRef = ref<FormInstance>();
+const phoneFormRef = ref<FormInstance>();
+const version = computed(() => __APP_VERSION__);
+const showCodeToast = computed(
+  () => configStore.businessServer.indexOf("demo.cloudroom.com") === -1
+);
 
-const form = ref({
-  businessServer: configStore.businessServer,
-  sdkServer: configStore.sdkServer,
-  appId: configStore.appId,
-  appSecret: configStore.appSecret,
-  token: configStore.token,
-  useToken: configStore.useToken,
+const accountForm = reactive({
+  account: "",
+  pwd: "",
+});
+
+const phoneForm = reactive({
+  phoneNumber: "",
+  code: "",
+});
+
+const validate = {
+  PhoneNumber(rule: any, value: string, callback: Function) {
+    if (!value) {
+      return callback(new Error("请输入手机号码"));
+    }
+    if (!/^(?:(?:\+|00)86)?1[3-9]\d{9}$/.test(value)) {
+      return callback(new Error("手机号码格式错误"));
+    }
+    callback();
+  },
+  code(rule: any, value: string, callback: Function) {
+    commonValidator(rule, value, (err: Error) => {
+      if (err) return callback(err);
+      if (!/^\d{4,6}$/.test(value)) {
+        return callback(new Error("验证码格式不正确"));
+      }
+      callback();
+    });
+  },
+};
+
+const phoneRules = reactive<FormRules<typeof phoneForm>>({
+  phoneNumber: [{ validator: validate.PhoneNumber, trigger: "blur" }],
+  code: [{ validator: validate.code, trigger: "blur" }],
+});
+
+const accountRules = reactive<FormRules<typeof accountForm>>({
+  account: [{ validator: commonValidator, trigger: "blur" }],
+  pwd: [{ required: true, message: "请输入密码", trigger: "blur" }],
 });
 
 let timerId: NodeJS.Timeout;
-
-const checkPhone = (): boolean => /^1[0-9]{10}$/.test(phone.value.trim());
 
 const getAppID = () => {
   if (configStore.useToken) {
@@ -164,99 +193,88 @@ const getAppID = () => {
 };
 
 const getCodeBtn = () => {
-  if (timeCount.value === -1) {
-    if (!checkPhone()) {
-      return ElMessage.error("手机号码格式错误");
-    }
-    loginApi.getCode({
-      phoneNumber: phone.value,
-      areaCode: "+86",
-      usedFor: API.Login.UsedFor.Login,
-      appID: getAppID(),
-    });
-    timeCount.value = 59;
-    timerId = setInterval(() => {
-      timeCount.value--;
-      if (timeCount.value === -1) {
-        clearInterval(timerId);
+  if (timeCount.value === -1 && phoneFormRef.value) {
+    phoneFormRef.value.validateField("phoneNumber", (valid) => {
+      if (valid) {
+        loginApi.getCode({
+          phoneNumber: phoneForm.phoneNumber,
+          areaCode: "+86",
+          usedFor: API.Login.UsedFor.Login,
+          appID: getAppID(),
+        });
+        timeCount.value = 59;
+        timerId = setInterval(() => {
+          timeCount.value--;
+          if (timeCount.value === -1) {
+            clearInterval(timerId);
+          }
+        }, 1000);
       }
-    }, 1000);
+    });
   }
 };
 
-const login = async function () {
-  if (!checkPhone()) {
-    return ElMessage.error("手机号码格式错误");
-  }
-  if (!vCode.value.trim()) {
-    return ElMessage.error("请输入验证码");
-  }
-  console.log({
-    businessServer: configStore.businessServer,
-    sdkServer: configStore.sdkServer,
-    appId: configStore.appId,
-    appSecret: configStore.appSecret,
-    token: configStore.token,
-    useToken: configStore.useToken,
-  });
-  isLoading.value = true;
+const login = async () => {
+  console.log(isPwd ? accountFormRef : phoneFormRef);
+  (isPwd.value ? accountFormRef : phoneFormRef).value?.validate(
+    async (valid) => {
+      if (valid) {
+        console.log({
+          businessServer: configStore.businessServer,
+          sdkServer: configStore.sdkServer,
+          appId: configStore.appId,
+          appSecret: configStore.appSecret,
+          token: configStore.token,
+          useToken: configStore.useToken,
+        });
+        isLoading.value = true;
 
-  try {
-    // 登录业务服务器
-    await userStore.businessLogin({
-      verifyCode: vCode.value,
-      phoneNumber: phone.value,
-      areaCode: "+86",
-      appID: getAppID(),
-      password: "",
-    });
-
-    try {
-      //登录SDK
-      await userStore.sdkLogin(
-        Object.assign(
-          {
-            sdkServer: "http://" + configStore.sdkServer,
-          },
-          configStore.useToken
+        try {
+          const obj = isPwd.value
             ? {
-                token: configStore.token,
+                account: accountForm.account,
+                password: md5(accountForm.pwd),
+                appID: getAppID(),
               }
             : {
-                appId: getAppID(),
-                appSecret: md5(configStore.appSecret),
-              }
-        )
-      );
+                verifyCode: phoneForm.code,
+                phoneNumber: phoneForm.phoneNumber,
+                areaCode: "+86",
+                appID: getAppID(),
+              };
+          console.log(obj);
+          // 登录业务服务器
+          await userStore.businessLogin(obj);
 
-      router.replace({ name: "home" });
-    } catch (err: any) {
-      console.error(err);
-      err.errMsg && ElMessage.error(err.errMsg);
+          try {
+            //登录SDK
+            await userStore.sdkLogin(
+              Object.assign(
+                {
+                  sdkServer: configStore.sdkServer,
+                },
+                configStore.useToken
+                  ? {
+                      token: configStore.token,
+                    }
+                  : {
+                      appId: getAppID(),
+                      appSecret: md5(configStore.appSecret),
+                    }
+              )
+            );
+
+            router.replace({ name: "home" });
+          } catch (err: any) {
+            console.error(err);
+            err.errMsg && ElMessage.error(err.errMsg);
+          }
+        } catch (err: any) {}
+
+        isLoading.value = false;
+      }
     }
-  } catch (err: any) {}
-
-  isLoading.value = false;
-};
-const sava = () => {
-  configStore.businessServer = form.value.businessServer;
-  configStore.sdkServer = form.value.sdkServer;
-  configStore.useToken = form.value.useToken;
-  if (form.value.useToken) {
-    configStore.token = form.value.token;
-  } else {
-    configStore.appId = form.value.appId;
-    configStore.appSecret = form.value.appSecret;
-  }
-  isSetting.value = false;
-};
-const reset = () => {
-  form.value.businessServer = defaultBusinessServer;
-  form.value.sdkServer = defaultSdkServer;
-  form.value.useToken = defaultUseToken;
-  form.value.token = defaultToken;
-  form.value.appId = defaultAppId;
-  form.value.appSecret = defaultAppSecret;
+  );
 };
 </script>
 
@@ -284,6 +302,7 @@ const reset = () => {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
     .box {
       width: 462px;
       // height: 590px;
@@ -295,6 +314,14 @@ const reset = () => {
         display: flex;
         flex-direction: column;
         padding: 56px 56px 30px;
+        position: relative;
+        .setting {
+          position: absolute;
+          right: 30px;
+          top: 30px;
+          cursor: pointer;
+          font-size: 30px;
+        }
         .logo {
           text-align: center;
           img {
@@ -314,9 +341,12 @@ const reset = () => {
           margin-top: 10px;
           margin-bottom: 24px;
         }
-        .input {
-          height: 48px;
-          margin-bottom: 17px;
+        .formItem {
+          margin-bottom: 20px;
+          .input {
+            height: 48px;
+            flex: 1;
+          }
           .timeCount {
             width: 70px;
             text-align: center;
@@ -326,52 +356,17 @@ const reset = () => {
             height: 100%;
           }
         }
-        .loginSettingBtn {
-          cursor: pointer;
+        .togglePswd {
           text-align: center;
           font-size: 16px;
+          line-height: 20px;
           margin-top: 26px;
+          user-select: none;
         }
-      }
-      .setting {
-        padding: 58px 0;
-        .title {
-          display: flex;
-          align-items: center;
-          padding: 0 44px;
-          font-size: 24px;
-          margin-bottom: 40px;
-          span {
-            margin-left: 12px;
-          }
-        }
-        .input-group {
-          padding: 0 50px;
-          .input-item {
-            border: 1px solid #e1e1e1;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            padding-left: 18px;
-            color: #666;
-            font-size: 16px;
-            margin-bottom: 24px;
-            border-radius: 4px;
-            .left {
-              width: 100px;
-              text-align: right;
-            }
-            input {
-              border: none;
-              font-size: 16px;
-              line-height: 16px;
-              height: 100%;
-              flex: 1;
-            }
-            :deep(.el-select__wrapper) {
-              box-shadow: none;
-            }
-          }
+        .toast {
+          font-size: 14px;
+          margin-bottom: 10px;
+          color: var(--el-text-color-placeholder);
         }
       }
       .btn {
@@ -380,6 +375,13 @@ const reset = () => {
         font-size: 18px;
         width: 100%;
       }
+    }
+    .version {
+      position: absolute;
+      right: 10px;
+      bottom: 10px;
+      font-size: 14px;
+      color: var(--el-text-color-placeholder);
     }
   }
 }

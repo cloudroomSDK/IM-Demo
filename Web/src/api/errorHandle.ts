@@ -13,6 +13,7 @@ export const errorHandle = (errData: ErrorData) => {
 };
 
 const errCodeMap: Record<number, string> = {
+  500: "服务器内部错误",
   1005: "用户已注册",
   20001: "密码错误",
   20002: "账号不存在",

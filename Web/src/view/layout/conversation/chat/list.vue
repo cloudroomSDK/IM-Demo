@@ -193,8 +193,9 @@ onBeforeUnmount(() => {
   position: relative;
   .list {
     height: 100%;
+    min-width: 600px;
     padding: 0 16px 0px;
-    overflow-y: auto;
+    overflow: auto;
   }
   .header {
     margin: 20px 0;

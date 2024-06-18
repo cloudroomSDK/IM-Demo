@@ -7,11 +7,12 @@ export namespace API {
     }
     export type LoginParams = {
       appID: string;
-      verifyCode: string;
+      verifyCode?: string;
       deviceID?: string;
-      phoneNumber: string;
-      areaCode: string;
-      password: string;
+      phoneNumber?: string;
+      areaCode?: string;
+      password?: string;
+      account?: string;
     };
     export type LoginData = {
       chatToken: string;

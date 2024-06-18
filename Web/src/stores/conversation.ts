@@ -53,12 +53,16 @@ export const useConversationStore = defineStore("conversation", {
         if (t) {
           conversationItem = t;
         } else {
-          conversationItem = (
-            await IMSDK.getOneConversation({
-              sourceID: userID,
-              sessionType: 1,
-            })
-          ).data;
+          const { data } = await IMSDK.getOneConversation({
+            sourceID: userID,
+            sessionType: 1,
+          });
+          if (data.latestMsgSendTime === 0) {
+            data.latestMsgSendTime = new Date().getTime();
+          }
+          conversationItem = data;
+          this.conversationList?.push(conversationItem);
+          this.conversationList = this.conversationListSort();
         }
       }
       if (conversationItem) {
@@ -119,8 +123,13 @@ export const useConversationStore = defineStore("conversation", {
       const idx = conversationList.findIndex(
         (item) => item.conversationID === conversation!.conversationID
       );
-      if (idx > -1) {
-        this.currentConversationIndex = idx;
+      this.currentConversationIndex = idx;
+      if (idx === -1) {
+        if (conversation.latestMsgSendTime === 0) {
+          conversation.latestMsgSendTime = new Date().getTime();
+        }
+        this.conversationList?.push(conversation);
+        this.conversationList = this.conversationListSort();
       }
 
       // @ts-ignore
@@ -277,6 +286,12 @@ export const useConversationStore = defineStore("conversation", {
     isCurrentGroupChat(): boolean {
       if (this.currentConversation?.groupID) return true;
       return false;
+    },
+    isCurrentGroupAdmin(): boolean {
+      return (
+        this.currentMemberInGroup?.roleLevel === 100 ||
+        this.currentMemberInGroup?.roleLevel === 60
+      );
     },
     getMsgListLength(): number {
       if (!this.msgList) return 0;

@@ -42,8 +42,7 @@ const filterList = computed(() => {
   );
 });
 onBeforeMount(async () => {
-  const friendList = (await IMSDK.getFriendList()).data;
-  friendList;
+  const { data: friendList } = await IMSDK.getFriendList();
   list.value = friendList
     .map((item) => item.friendInfo)
     .filter(Boolean) as IMTYPE.FriendUserItem[];

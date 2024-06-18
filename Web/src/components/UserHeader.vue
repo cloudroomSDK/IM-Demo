@@ -45,12 +45,14 @@ const updateUrl = (url: string) => {
       font-size: 20px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
       flex: 2;
     }
     .id {
       font-size: 12px;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
       flex: 1;
     }
   }

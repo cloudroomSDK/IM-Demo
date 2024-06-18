@@ -1,6 +1,6 @@
 {
     "name": "im_demo",
-    "version": "1.0.1",
+    "version": "1.0.4",
     "description": "云屋IM_SDK演示Demo",
     "type": "module",
     "author": "Siman <siman@cloudroom.com>",
@@ -21,10 +21,11 @@
         "unplugin-icons": "^0.18.2",
         "unplugin-vue-components": "^0.26.0",
         "vite": "^5.0.0",
-        "vite-plugin-dts": "^3.8.1"
+        "vite-plugin-dts": "^3.8.1",
+        "vite-plugin-vue-devtools": "^7.2.1"
     },
     "dependencies": {
-        "@cloudroom/im-wasm-sdk": "^2.0.0",
+        "@cloudroom/im-wasm-sdk": "^2.5.1",
         "axios": "^1.6.3",
         "crypto-js": "^4.2.0",
         "element-plus": "^2.5.1",

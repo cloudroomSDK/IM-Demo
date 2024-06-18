@@ -1,5 +1,11 @@
 <template>
-  <div class="item" :class="{ quote: isQuote }">
+  <div
+    class="item"
+    :class="{
+      quote: isQuote,
+      isMe: source.sendID === userStore.userInfo?.userID,
+    }"
+  >
     <template
       v-if="
         [101, 102, 103, 104, 105, 106, 107, 108, 109, 114].includes(
@@ -10,12 +16,7 @@
       <p v-if="source.isShowTime" class="time">
         {{ formatChatString(source.sendTime) }}
       </p>
-      <div
-        class="chat"
-        :class="{
-          isMe: source.sendID === userStore.userInfo?.userID,
-        }"
-      >
+      <div class="chat">
         <div
           v-if="conversationStore.multipleStatus && !isQuote"
           class="checkbox"
@@ -39,17 +40,13 @@
         />
         <div class="context">
           <span class="name">{{ source.senderNickname }}</span>
+          <span v-if="isQuote" class="maohao">:&nbsp;</span>
           <div class="message">
-            <MessagePopover
-              :has="!isQuote"
-              :message="source"
-              @transmit="transmitHandle"
-              @multiple="multipleHandle"
-              @quote="quoteHandle"
-              @revok="revokHandle"
-              @del="delHandle"
-            >
-              <div class="content">
+            <div class="content">
+              <component
+                :is="isQuote ? 'div' : Popover"
+                :getData="getClickData"
+              >
                 <!-- 普通文本消息 -->
                 <div v-if="source.contentType === 101">
                   <span class="text">
@@ -62,6 +59,7 @@
                     class="img"
                     :src="source.pictureElem.sourcePicture.url"
                     :previewSrcList="[source.pictureElem.sourcePicture.url]"
+                    :z-index="9999"
                     loading="lazy"
                   />
                 </div>
@@ -132,7 +130,7 @@
                   <MessageItem
                     :source="source.quoteElem.quoteMessage"
                     isQuote
-                  ></MessageItem>
+                  />
                 </template>
                 <!-- 名片 -->
                 <div
@@ -157,8 +155,10 @@
                   <p class="locationDesc">{{ data.addr }}</p>
                 </div>
                 <p v-else>[暂不支持该内容]</p>
-              </div>
-            </MessagePopover>
+
+                <!-- </Popover> -->
+              </component>
+            </div>
           </div>
         </div>
         <template v-if="!isQuote">
@@ -225,6 +225,15 @@
         加入群聊
       </span>
     </div>
+    <div class="centerToast" v-else-if="source.contentType === 1510">
+      <span class="toast">
+        <Nickname
+          :nickname="data.entrantUser.nickname"
+          :userID="data.entrantUser.userID"
+        />
+        加入了群聊
+      </span>
+    </div>
     <div class="centerToast" v-else-if="source.contentType === 1511">
       <span class="toast">
         <Nickname
@@ -246,6 +255,20 @@
           :userID="data.opUser.userID"
         />
         禁言{{ ~~(data.mutedSeconds / 60) }}分{{ data.mutedSeconds % 60 }}秒
+      </span>
+    </div>
+    <div class="centerToast" v-else-if="source.contentType === 1513">
+      <span class="toast">
+        <Nickname
+          :nickname="data.opUser.nickname"
+          :userID="data.opUser.userID"
+        />
+        取消了
+        <Nickname
+          :nickname="data.mutedUser.nickname"
+          :userID="data.mutedUser.userID"
+        />
+        的禁言
       </span>
     </div>
     <div class="centerToast" v-else-if="source.contentType === 1514">
@@ -281,7 +304,8 @@
       </span>
     </div>
     <div class="centerToast" v-else-if="source.contentType === 2101">
-      <span class="toast">
+      <span v-if="isQuote">引用消息已撤回</span>
+      <span v-else class="toast">
         <Nickname
           v-if="data.revokerID !== userStore.userInfo?.userID"
           :nickname="data.sourceMessageSenderNickname"
@@ -307,7 +331,7 @@
 import { ElMessageBox } from "element-plus";
 import { computed, h } from "vue";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
-import { PicPreview, Avatar, MessagePopover, MemberSelect } from "~/components";
+import { PicPreview, Avatar, Popover, MemberSelect } from "~/components";
 import { formatChatString } from "~/utils/dayjs";
 import MessageItem from "./messageItem.vue";
 import Nickname from "./nickname.vue";
@@ -327,9 +351,13 @@ const props = defineProps<{
 }>();
 
 const data = computed(() => {
+  if (props.isQuote && props.source.contentType === 2101) {
+    return null;
+  }
   if (
     [
-      1501, 1504, 1507, 1508, 1509, 1511, 1512, 1514, 1515, 1520, 1701, 2101,
+      1501, 1504, 1507, 1508, 1509, 1510, 1511, 1512, 1513, 1514, 1515, 1520,
+      1701, 2101,
     ].includes(props.source.contentType)
   ) {
     return JSON.parse(props.source.notificationElem.detail);
@@ -385,59 +413,79 @@ const openMediaPreview = (chat: IMTYPE.MessageItem, title: string) => {
   });
 };
 
-const revokHandle = () => {
-  IMSDK.revokeMsg({
-    conversationID: conversationStore.currentConversation!.conversationID,
-    clientMsgID: props.source.clientMsgID,
-  });
-};
-const transmitHandle = async () => {
-  const data = await appStore.showDialog<
+const getClickData = () => {
+  const arr = [
     {
-      userID?: string;
-      imgSrc: string;
-      showName: string;
-      groupID?: string;
-    }[]
-  >({
-    component: MemberSelect,
-    title: "选择联系人",
-    width: 700,
-  });
+      text: "转发",
+      async click() {
+        const data = await appStore.showDialog<
+          {
+            userID?: string;
+            imgSrc: string;
+            showName: string;
+            groupID?: string;
+          }[]
+        >({
+          component: MemberSelect,
+          title: "选择联系人",
+          width: 700,
+        });
 
-  const message = (await IMSDK.createForwardMsg(props.source)).data;
-  data.forEach(async (item) => {
-    if (
-      item.userID === conversationStore.currentConversation?.userID ||
-      item.groupID === conversationStore.currentConversation?.groupID
-    ) {
-      conversationStore.pushMsg([message]);
-    }
-    await IMSDK.sendMsg({
-      recvID: item.userID ?? "",
-      groupID: item.groupID ?? "",
-      message: message,
+        const { data: message } = await IMSDK.createForwardMsg(props.source);
+        data.forEach(async (item) => {
+          if (
+            item.userID === conversationStore.currentConversation?.userID ||
+            item.groupID === conversationStore.currentConversation?.groupID
+          ) {
+            conversationStore.pushMsg([message]);
+          }
+          await IMSDK.sendMsg({
+            recvID: item.userID ?? "",
+            groupID: item.groupID ?? "",
+            message: message,
+          });
+        });
+      },
+    },
+    {
+      text: "多选",
+      click() {
+        conversationStore.multipleSelect = [props.source.clientMsgID];
+        conversationStore.multipleStatus = true;
+      },
+    },
+    {
+      text: "回复",
+      click() {
+        conversationStore.currentQuoteMessage = props.source;
+      },
+    },
+    {
+      text: "删除",
+      async click() {
+        await IMSDK.deleteMsg({
+          conversationID: conversationStore.currentConversation!.conversationID,
+          clientMsgID: props.source.clientMsgID,
+        });
+        conversationStore.removeList([props.source.clientMsgID]);
+      },
+    },
+  ];
+  //成员可撤回两分钟内的消息,管理员可以随时撤回
+  (conversationStore.isCurrentGroupAdmin ||
+    (props.source.sendID === userStore.userInfo?.userID &&
+      Math.abs(props.source.sendTime - Date.now()) / 6e4 < 2)) &&
+    arr.splice(4, 0, {
+      text: "撤回",
+      click() {
+        IMSDK.revokeMsg({
+          conversationID: conversationStore.currentConversation!.conversationID,
+          clientMsgID: props.source.clientMsgID,
+        });
+      },
     });
-  });
-};
-const multipleHandle = () => {
-  conversationStore.multipleSelect = [props.source.clientMsgID];
-  conversationStore.multipleStatus = true;
-};
-const quoteHandle = () => {
-  conversationStore.currentQuoteMessage = props.source;
-};
-const delHandle = async () => {
-  // await IMSDK.deleteMsgFromLocalStorage({
-  //   conversationID: conversationStore.currentConversation!.conversationID,
-  //   clientMsgID: props.source.clientMsgID,
-  // });
 
-  await IMSDK.deleteMsg({
-    conversationID: conversationStore.currentConversation!.conversationID,
-    clientMsgID: props.source.clientMsgID,
-  });
-  conversationStore.removeList([props.source.clientMsgID]);
+  return arr;
 };
 </script>
 
@@ -602,13 +650,6 @@ const delHandle = async () => {
       margin-top: 22px;
       --el-loading-spinner-size: 20px;
     }
-    &.isMe {
-      flex-direction: row-reverse;
-      text-align: right;
-      .checkbox {
-        margin-left: 10px;
-      }
-    }
   }
   .centerToast {
     text-align: center;
@@ -623,32 +664,42 @@ const delHandle = async () => {
     }
   }
 
+  &.isMe {
+    .quote {
+      transform-origin: right;
+    }
+    .chat {
+      flex-direction: row-reverse;
+      text-align: right;
+      margin-left: 0;
+      .checkbox {
+        margin-left: 10px;
+      }
+    }
+  }
+
   &.quote {
     background-color: #f5f5f5;
     padding: 8px;
     border-radius: 4px;
     margin-top: 4px;
     display: inline-block;
+    transform: scale(0.8);
+    transform-origin: left;
 
     .chat {
       margin-right: 0;
       display: block;
-      &.isMe {
-        margin-left: 0;
-      }
       .context {
         display: flex;
         margin: 0px;
         align-items: start;
         max-width: unset;
-        .name {
+        .name,
+        .maohao {
           margin-bottom: 0;
-          margin-right: 10px;
           font-size: 14px;
           line-height: 20px;
-          &::after {
-            content: ":";
-          }
         }
         .message {
           flex: 1;

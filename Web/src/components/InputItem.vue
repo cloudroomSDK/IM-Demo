@@ -13,7 +13,7 @@
       </span>
     </div>
     <div class="value">
-      <div v-if="type === 'text'">{{ value }}</div>
+      <div v-if="type === 'text'" class="text">{{ value }}</div>
       <el-switch
         v-else-if="type === 'switch'"
         v-model="switchValue"
@@ -111,8 +111,6 @@ const copy = async () => {
     display: flex;
     justify-content: center;
     align-items: center;
-    flex: 1;
-    width: 0;
     .text {
       color: #000;
       text-wrap: nowrap;
@@ -127,6 +125,18 @@ const copy = async () => {
   .value {
     display: flex;
     align-items: center;
+    justify-content: right;
+    flex: 1;
+    width: 0;
+    text-align: right;
+    margin-left: 20px;
+    .text {
+      color: #000;
+      text-wrap: nowrap;
+      overflow: hidden;
+      flex: 1;
+      text-overflow: ellipsis;
+    }
     .icon {
       margin-left: 4px;
       cursor: pointer;

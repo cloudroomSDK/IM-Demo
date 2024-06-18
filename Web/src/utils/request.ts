@@ -3,19 +3,29 @@ import { ElMessage } from "element-plus";
 import { errorHandle } from "~/api/errorHandle";
 import { useConfigStore, useUserStore } from "~/stores";
 
-const getBaseUrl = function () {
-  const configStore = useConfigStore();
-  return `http://${configStore.businessServer}:8018`;
-};
-// import { getIMToken } from "./storage";
-
 const request = axios.create({
   timeout: 5000,
 });
 
+export const updateBaseURL = () => {
+  const configStore = useConfigStore();
+  let baseUrl = configStore.businessServer;
+  if (!/^https?:\/\//.test(baseUrl)) {
+    baseUrl = "http://" + baseUrl;
+  }
+  request.defaults.baseURL = baseUrl;
+  return baseUrl;
+};
+
+// 首次请求时使用拦截器更改业务服务器，更新后销毁该拦截器
+const myInterceptor = request.interceptors.request.use(function (config) {
+  config.baseURL = updateBaseURL();
+  request.interceptors.request.eject(myInterceptor);
+  return config;
+});
+
 request.interceptors.request.use(
   async (config) => {
-    config.baseURL = getBaseUrl();
     config.headers.token = config.headers.token ?? useUserStore().getChatToken;
     return config;
   },
@@ -42,7 +52,6 @@ request.interceptors.response.use(
       ElMessage.error("网络错误");
     }
 
-    // debugger;
     return Promise.reject(err);
   }
 );

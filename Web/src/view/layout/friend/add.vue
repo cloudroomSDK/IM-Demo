@@ -14,23 +14,9 @@
     </div>
     <div v-loading="loading">
       <div class="info" v-if="list.length">
-        <el-row justify="space-around">
-          <el-col
-            v-for="item in list"
-            :key="item.userID"
-            :span="8"
-            style="padding: 0 5px"
-          >
-            <UserInfo
-              style="
-                margin-bottom: 20px;
-                box-shadow: var(--el-box-shadow-light);
-                padding: 20px 26px;
-              "
-              :userID="item.userID"
-            ></UserInfo>
-          </el-col>
-        </el-row>
+        <div class="item" v-for="item in list" :key="item.userID">
+          <UserInfo class="userInfo" :userID="item.userID" />
+        </div>
       </div>
       <Empty v-else></Empty>
     </div>
@@ -65,7 +51,19 @@ const search = async () => {
 .context {
   padding: 50px;
   .info {
+    display: flex;
+    justify-content: space-around;
     margin-top: 20px;
+    flex-wrap: wrap;
+    .item {
+      padding: 0 5px;
+      width: 280px;
+      .userInfo {
+        margin-bottom: 20px;
+        box-shadow: var(--el-box-shadow-light);
+        padding: 20px 26px;
+      }
+    }
   }
 }
 </style>

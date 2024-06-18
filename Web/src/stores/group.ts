@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { GroupStore } from "./type";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { useUserStore } from ".";
 
 export const useGroupStore = defineStore("group", {
   state: (): GroupStore => ({
@@ -40,6 +41,16 @@ export const useGroupStore = defineStore("group", {
       const idx = this.list.findIndex((item) => item.groupID === data.groupID);
       if (idx > -1) {
         this.list.splice(idx, 1);
+      }
+    },
+    onGrpMemberDeleted({ data }: { data: IMTYPE.GroupMemberItem }) {
+      const userStore = useUserStore();
+      if (data.userID === userStore.getMyUserID) {
+        this.onJoinedGrpDeleted({
+          data: {
+            groupID: data.groupID,
+          } as IMTYPE.GroupItem,
+        });
       }
     },
   },

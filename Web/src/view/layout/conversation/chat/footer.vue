@@ -9,6 +9,16 @@
     >
       群已解散
     </div>
+    <div
+      v-else-if="
+        conversationStore.isCurrentGroupChat &&
+        !conversationStore.isCurrentGroupAdmin &&
+        conversationStore.currentGroupInfo?.status === 3
+      "
+      class="dissolveToast"
+    >
+      已开启群禁言
+    </div>
     <template v-else>
       <div class="transmit" v-if="conversationStore.multipleStatus">
         <el-icon class="icon" @click="conversationStore.multipleStatus = false">
@@ -49,7 +59,7 @@
             type="textarea"
             class="textarea"
             resize="none"
-            @keyup.ctrl.enter="sendHandle"
+            @keydown.prevent.enter="sendHandle"
           />
         </div>
         <div class="bottom clearfix">
@@ -73,7 +83,7 @@
               </div>
             </div>
           </div>
-          <el-tooltip content="按Ctrl + Enter 可快速发送" placement="top">
+          <el-tooltip content="按 Enter 可快速发送" placement="top">
             <el-button @click="sendHandle" type="primary" class="btn">
               发送
             </el-button>
@@ -157,26 +167,25 @@ onBeforeUnmount(() => {
   }
 });
 
-const sendMsg = async (messageItem: IMTYPE.MessageItem) => {
+const sendMsg = async (message: IMTYPE.MessageItem) => {
   try {
-    const data = await IMSDK.sendMsg({
+    const { data: successMessage } = await IMSDK.sendMsg({
       recvID: conversationStore.isCurrentGroupChat
         ? ""
         : conversationStore.currentConversation!.userID,
       groupID: conversationStore.isCurrentGroupChat
         ? conversationStore.currentConversation!.groupID
         : "",
-      message: messageItem,
+      message: message,
       // offlinePushInfo?: OfflinePush;
     });
-    const successMessage = data.data;
 
-    console.log(data);
+    console.log(successMessage);
     conversationStore.updateMsgList([successMessage]);
   } catch (error) {
     errorHandle(error as IMTYPE.WsResponse);
-    messageItem.status = 3;
-    conversationStore.updateMsgList([messageItem]);
+    message.status = 3;
+    conversationStore.updateMsgList([message]);
   }
 };
 const sendHandle = async () => {
@@ -188,7 +197,7 @@ const sendHandle = async () => {
   if (conversationStore.currentQuoteMessage) {
     const { data } = await IMSDK.createQuoteMsg({
       text,
-      message: JSON.stringify(conversationStore.currentQuoteMessage),
+      message: conversationStore.currentQuoteMessage,
     });
     messageItem = data;
     conversationStore.currentQuoteMessage = undefined;
@@ -255,17 +264,15 @@ const mergeTransmitHandle = async () => {
     }
   });
 
-  const message = (
-    await IMSDK.createMergerMsg({
-      messageList: list,
-      title: conversationStore.isCurrentGroupChat
-        ? "群聊天记录"
-        : `${userStore.userInfo?.nickname}和${conversationStore.currentConversation?.showName}的聊天记录`,
-      summaryList: list.map(
-        (item) => `${item.senderNickname}: ${toLastMessage(item)}`
-      ),
-    })
-  ).data;
+  const { data: message } = await IMSDK.createMergerMsg({
+    messageList: list,
+    title: conversationStore.isCurrentGroupChat
+      ? "群聊天记录"
+      : `${userStore.userInfo?.nickname}和${conversationStore.currentConversation?.showName}的聊天记录`,
+    summaryList: list.map(
+      (item) => `${item.senderNickname}: ${toLastMessage(item)}`
+    ),
+  });
 
   data.forEach((item) => {
     IMSDK.sendMsg({
@@ -285,16 +292,14 @@ const mergeTransmitHandle = async () => {
 };
 const sendBusinessCard = async (friendUserItem: IMTYPE.FriendUserItem) => {
   console.log(friendUserItem);
-  const messageItem = (
-    await IMSDK.createCardMsg({
-      userID: friendUserItem.userID,
-      nickname: friendUserItem.nickname,
-      faceURL: friendUserItem.faceURL,
-      // ex: "",
-    })
-  ).data;
-  conversationStore.pushMsg([messageItem]);
-  sendMsg(messageItem);
+  const { data: message } = await IMSDK.createCardMsg({
+    userID: friendUserItem.userID,
+    nickname: friendUserItem.nickname,
+    faceURL: friendUserItem.faceURL,
+    // ex: "",
+  });
+  conversationStore.pushMsg([message]);
+  sendMsg(message);
   dialogVisible.value = false;
 };
 </script>

@@ -54,7 +54,7 @@ export default {
       {
         ...params,
         platform,
-        areaCode: getAreaCode(params.areaCode),
+        areaCode: params.areaCode ? getAreaCode(params.areaCode) : undefined,
         usedFor: API.Login.UsedFor.Login,
       },
       {

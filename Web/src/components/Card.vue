@@ -1,11 +1,11 @@
 <template>
-  <div class="container" :class="{ active: active }">
-    <Avatar
-      class="avatar"
-      :size="40"
-      :src="imgSrc"
-      :type="avatarType"
-    />
+  <div
+    class="container"
+    :style="{
+      backgroundColor: bgc,
+    }"
+  >
+    <Avatar class="avatar" :size="40" :src="imgSrc" :type="avatarType" />
     <div class="fr" v-if="conversationItem">
       <div class="first">
         <span class="name">{{ name }}</span>
@@ -44,7 +44,7 @@ interface Props {
   conversationItem?: IMTYPE.ConversationItem | null;
   avatarType?: "user" | "group";
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   imgSrc: "",
   active: false,
   conversationItem: null,
@@ -55,6 +55,17 @@ import { IMTYPE } from "~/utils/imsdk";
 import Avatar from "./Avatar.vue";
 import { toLastMessage } from "~/utils/index";
 import { formatListString } from "~/utils/dayjs";
+import { computed } from "vue";
+
+const bgc = computed(() => {
+  if (props.active) {
+    return "#e9ebf4";
+  }
+  if (props.conversationItem?.isPinned) {
+    return "#efefef";
+  }
+  return "";
+});
 </script>
 
 <style lang="scss" scoped>

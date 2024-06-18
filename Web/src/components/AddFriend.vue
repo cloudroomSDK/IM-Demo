@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="container">
     <UserHeader :nickname="nickname" :userID="userID" :imgSrc="imgSrc" />
 
     <p class="text">验证信息</p>
@@ -9,6 +9,7 @@
       :maxlength="50"
       :rows="6"
       resize="none"
+      show-word-limit
     />
   </div>
 </template>
@@ -31,9 +32,12 @@ watch(textarea, (newVal) => {
 });
 </script>
 <style lang="scss" scoped>
-.text {
-  font-size: 14px;
-  margin-top: 28px;
-  margin-bottom: 14px;
+.container {
+  width: 100%;
+  .text {
+    font-size: 14px;
+    margin-top: 28px;
+    margin-bottom: 14px;
+  }
 }
 </style>

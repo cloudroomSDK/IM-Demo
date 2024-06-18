@@ -1,4 +1,5 @@
-export { default as MessagePopover } from "./MessagePopover.vue";
+export { default as LoginSetting } from "./LoginSetting.vue";
+export { default as Popover } from "./Popover.vue";
 export { default as AddFriend } from "./AddFriend.vue";
 export { default as Avatar } from "./Avatar.vue";
 export { default as CanEditAvatar } from "./CanEditAvatar.vue";

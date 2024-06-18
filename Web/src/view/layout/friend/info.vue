@@ -99,6 +99,8 @@ const del = async function () {
       padding: 0 36px;
       .name {
         margin-left: 20px;
+        width: 0;
+        flex: 1;
       }
     }
   }

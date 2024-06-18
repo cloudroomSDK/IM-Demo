@@ -103,6 +103,29 @@ export const getVideoSnshotFile = (file: File): Promise<File> => {
   });
 };
 
+// element form的通用表单检验规则
+export const commonValidator = (
+  rule: any,
+  value: string,
+  callback: Function
+) => {
+  const str = {
+    account: "账号",
+    code: "验证码",
+    appId: "AppID",
+    appSecret: "AppSecret",
+  }[rule.field as string];
+  console.log(rule.field);
+  if (!value) {
+    return callback(new Error(`请输入${str}`));
+  }
+
+  if (/\W/.test(value)) {
+    return callback(new Error(`${str}不能包含非法字符`));
+  }
+  callback();
+};
+
 export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
   if (messageItem.contentType === 101) {
     return messageItem.textElem.content;
@@ -165,15 +188,23 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
       .join("、");
     return `${data.opUser.nickname} 邀请 ${nameListStr} 加入群聊`;
   }
+  if (messageItem.contentType === 1510) {
+    const data = JSON.parse(messageItem.notificationElem.detail);
+    return `${data.entrantUser.nickname} 加入了群聊`;
+  }
   if (messageItem.contentType === 1511) {
     const data = JSON.parse(messageItem.notificationElem.detail);
     return `${data.opUser.nickname} 解散了群聊`;
   }
   if (messageItem.contentType === 1512) {
     const data = JSON.parse(messageItem.notificationElem.detail);
-    return `${data.mutedUser.nickname} 被 ${data.opUser.nickname}禁言${~~(
+    return `${data.mutedUser.nickname} 被 ${data.opUser.nickname} 禁言${~~(
       data.mutedSeconds / 60
     )}分${data.mutedSeconds % 60}秒`;
+  }
+  if (messageItem.contentType === 1513) {
+    const data = JSON.parse(messageItem.notificationElem.detail);
+    return `${data.opUser.nickname} 取消了 ${data.mutedUser.nickname} 的禁言`;
   }
   if (messageItem.contentType === 1514) {
     const data = JSON.parse(messageItem.notificationElem.detail);

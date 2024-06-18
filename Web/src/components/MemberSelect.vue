@@ -60,7 +60,7 @@
               >
                 <div v-for="item in allList" :key="item.userID">
                   <el-checkbox
-                    :label="'f_' + item.userID"
+                    :value="'f_' + item.userID"
                     :disabled="item?.disabled"
                   >
                     <div class="item">
@@ -78,7 +78,7 @@
                   :key="item.userID"
                 >
                   <el-checkbox
-                    :label="
+                    :value="
                       item.groupID ? 'g_' + item.groupID : 'u_' + item.userID
                     "
                   >
@@ -94,7 +94,7 @@
                   :key="item.userID"
                 >
                   <el-checkbox
-                    :label="'u_' + item.userID"
+                    :value="'u_' + item.userID"
                     :disabled="item?.disabled"
                   >
                     <div class="item">
@@ -110,7 +110,7 @@
                   v-for="item in groupStore.list"
                   :key="item.groupID"
                 >
-                  <el-checkbox :label="'g_' + item.groupID">
+                  <el-checkbox :value="'g_' + item.groupID">
                     <div class="item">
                       <Avatar :size="30" :src="item.faceURL" />
                       <span class="name">

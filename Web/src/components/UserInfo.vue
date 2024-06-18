@@ -1,12 +1,27 @@
 <template>
   <div class="card">
-    <UserHeader :img-src="imgSrc" :nickname="info.nickname" :userID="userID" />
+    <UserHeader
+      v-if="userStore.userInfo?.userID === userID"
+      :img-src="userStore.userInfo?.faceURL"
+      :nickname="userStore.userInfo?.nickname"
+      :userID="userStore.userInfo?.userID"
+    />
+    <UserHeader
+      v-else
+      :img-src="imgSrc"
+      :nickname="info.nickname"
+      :userID="userID"
+    />
     <el-divider />
 
     <div class="body">
       <el-form :model="form" label-width="70px">
         <el-form-item label="昵称" v-if="isMe">
-          <el-input v-model="form.nickname" :disabled="!isEdit" />
+          <el-input
+            v-model="form.nickname"
+            :disabled="!isEdit"
+            maxlength="64"
+          />
         </el-form-item>
         <el-form-item label="生日">
           <el-date-picker
@@ -20,7 +35,7 @@
           />
         </el-form-item>
         <el-form-item label="手机号码">
-          <el-input v-model="form.phoneNumber" :disabled="!isEdit" />
+          <el-input v-model="form.phoneNumber" disabled />
         </el-form-item>
       </el-form>
       <template v-if="inGroupInfo">
@@ -122,7 +137,7 @@ onMounted(async () => {
   }
 
   // 如果打开自己的窗口
-  if (userStore.businessData?.userID === props.userID) {
+  if (userStore.getMyUserID === props.userID) {
     isMe.value = true;
     const userInfo = (await getBusinessUserInfo([props.userID])).users[0];
 
@@ -135,7 +150,7 @@ onMounted(async () => {
   }
 
   //检查好友关系
-  const friendshipInfoArr = (await IMSDK.checkFriend([props.userID])).data;
+  const { data: friendshipInfoArr } = await IMSDK.checkFriend([props.userID]);
   if (friendshipInfoArr[0].userID === props.userID) {
     isFriend.value = !!friendshipInfoArr[0].result;
     //如果是好友
@@ -160,6 +175,7 @@ const add = () => {
   let str = "";
   ElMessageBox({
     title: "好友验证",
+    customClass: "el-message-add_friend",
     message: h(AddFriend, {
       nickname: info.value.nickname,
       userID: props.userID,
@@ -200,8 +216,8 @@ const goChat = () => {
 
 const resetInfo = () => {
   form.value.nickname = info.value.nickname;
-  form.value.phoneNumber = info.value.phoneNumber;
   form.value.birth = info.value.birth;
+  form.value.phoneNumber = info.value.phoneNumber;
 };
 
 const cancel = () => {
@@ -210,7 +226,6 @@ const cancel = () => {
 };
 
 const editInfo = async () => {
-  console.log(form.value);
   const obj = Object.keys(form.value).reduce((previousValue, currentValue) => {
     // @ts-ignore
     if (form.value[currentValue] !== info.value[currentValue]) {
@@ -219,12 +234,11 @@ const editInfo = async () => {
     }
     return previousValue;
   }, {});
+  console.log(obj);
+  await updateBusinessUserInfo(obj);
+  info.value.nickname = form.value.nickname;
+  info.value.birth = form.value.birth;
 
-  await updateBusinessUserInfo({
-    birth: form.value.birth,
-    nickname: form.value.nickname,
-  });
-  
   isEdit.value = false;
 };
 </script>

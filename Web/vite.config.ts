@@ -7,6 +7,7 @@ import { ElementPlusResolver } from "unplugin-vue-components/resolvers";
 import Icons from "unplugin-icons/vite";
 import IconsResolver from "unplugin-icons/resolver";
 import ElementPlus from "unplugin-element-plus/vite";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
   base: process.env.NODE_ENV === "development" ? "/" : "/web/im/",
@@ -28,6 +29,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    vueDevTools(),
     AutoImport({
       resolvers: [
         ElementPlusResolver(/* {
@@ -65,7 +67,7 @@ export default defineConfig({
         main: path.resolve(__dirname, "index.html"),
       },
       output: {
-        entryFileNames: "[name].js",
+        // entryFileNames: "[name].js",
         manualChunks(id) {
           if (id.includes("indexeddb-main-thread-worker-b24e7a21.js")) {
             return "DBWorker";

@@ -16,7 +16,7 @@ export const useAppStore = defineStore("app", {
       confirm,
     }: {
       component: ComponentOptions;
-      title?: string | null;
+      title?: string;
       width?: number;
       data?: any;
       confirm?: Function;

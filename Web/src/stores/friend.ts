@@ -13,7 +13,7 @@ export const useFriendStore = defineStore("friend", {
   }),
   actions: {
     async init() {
-      const reqList = (await IMSDK.getFriendReqListAsRecipient()).data;
+      const { data: reqList } = await IMSDK.getFriendReqListAsRecipient();
       this.newFriendCount = reqList.reduce(
         (accumulator, currentValue) =>
           accumulator + (currentValue.handleResult === 0 ? 1 : 0),
