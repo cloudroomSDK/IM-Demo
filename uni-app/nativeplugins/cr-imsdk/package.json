@@ -1,0 +1,55 @@
+{
+	"name": "cr-imsdk",
+	"id": "cr-imsdk",
+	"version": "1.0.0",
+	"description": "",
+	"_dp_type": "nativeplugin",
+	"_dp_nativeplugin": {
+		"android": {
+			"plugins": [{
+				"type": "module",
+				"name": "cr-imsdk-plugins",
+				"class": "com.example.cr_im_sdk.CRIMSDK"
+			}],
+			"integrateType": "aar",
+			"parameters": {},
+			"abis": [
+				"armeabi-v7a",
+				"arm64-v8a",
+				"x86"
+			],
+			"dependencies": []
+		},
+		"ios": {
+			"plugins": [{
+				"type": "module",
+				"name": "cr-imsdk-plugins",
+				"class": "CRIMModule"
+			}],
+			"integrateType": "framework",
+			"frameworks": [
+				"CRIMSDKCore.framework",
+				"CRIMSDKUniPlugin.framework"
+			],
+			"capabilities": {
+				"plists": {
+					"LSSupportsOpeningDocumentsInPlace": true,
+					"UIFileSharingEnabled": true
+				}
+			},
+			"plists": {},
+			"privacies": [
+				"NSCameraUsageDescription",
+				"NSMicrophoneUsageDescription"
+			],
+			"embedSwift": false,
+			"deploymentTarget": 11.0,
+			"validArchitectures": [
+				"arm64"
+			],
+			"resources": [
+
+			]
+		}
+	}
+}

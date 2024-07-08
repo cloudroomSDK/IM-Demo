@@ -1,0 +1,89 @@
+
+.flex {
+  display: flex;
+}
+
+.inline-flex {
+  display: inline-flex;
+}
+
+@for $i from 1 to 3 {
+  .flex-#{$i} {
+    flex: #{$i};
+  }
+}
+
+// 默认前缀flex， 传入属性， key，value
+@mixin flexGenerator($flexAttr, $attrs, $prefix: flex) {
+  @each $attr, $attr1 in $attrs {
+    @if $attr1 {
+      .#{$prefix}-#{$attr} {
+        #{$flexAttr}: $attr1;
+      }
+    } @else {
+      .#{$prefix}-#{$attr} {
+        #{$flexAttr}: $attr;
+      }
+    }
+  }
+}
+
+// 父容器
+// flex-flow属性是flex-direction属性和flex-wrap属性的简写形式，默认值为row nowrap。
+
+// flex-direction属性决定主轴的方向（即项目的排列方向）
+$flex-direction: row, row-reverse, (col, column), (col-reverse, column-reverse);
+@include flexGenerator("flex-direction", $flex-direction);
+
+// 默认情况下，项目都排在一条线（又称"轴线"）上。flex-wrap属性定义，如果一条轴线排不下，如何换行。
+$flex-wrap: nowrap, wrap, wrap-reverse;
+@include flexGenerator("flex-wrap", $flex-wrap);
+
+// justify-content属性定义了项目在主轴上的对齐方式。
+$justify-content: (justify-start, flex-start), (justify-end, flex-end),
+  (justify-center, center), (justify-space-between, space-between),
+  (justify-space-around, space-around);
+@include flexGenerator('justify-content', $justify-content);
+
+$justify-items: (justify-items-stretch, stretch), (justify-items-start, start), (justify-items-left, left), (justify-items-center, center), (justify-items-end, end), (justify-items-right, right), (justify-items-overflow-alignment, overflow-alignment), (justify-items-baseline-alignment, baseline-alignment);
+@include flexGenerator("justify-items", $justify-items);
+
+
+// align-items属性定义项目在交叉轴上如何对齐。
+$align-items: (items-start, flex-start), (items-end, flex-end),
+  (items-center, center), (items-baseline, baseline), (items-stretch, stretch);
+@include flexGenerator("align-items", $align-items);
+
+// align-content属性定义了多根轴线（多行）的对齐方式。
+// 如果项目只有一根轴线，该属性不起作用。
+$align-content: (content-start, flex-start), (content-end, flex-end),
+  (content-center, center), (content-space-between, space-between),
+  (content-space-around, space-around), (content-stretch, stretch);
+@include flexGenerator("align-content", $align-content);
+
+// 子容器使用
+
+// flex属性是flex-grow, flex-shrink 和 flex-basis的简写，
+// 默认值为0 1 auto。后两个属性可选。
+// 该属性有两个快捷值：auto (1 1 auto) 和 none (0 0 auto)。
+
+// order属性定义项目的排列顺序。数值越小，排列越靠前，默认为0。 order: 1
+
+// flex-grow属性定义项目的放大比例，默认为0，即如果存在剩余空间，也不放大。
+// 如果所有项目的flex-grow属性都为1，则它们将等分剩余空间（如果有的话）。
+// 如果一个项目的flex-grow属性为2，其他项目都为1，则前者占据的剩余空间将比其他项多一倍。
+
+// flex-shrink属性定义了项目的缩小比例，默认为1，即如果空间不足，该项目将缩小。
+// 如果所有项目的flex-shrink属性都为1，当空间不足时，都将等比例缩小。
+// 如果一个项目的flex-shrink属性为0，其他项目都为1，则空间不足时，前者不缩小。
+// (负值对该属性无效。)
+
+// flex-basis属性定义了在分配多余空间之前，项目占据的主轴空间（main size）。
+// 浏览器根据这个属性，计算主轴是否有多余空间。它的默认值为auto，即项目的本来大小。
+// 即先把flex-basis算掉，再平分剩下的空间
+
+// align-self属性允许单个项目有与其他项目不一样的对齐方式，可覆盖align-items属性。
+// 默认值为auto，表示继承父元素的align-items属性，如果没有父元素，则等同于stretch。
+$align-self: (self-start, flex-start), (self-end, flex-end),
+  (self-center, center), (self-baseline, baseline), (self-stretch, stretch);
+@include flexGenerator("align-self", $align-self);

@@ -1,0 +1,112 @@
+@mixin props($prop, $attrs, $prefix: 0) {
+  @if $prefix == 0 {
+    $prefix: #{$prop}-;
+  }
+
+  @each $attr, $attr1 in $attrs {
+    @if $attr1 {
+      .#{$prefix}#{$attr} {
+        #{$prop}: $attr1;
+      }
+    } @else {
+      .#{$prefix}#{$attr} {
+        #{$prop}: $attr;
+      }
+    }
+  }
+}
+
+$position: relative, absolute, fixed;
+@include props("position", $position, "");
+.vcenter {
+  top: 50%;
+  transform: translateY(-50%);
+}
+.hcenter {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+$float: left, right, none;
+@include props("float", $float);
+.clearfix {
+  zoom: 1;
+  &::after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+}
+
+$display: block, inline-block, inline, table, table-row, table-cell, none,
+  (hidden, none);
+@include props("display", $display, "");
+
+$visibility: visible, hidden;
+@include props("visibility", $visibility);
+
+$overflow: hidden;
+@include props("overflow", $overflow);
+
+$textAlign: left, right, center;
+@include props("text-align", $textAlign, "text-");
+
+$verticalAlign: baseline, top, middle, bottom, text-top, text-bottom, sub, super;
+@include props("vertical-align", $verticalAlign, "align-");
+
+$fontWeight: ("light", 300), ("normal", 400), ("medium", 500), ("semibold", 600),
+  ("bold", 700);
+@include props("font-weight", $fontWeight, "font-");
+
+$wordBreak: normal, (word, break-word), (all, break-all);
+@include props("word-break", $wordBreak, "break-");
+.truncate {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@for $i from 2 to 5 {
+  .clamp-#{$i} {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: $i;
+    -webkit-box-orient: vertical;
+  }
+}
+
+// auto default pointer wait text move not-allowed
+$cursor: default, pointer, not-allowed;
+@include props("cursor", $cursor);
+
+$pointerEvents: all, auto, none;
+@include props("pointer-events", $pointerEvents);
+
+@each $radius in 4, 8 {
+  .border-radius-#{$radius} {
+    border-radius: $radius + px;
+  }
+}
+$mpprops: ("left", left), ("right", right), ("m", margin), ("mt", margin-top),
+  ("mb", margin-bottom), ("ml", margin-left), ("mr", margin-right),
+  ("p", padding), ("pt", padding-top), ("pb", padding-bottom),
+  ("pl", padding-left), ("pr", padding-right);
+@for $i from 0 to 15 {
+  @each $mpprefix, $mpprop in $mpprops {
+    .#{$mpprefix}-#{$i * 5} {
+      #{$mpprop}: #{$i * 5}px !important;
+    }
+  }
+}
+
+.w-full {
+	width: 100%;
+}
+.h-full {
+	height: 100%;
+}
+
+.bg-witle {
+	background-color: white;
+}

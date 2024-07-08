@@ -1,0 +1,146 @@
+@import '@/uni.scss';
+@import '@/style/util.scss';
+@import '@/style/flex.scss';
+
+// 如果用页面来滚动的话
+// #app, uni-app, uni-page, uni-page-wrapper {
+// 	height: initial;
+// }
+html {
+	overflow: hidden;
+}
+
+image {
+	vertical-align: middle;
+}
+
+.main-color {
+	color: $uni-color-primary;
+}
+
+.page-view {
+	@include pageView($navHeight);
+}
+
+.page-view-nonav {
+	@include pageView(0px, $searchBoxHeight);
+}
+
+.page-view-search {
+	@include pageView($navHeight, $searchBoxHeight);
+}
+
+.page-view-container {
+	@include pageView($navHeight, $pageGap);
+	background-color: #f8f8f8;
+}
+
+.im-search {
+	padding: calc(var(--status-bar-height) + 20px) 16px 8px;
+}
+
+.u-navbar {
+	.u-navbar__content__title {
+		font-size: 18px !important;
+		color: #000 !important;
+	}
+}
+
+.block-container {
+	& + .block-container {
+		padding-top: 15px;
+	}
+	&.gap {
+		padding: 15px 0;
+	}
+	&.no-gap-top {
+		padding-top: 0;
+	}
+	&.gap-top {
+		padding-top: 15px;
+	}
+	&.gap-bottom {
+		padding-bottom: 15px;
+	}
+	&-box {
+		padding: 0 15px;
+		background-color: #fff;
+	}
+}
+
+.common-cells {
+	
+	.u-cell__body {
+		height: 60px;
+	}
+
+	.u-cell__title-text {
+		font-size: 16px;
+		color: #000;
+	}
+
+	.u-cell__value {
+		font-size: 16px;
+		color: #3d3d3d;
+	}
+	
+	&.clamp1 .u-cell,
+	.clamp1.u-cell {
+		overflow: hidden;
+		.u-cell__title,
+		.u-cell__title-text,
+		.u-cell__body__content {
+			// overflow: hidden;
+			white-space: nowrap;
+			// text-overflow: ellipsis;
+		}
+		
+		.u-cell__value {
+			padding-left: 15px;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
+}
+
+	
+.base-form {
+	.u-form-item__body {
+		height: $base-form-item-height;
+		padding: 0 !important;
+	}
+
+	.u-input.u-border-bottom {
+		padding: 16px 9px !important;
+	}
+}
+
+
+.u-line {
+	width: auto !important;
+}
+
+.modal-hint-text {
+	padding: 10px 0;
+	font-size: 16px;
+	font-weight: 400;
+	color: #333;
+}
+
+// transition
+
+.fade-leave,
+.fade-enter-to {
+	opacity: 1;
+}
+
+.fade-leave-active,
+.fade-enter-active {
+	transition: all 0.5s;
+}
+
+.fade-leave-to,
+.fade-enter {
+	opacity: 0;
+}

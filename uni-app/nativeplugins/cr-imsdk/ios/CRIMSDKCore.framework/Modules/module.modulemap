@@ -1,0 +1,9 @@
+framework module "CRIMSDKCore" {
+	header "ref.h"
+    header "Crim_sdk.objc.h"
+    header "Crim_sdk_callback.objc.h"
+    header "Universe.objc.h"
+    header "CRIMSDKCore.h"
+
+    export *
+}

@@ -1,0 +1,255 @@
+{
+	"pages": [{
+			"path": "pages/login/index",
+			"style": {
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/setConfig/index",
+			"style": {
+				"enablePullDownRefresh": false
+			},
+			"app-plus": {}
+		},
+		{
+			"path": "pages/conversation/index",
+			"style": {
+				"disableScroll": true,
+				// "enablePullDownRefresh": true
+				// "onReachBottomDistance": 100,
+				"enableCache": true // 开启页面缓存
+			}
+		},
+		{
+			"path": "pages/conversation/chat/index",
+			"style": {
+				"disableScroll": true
+			},
+			"app-plus": {
+				"softinputMode": "adjustResize"
+			}
+		},
+		// 单聊设置
+		{
+			"path": "pages/conversation/chat/singleChatSetting",
+			"style": {}
+		}, {
+			"path": "pages/conversation/chat/searchChatHistory",
+			"style": {}
+		},
+		{
+			"path": "pages/conversation/chat/setChatBackground",
+			"style": {}
+		},
+		// 群聊设置
+		{
+			"path": "pages/conversation/chat/grpChatSetting",
+			"style": {}
+		},
+		{
+			"path": "pages/conversation/chat/changeGrpAttr",
+			"style": {}
+		},
+		// 联系人
+		{
+			"path": "pages/contacts/index",
+			"style": {
+				"enableCache": true // 开启页面缓存
+			}
+		},
+		{
+			"path": "pages/contacts/newFri/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/newFri/recipient",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myFri/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myFri/userCard",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myFri/changeUserAttr",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myGrp/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myGrp/grpCard",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myGrp/grpMembers",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/myGrp/grpMemberCard",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/search/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/addFri/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/addFri/sendAddReq",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/joinGrp/index",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/joinGrp/joinByGrpId",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/joinGrp/joinGrpCard",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/joinGrp/sendJoinGrpReq",
+			"style": {}
+		},
+		{
+			"path": "pages/contacts/createGrp/index",
+			"style": {}
+		},
+		{
+			"path": "pages/mine/index",
+			"style": {
+				"enablePullDownRefresh": false,
+				"enableCache": true // 开启页面缓存
+			}
+		},
+		{
+			"path": "pages/mine/myInfo",
+			"style": {
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/myInfoDetail",
+			"style": {
+				"enablePullDownRefresh": false
+			},
+			"app-plus": {}
+		},
+		{
+			"path": "pages/mine/myQrcode",
+			"style": {
+				"enablePullDownRefresh": false
+			},
+			"app-plus": {}
+		},
+		{
+			"path": "pages/mine/setting",
+			"style": {
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/mine/blacklist",
+			"style": {}
+		},
+		{
+			"path": "pages/mine/about",
+			"style": {
+				"enablePullDownRefresh": false
+			}
+		},
+		// 公用
+		{
+			"path": "pages/common/search",
+			"style": {}
+		},
+		{
+			"path": "pages/common/chooseUser",
+			"style": {}
+		},
+		{
+			"path": "pages/common/chooseMember",
+			"style": {}
+		},
+		{
+			"path": "pages/common/previewVideo",
+			"style": {
+				"disableScroll": true
+			}
+		},
+		{
+			"path": "pages/common/previewMap",
+			"style": {}
+		},
+		{
+			"path": "pages/common/imCopyId",
+			"style": {}
+		},
+		{
+			"path": "pages/common/imQrcode",
+			"style": {}
+		}
+	],
+	"globalStyle": {
+		"pageOrientation": "portrait",
+		"navigationStyle": "custom",
+		// "navigationBarTextStyle": "black",
+		// "navigationBarBackgroundColor": "#FFFFFF",
+		"backgroundColor": "#FFFFFF",
+		"style": {
+			"enablePullDownRefresh": false
+		},
+		"app-plus": {
+			"bounce": "none",
+			"compatible": {
+				"ignoreVersion": true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持  
+			}
+		}
+	},
+	// "tabBar": {
+	// 	"color": "#8E9AB0",
+	// 	"selectedColor": "#0089FF",
+	// 	"borderStyle": "black",
+	// 	"backgroundColor": "#ffffff",
+	// 	"height": "55px",
+	// 	"list": [{
+	// 			"pagePath": "pages/conversation/index",
+	// 			"iconPath": "./static/images/tabbar/conversation.png",
+	// 			"selectedIconPath": "static/images/tabbar/conversation_active.png",
+	// 			"text": "消息"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/contacts/index",
+	// 			"iconPath": "./static/images/tabbar/contacts.png",
+	// 			"selectedIconPath": "static/images/tabbar/contacts_active.png",
+	// 			"text": "通讯录"
+	// 		},
+	// 		{
+	// 			"pagePath": "pages/mine/index",
+	// 			"iconPath": "./static/images/tabbar/mine.png",
+	// 			"selectedIconPath": "static/images/tabbar/mine_active.png",
+	// 			"text": "我的"
+	// 		}
+	// 	]
+	// },
+	"uniIdRouter": {},
+	"easycom": {
+		"autoscan": true,
+		// 注意一定要放在custom里，否则无效，https://ask.dcloud.net.cn/question/131175
+		"custom": {
+			"^u--(.*)": "uview-plus/components/u-$1/u-$1.vue",
+			"^u-([^-].*)": "uview-plus/components/u-$1/u-$1.vue"
+		}
+	}
+}
