@@ -3,11 +3,9 @@ package io.crim.android.ouicore.adapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
 import io.crim.android.ouicore.databinding.ItemFile2Binding;
 import io.crim.android.ouicore.databinding.ItemGroupShowBinding;
 import io.crim.android.ouicore.databinding.ItemImgTxtBinding;
@@ -15,6 +13,7 @@ import io.crim.android.ouicore.databinding.ItemImgTxtRightBinding;
 import io.crim.android.ouicore.databinding.ItemLabelMemberBinding;
 import io.crim.android.ouicore.databinding.ItemPsrsonSelectBinding;
 import io.crim.android.ouicore.databinding.ItemPsrsonStickyBinding;
+import io.crim.android.ouicore.databinding.ItemRectConversionBinding;
 import io.crim.android.ouicore.databinding.ItemSearchTitleBinding;
 import io.crim.android.ouicore.databinding.LayoutContactItemBinding;
 import io.crim.android.ouicore.databinding.LayoutLabelItemBinding;
@@ -22,7 +21,6 @@ import io.crim.android.ouicore.databinding.ViewDividingLineBinding;
 import io.crim.android.ouicore.databinding.ViewImageBinding;
 import io.crim.android.ouicore.databinding.ViewRecyclerViewBinding;
 import io.crim.android.ouicore.databinding.ViewSelectImageBinding;
-import io.crim.android.ouicore.utils.Common;
 
 public class ViewHol {
 
@@ -53,6 +51,15 @@ public class ViewHol {
         public ItemViewHo(@NonNull View itemView) {
             super(ItemPsrsonSelectBinding.inflate(LayoutInflater.from(itemView.getContext()), (ViewGroup) itemView, false).getRoot());
             view = ItemPsrsonSelectBinding.bind(this.itemView);
+        }
+    }
+
+    public static class ItemRectViewHo extends RecyclerView.ViewHolder {
+        public final ItemRectConversionBinding view;
+
+        public ItemRectViewHo(@NonNull View itemView) {
+            super(ItemRectConversionBinding.inflate(LayoutInflater.from(itemView.getContext()), (ViewGroup) itemView, false).getRoot());
+            view = ItemRectConversionBinding.bind(this.itemView);
         }
     }
 

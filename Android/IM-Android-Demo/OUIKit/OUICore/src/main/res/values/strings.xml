@@ -26,7 +26,7 @@
     <string name="agreeed">已通过</string>
     <string name="rejected">未通过</string>
     <string name="album">相册</string>
-    <string name="shoot">拍照</string>
+    <string name="shoot">拍摄</string>
     <string name="camera_punch_failed">相机打开失败</string>
     <string name="camera_permission_failed">无法获取摄像头权限</string>
     <string name="file">文件</string>
@@ -85,7 +85,7 @@
     <string name="i_created">我创建的</string>
     <string name="i_joined">我加入的</string>
     <string name="my">我的</string>
-    <string name="qr_tips2">扫一扫下面的二维码，添加我为好友</string>
+    <string name="qr_tips2">扫一扫上面的二维码，添加我为好友</string>
     <string name="qr_code">二维码名片</string>
     <string name="quit_tips">您确定要退出登录吗？</string>
     <string name="Invite_a_video_call">邀请你进行视频通话</string>
@@ -160,7 +160,7 @@
     <string name="kicked_group_tips">%1$s 被 %2$s 踢出群聊</string>
     <string name="join_group2">%1$s 加入了群聊</string>
     <string name="dismiss_group">%1$s 解散了群聊</string>
-    <string name="transferred_group">%1$s 将群转让给了 %2$s</string>
+    <string name="transferred_group">%1$s 将群主转让给了 %2$s</string>
     <string name="Muted_group">%1$s 被 %2$s 禁言%3$s</string>
     <string name="cancel_muted">%1$s 被 %2$s 取消了禁言</string>
     <string name="start_muted">%1$s 开起了群禁言</string>
@@ -394,7 +394,7 @@
     <string name="new_group_chat">新的群聊</string>
     <string name="find">发现</string>
     <string name="null_applet">暂无小程序</string>
-    <string name="leave_word">留言</string>
+    <string name="leave_word">给朋友留言</string>
     <string name="send_who">发送给：</string>
     <string name="multiple_send">分别发送给：</string>
     <string name="media_call">音视频通话</string>

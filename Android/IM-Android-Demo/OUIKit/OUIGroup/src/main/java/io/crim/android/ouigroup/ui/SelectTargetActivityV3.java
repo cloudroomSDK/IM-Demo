@@ -44,7 +44,6 @@ public class SelectTargetActivityV3 extends BaseActivity<BaseViewModel,
     MultipleChoiceVM multipleChoiceVM;
     RecyclerViewAdapter<MsgConversation, ViewHol.ItemViewHo> adapter;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -61,7 +60,7 @@ public class SelectTargetActivityV3 extends BaseActivity<BaseViewModel,
 
         view.myFriends.setOnClickListener(v -> {
             ARouter.getInstance().build(Routes.Group.CREATE_GROUP).withBoolean(Constant.K_RESULT,
-                true).navigation();
+                true).withBoolean("fromSelectTarget", true).navigation();
         });
 
         view.group.setOnClickListener(v -> {
@@ -119,7 +118,7 @@ public class SelectTargetActivityV3 extends BaseActivity<BaseViewModel,
                             holder.view.select.setEnabled(choice.isEnabled);
                         }
                     }
-                }else {
+                } else {
                     holder.view.select.setChecked(false);
                 }
 
@@ -144,8 +143,9 @@ public class SelectTargetActivityV3 extends BaseActivity<BaseViewModel,
         if (multipleChoiceVM.invite || multipleChoiceVM.isCreateGroup) {
             //只保留单聊
             for (MsgConversation msgConversation : vmByCache.conversations.getValue()) {
-                if (msgConversation.conversationInfo.getConversationType() == ConversationType.SINGLE_CHAT)
+                if (msgConversation.conversationInfo.getConversationType() == ConversationType.SINGLE_CHAT) {
                     conversations.add(msgConversation);
+                }
             }
         } else {
             conversations.addAll(vmByCache.conversations.getValue());

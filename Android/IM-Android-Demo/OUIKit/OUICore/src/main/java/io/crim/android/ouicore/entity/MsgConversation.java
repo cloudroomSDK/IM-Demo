@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import io.crim.android.sdk.enums.MsgType;
 import io.crim.android.sdk.models.ConversationInfo;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.net.bage.GsonHel;
 
@@ -14,7 +14,7 @@ public class MsgConversation {
     public ConversationInfo conversationInfo;
     public NotificationMsg notificationMsg;
 
-    public MsgConversation(Msg lastMsg, ConversationInfo conversationInfo) {
+    public MsgConversation(Message lastMsg, ConversationInfo conversationInfo) {
         if (null != lastMsg) {
             IMUtil.buildExpandInfo(lastMsg);
             this.lastMsg = IMUtil.getMsgParse(lastMsg);

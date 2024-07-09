@@ -1,7 +1,11 @@
 package io.crim.android.demo.vm;
 
-import android.util.Log;
+import android.text.TextUtils;
+import android.util.Base64;
 
+import org.json.JSONObject;
+
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
@@ -17,6 +21,7 @@ import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.net.RXRetrofit.NetObserver;
 import io.crim.android.ouicore.net.RXRetrofit.Parameter;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.ErrUtil;
 import io.crim.android.ouicore.utils.SharedPreferencesUtil;
 import io.crim.android.ouicore.widget.WaitDialog;
 import io.crim.android.sdk.CRIMClient;
@@ -32,9 +37,11 @@ import static io.crim.android.ouicore.utils.Common.md5;
 public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
     public static final int MAX_COUNTDOWN = 60;
 
+    public MutableLiveData<String> phoneNum = new MutableLiveData<>("");
     public MutableLiveData<String> account = new MutableLiveData<>("");
     //密码或验证码
     public MutableLiveData<String> pwd = new MutableLiveData<>("");
+    public MutableLiveData<String> veriCode = new MutableLiveData<>("");
     public MutableLiveData<Boolean> isPhone = new MutableLiveData<>(true);
     public MutableLiveData<Integer> countdown = new MutableLiveData<>(MAX_COUNTDOWN);
     public MutableLiveData<String> nickName = new MutableLiveData<>("");
@@ -62,29 +69,12 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
                     if (loginType == 1) {
                         appID = Constant.getAppID();
                         appSecret = md5(Constant.getAppSecret());
+                        sdkLoginByAppId(loginCertificate, appID, appSecret);
                     } else {
                         token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
+                        sdkLoginByToken(loginCertificate, token);
                     }
-                    try {
-                        CRIMClient.getInstance().login(new OnBase<String>() {
-                            @Override
-                            public void onError(int code, String error) {
-                                Log.d("eeeeeee", "onError===" + error);
-                                getIView().err(error);
-                            }
 
-                            @Override
-                            public void onSuccess(String data) {
-                                //缓存登录信息
-                                loginCertificate.cache(getContext());
-                                BaseApp.inst().loginCertificate = loginCertificate;
-                                getIView().jump();
-                            }
-                        }, loginCertificate.userID, token, appID, appSecret);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                 }
 
                 @Override
@@ -94,6 +84,51 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
             });
     }
 
+    private void sdkLoginByAppId(LoginCertificate loginCertificate, String appId, String appSecret) {
+        try {
+            CRIMClient.getInstance().login(new OnBase<String>() {
+                @Override
+                public void onError(int code, String error) {
+                    getIView().err(ErrUtil.getErrTip(code, error));
+                }
+
+                @Override
+                public void onSuccess(String data) {
+                    sdkLoginSuccess(loginCertificate);
+                }
+            }, loginCertificate.userID, appId, appSecret);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sdkLoginByToken(LoginCertificate loginCertificate, String token) {
+        try {
+            CRIMClient.getInstance().login(new OnBase<String>() {
+                @Override
+                public void onError(int code, String error) {
+                    getIView().err(ErrUtil.getErrTip(code, error));
+                }
+
+                @Override
+                public void onSuccess(String data) {
+                    sdkLoginSuccess(loginCertificate);
+                }
+            }, loginCertificate.userID, token);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sdkLoginSuccess(LoginCertificate loginCertificate) {
+        //缓存登录信息
+        loginCertificate.cache(getContext());
+        BaseApp.inst().loginCertificate = loginCertificate;
+        getIView().jump();
+    }
+
     /**
      * @param verificationCode
      * @param usedFor          1注册 2重置 3登录
@@ -101,18 +136,36 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
      */
     @NonNull
     private Parameter getParameter(String verificationCode, int usedFor) {
-        Parameter parameter = new Parameter().add("password", "")
-//                TextUtils.isEmpty(verificationCode) ? md5(pwd.getValue()) : null)
+        String password = "";
+        if (pwd.getValue() != null && !TextUtils.isEmpty(account.getValue())) {
+            password = md5(pwd.getValue());
+        }
+        Parameter parameter = new Parameter().add("password", password)
+            .add("account", account.getValue())
             .add("platform", 2)
             .add("usedFor", usedFor)
             .add("operationID", System.currentTimeMillis() + "")
-            .add("verifyCode", verificationCode);
-//        if (isPhone.getValue()) {
-        parameter.add("phoneNumber", account.getValue());
-        parameter.add("areaCode", "+86");
-        parameter.add("appID", Constant.getAppID());
-//        } else
-//            parameter.add("email", account.getValue());
+            .add("verifyCode", verificationCode)
+            .add("phoneNumber", phoneNum.getValue())
+            .add("areaCode", "+86");
+        String appID = Constant.getAppID();
+        int loginType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("LOGIN_TYPE");
+        if (loginType == 2) {
+            try {
+                String token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
+                String[] split = token.split(".");
+                if (split.length > 1) {
+                    token = split[1];
+                    byte[] decode = Base64.decode(token.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
+                    String jsonString = new String(decode, StandardCharsets.UTF_8);
+                    JSONObject jsonObject = new JSONObject(jsonString);
+                    appID = jsonObject.optString("appID");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        parameter.add("appID", appID);
         return parameter;
     }
 
@@ -150,6 +203,7 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
         waitDialog.show();
         return waitDialog;
     }
+
     private Timer timer;
 
     public void countdown() {
@@ -229,16 +283,16 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
 
     public void register() {
         Parameter parameter = new Parameter();
-        parameter.add("verifyCode",verificationCode);
+        parameter.add("verifyCode", verificationCode);
         parameter.add("platform", Platform.ANDROID);
         parameter.add("autoLogin", true);
 
-        Map<String,String> user=new HashMap<>();
-        user.put("password",md5(pwd.getValue()));
-        user.put("nickname",nickName.getValue());
+        Map<String, String> user = new HashMap<>();
+        user.put("password", md5(veriCode.getValue()));
+        user.put("nickname", nickName.getValue());
         user.put("areaCode", "+86");
-        user.put("phoneNumber", account.getValue());
-        parameter.add("user",user);
+        user.put("phoneNumber", phoneNum.getValue());
+        parameter.add("user", user);
 
         WaitDialog waitDialog = showWait();
         N.API(CRIMService.class).register(parameter.buildJsonBody()).map(CRIMService.turn(LoginCertificate.class)).compose(N.IOMain()).subscribe(new NetObserver<LoginCertificate>(context.get()) {

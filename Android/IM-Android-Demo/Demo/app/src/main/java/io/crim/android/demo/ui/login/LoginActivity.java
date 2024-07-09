@@ -10,7 +10,7 @@ import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
 import io.crim.android.demo.R;
-import io.crim.android.demo.databinding.ActivityLogin2Binding;
+import io.crim.android.demo.databinding.ActivityLoginBinding;
 import io.crim.android.demo.ui.LoginSettingActivity;
 import io.crim.android.demo.ui.main.MainActivity;
 import io.crim.android.demo.vm.LoginVM;
@@ -21,7 +21,7 @@ import io.crim.android.ouicore.widget.WaitDialog;
 /**
  * Created by zjw on 2023/9/21.
  */
-public class LoginActivity extends BaseActivity<LoginVM, ActivityLogin2Binding>implements LoginVM.ViewAction {
+public class LoginActivity extends BaseActivity<LoginVM, ActivityLoginBinding> implements LoginVM.ViewAction {
 
     private WaitDialog waitDialog;
     public static final String FORM_LOGIN = "form_login";
@@ -33,11 +33,11 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLogin2Binding>i
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         bindVM(LoginVM.class);
         super.onCreate(savedInstanceState);
-        bindViewDataBinding(ActivityLogin2Binding.inflate(getLayoutInflater()));
-        if (Constant.getSdkServer().equals("sdk.cloudroom.com")){
-            view.tvVerCodeTip.setVisibility(View.GONE);
-        }else {
-            view.tvVerCodeTip.setVisibility(View.VISIBLE);
+        bindViewDataBinding(ActivityLoginBinding.inflate(getLayoutInflater()));
+        if (Constant.getSdkServer().equals("sdk.cloudroom.com")) {
+            view.tvVerCodeTip.setText("");
+        } else {
+            view.tvVerCodeTip.setText("私有云验证码用8888");
         }
 
         waitDialog = new WaitDialog(this);
@@ -50,8 +50,13 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLogin2Binding>i
         view.tvLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                waitDialog.show();
-                vm.login(vm.pwd.getValue(),3);
+                String phone = LoginActivity.this.view.etPhone.getText().toString().trim();
+                if (phone.length() == 11) {
+                    waitDialog.show();
+                    vm.login(vm.veriCode.getValue(), 3);
+                } else {
+                    toast("请输入11位手机号");
+                }
             }
         });
         view.tvSend.setOnClickListener(new View.OnClickListener() {
@@ -59,7 +64,37 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLogin2Binding>i
             public void onClick(View view) {
                 //正在倒计时中...不触发操作
                 if (countdown != 60) return;
-                vm.getVerificationCode(3);
+                String phone = LoginActivity.this.view.etPhone.getText().toString().trim();
+                if (phone.length() == 11) {
+                    vm.getVerificationCode(3);
+                } else {
+                    toast("请输入11位手机号");
+                }
+            }
+        });
+        view.tvPwdLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                waitDialog.show();
+                vm.login(vm.veriCode.getValue(), 3);
+            }
+        });
+        view.tvSwitchPwdLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vm.phoneNum.setValue("");
+                vm.veriCode.setValue("");
+                view.codeLoginGroup.setVisibility(View.GONE);
+                view.pwdLoginGroup.setVisibility(View.VISIBLE);
+            }
+        });
+        view.tvSwitchCodeLogin.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vm.account.setValue("");
+                vm.pwd.setValue("");
+                view.codeLoginGroup.setVisibility(View.VISIBLE);
+                view.pwdLoginGroup.setVisibility(View.GONE);
             }
         });
         view.setLoginVM(vm);

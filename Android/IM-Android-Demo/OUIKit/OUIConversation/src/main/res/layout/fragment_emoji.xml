@@ -14,25 +14,28 @@
             android:id="@+id/emojiView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white" />
+            android:background="@color/white"
+            android:visibility="gone" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/customEmoji"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white" />
+            android:background="#F5F5F5" />
     </FrameLayout>
 
-    <include layout="@layout/view_dividing_line" />
+<!--    <include layout="@layout/view_dividing_line" />-->
 
     <RadioGroup
         android:id="@+id/menu"
+        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="50dp"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
         <RadioButton
+            android:id="@+id/rbEmoji"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="@drawable/selector_white_gray"
@@ -41,6 +44,7 @@
             android:paddingStart="15dp" />
 
         <RadioButton
+            android:id="@+id/rbCollect"
             android:layout_width="60dp"
             android:layout_height="match_parent"
             android:background="@drawable/selector_white_gray"

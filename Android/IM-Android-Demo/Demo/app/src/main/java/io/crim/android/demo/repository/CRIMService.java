@@ -1,7 +1,5 @@
 package io.crim.android.demo.repository;
 
-;
-
 import io.crim.android.ouicore.net.RXRetrofit.Exception.RXRetrofitException;
 import io.crim.android.ouicore.net.bage.Base;
 import io.crim.android.ouicore.net.bage.GsonHel;
@@ -9,10 +7,10 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-
 import retrofit2.http.Body;
-
 import retrofit2.http.POST;
+
+;
 
 public interface CRIMService {
     @POST("account/login")

@@ -1,6 +1,7 @@
 package io.crim.android.demo.ui.search;
 
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -17,6 +18,25 @@ import java.util.Observer;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import io.crim.android.demo.databinding.ActivityPersonDetailBinding;
+import io.crim.android.demo.ui.main.EditTextActivity;
+import io.crim.android.demo.ui.user.PersonDataActivity;
+import io.crim.android.demo.vm.FriendVM;
+import io.crim.android.ouiconversation.vm.ChatVM;
+import io.crim.android.ouicore.base.BaseActivity;
+import io.crim.android.ouicore.base.BaseApp;
+import io.crim.android.ouicore.databinding.LayoutCommonDialogBinding;
+import io.crim.android.ouicore.ex.User;
+import io.crim.android.ouicore.im.IMUtil;
+import io.crim.android.ouicore.services.CallingService;
+import io.crim.android.ouicore.utils.Common;
+import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.Obs;
+import io.crim.android.ouicore.utils.Routes;
+import io.crim.android.ouicore.utils.TimeUtil;
+import io.crim.android.ouicore.vm.SearchVM;
+import io.crim.android.ouicore.widget.CommonDialog;
+import io.crim.android.ouicore.widget.WaitDialog;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.enums.GrpRole;
 import io.crim.android.sdk.listener.OnBase;
@@ -25,20 +45,6 @@ import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.sdk.models.GrpInfo;
 import io.crim.android.sdk.models.SignalingInfo;
 import io.crim.android.sdk.models.UserInfo;
-import io.crim.android.demo.databinding.ActivityPersonDetailBinding;
-import io.crim.android.demo.ui.user.PersonDataActivity;
-import io.crim.android.demo.vm.FriendVM;
-import io.crim.android.ouiconversation.vm.ChatVM;
-import io.crim.android.ouicore.base.BaseActivity;
-import io.crim.android.ouicore.base.BaseApp;
-import io.crim.android.ouicore.im.IMUtil;
-import io.crim.android.ouicore.services.CallingService;
-import io.crim.android.ouicore.utils.Constant;
-import io.crim.android.ouicore.utils.Obs;
-import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.utils.TimeUtil;
-import io.crim.android.ouicore.vm.SearchVM;
-import io.crim.android.ouicore.widget.WaitDialog;
 
 @Route(path = Routes.Main.PERSON_DETAIL)
 public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonDetailBinding> implements Observer {
@@ -70,7 +76,6 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
         listener();
         click();
     }
-
 
     private void init() {
         callingService =
@@ -145,7 +150,6 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
         });
 
     private void click() {
-
         view.userInfo.setOnClickListener(v -> {
             personDataActivityLauncher.launch(new Intent(this, PersonDataActivity.class).putExtra(Constant.K_ID, vm.userInfo.getValue().get(0).getUserID()));
         });
@@ -164,14 +168,45 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
             setResult(RESULT_OK);
             finish();
         });
-
-
         view.addFriend.setOnClickListener(v -> {
             startActivity(new Intent(this, SendVerifyActivity.class).putExtra(Constant.K_ID,
                 vm.searchContent.getValue()));
         });
-
-
+        view.part.setOnClickListener(v -> {
+            CommonDialog commonDialog = new CommonDialog(this);
+            commonDialog.show();
+            LayoutCommonDialogBinding mainView = commonDialog.getMainView();
+            mainView.tips.setText(io.crim.android.ouicore.R.string.delete_friend_tips);
+            mainView.cancel.setOnClickListener(v1 -> commonDialog.dismiss());
+            mainView.confirm.setOnClickListener(v1 -> {
+                commonDialog.dismiss();
+                friendVM.deleteFriend(vm.searchContent.getValue());
+            });
+        });
+        view.recommend.setOnClickListener(v -> {
+            List<UserInfo> value = vm.userInfo.getValue();
+            if (value != null) {
+                UserInfo userInfo = value.get(0);
+                if (userInfo != null) {
+                    User user = new User(userInfo.getUserID());
+                    user.setName(userInfo.getNickname());
+                    user.setFaceUrl(userInfo.getFaceURL());
+                    ARouter.getInstance().build(Routes.Contact.ALL_FRIEND)
+                        .withSerializable("recommend",
+                            user).navigation();
+                }
+            }
+        });
+        view.joinBlackList.setOnClickListener(v -> {
+            if (view.slideButton.isChecked()) friendVM.removeBlacklist(vm.searchContent.getValue());
+            else {
+                addBlackList();
+            }
+        });
+        view.slideButton.setOnSlideButtonClickListener(isChecked -> {
+            if (isChecked) addBlackList();
+            else friendVM.removeBlacklist(vm.searchContent.getValue());
+        });
         view.call.setOnClickListener(v -> {
             if (null == callingService) return;
             IMUtil.showBottomPopMenu(this, (v1, keyCode, event) -> {
@@ -182,6 +217,23 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
                 callingService.call(signalingInfo);
                 return false;
             });
+        });
+        view.remark.setOnClickListener(view -> {
+            if (null == vm.userInfo.getValue()) return;
+            String remark = "";
+            try {
+                remark = vm.userInfo.getValue().get(0).getFriendInfo().getRemark();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            resultLauncher.launch(new Intent(this, EditTextActivity.class).putExtra(EditTextActivity.TITLE, getString(io.crim.android.ouicore.R.string.remark)).putExtra(EditTextActivity.INIT_TXT, remark));
+        });
+        view.idCopy.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Common.copy(view.userId.getText().toString());
+                toast(getString(io.crim.android.ouicore.R.string.copy_succ));
+            }
         });
     }
 
@@ -206,18 +258,17 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
 
             GrpInfo groupInfo = groupInfos.get(0);
             // 不允许查看群成员资料
-            if (notLookMemberInfo = (groupInfo.getLookMemberInfo() == 1)) {
+           /* if (notLookMemberInfo = (groupInfo.getLookMemberInfo() == 1)) {
                 view.userInfo.setVisibility(View.GONE);
                 view.userId.setVisibility(View.GONE);
             } else {
                 view.userId.setVisibility(View.VISIBLE);
-                if (!oneself() && isFriend) view.userInfo
-                    .setVisibility(View.VISIBLE);
-            }
+                if (!oneself() && isFriend) view.userInfo.setVisibility(View.VISIBLE);
+            }*/
             // 不允许添加组成员为好友
             applyMemberFriend = groupInfo.getApplyMemberFriend() == 1;
 
-            view.addFriend.setVisibility((applyMemberFriend || isFriend||oneself()) ? View.GONE :
+            view.addFriend.setVisibility((applyMemberFriend || isFriend || oneself()) ? View.GONE :
                 View.VISIBLE);
             view.userId.setVisibility(applyMemberFriend ? View.GONE : View.VISIBLE);
 
@@ -234,11 +285,11 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
             }
             if (null != friendshipInfo) {
                 if (friendshipInfo.getResult() == 1 || isCon) {
-                    view.userInfo.setVisibility(View.VISIBLE);
+//                    view.userInfo.setVisibility(View.VISIBLE);
                     view.addFriend.setVisibility(View.GONE);
                     isFriend = true;
                 } else {
-                    view.userInfo.setVisibility(View.GONE);
+//                    view.userInfo.setVisibility(View.GONE);
                     view.addFriend.setVisibility(View.VISIBLE);
                 }
             }
@@ -246,8 +297,8 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
                 vm.searchGroup(groupId);
                 view.groupInfo.setVisibility(View.VISIBLE);
             }
-
             boolean allowSendMsgNotFriend = BaseApp.inst().loginCertificate.allowSendMsgNotFriend;
+            view.part.setVisibility(isFriend ? View.VISIBLE : View.GONE);
             view.sendMsg.setVisibility(isFriend || allowSendMsgNotFriend ? View.VISIBLE :
                 View.GONE);
 //            view.call.setVisibility(isFriend || allowSendMsgNotFriend ? View.VISIBLE : View.GONE);
@@ -258,13 +309,26 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
 
                 UserInfo userInfo = v.get(0);
                 String nickName = userInfo.getNickname();
-                if (!TextUtils.isEmpty(userInfo.getRemark())) {
-                    nickName += "(" + userInfo.getRemark() + ")";
+                String remark = userInfo.getRemark();
+                if (remark == null) {
+                    remark = "";
+                }
+                if (!TextUtils.isEmpty(remark)) {
+                    nickName += "(" + remark + ")";
                 }
                 view.nickName.setText(nickName);
                 view.userId.setText(userInfo.getUserID());
                 view.avatar.load(userInfo.getFaceURL());
                 view.bottomMenu.setVisibility(oneself() ? View.GONE : View.VISIBLE);
+                view.gender.setText(userInfo.getGender() == 1 ? io.crim.android.ouicore.R.string.male
+                    : io.crim.android.ouicore.R.string.girl);
+                long birth = userInfo.getBirth();
+                if (birth != 0) {
+                    view.birthday.setText(TimeUtil.getTime(birth,
+                        TimeUtil.yearMonthDayFormat));
+                }
+                view.phoneTv.setText(userInfo.getPhoneNumber());
+                view.tvRemark.setText(remark);
             }
         });
         vm.friendshipInfo.observe(this, v -> {
@@ -273,6 +337,27 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
                 friendVM.getBlacklist();
             }
         });
+    }
+
+    private void addBlackList() {
+        CommonDialog commonDialog = new CommonDialog(this);
+        commonDialog.setCanceledOnTouchOutside(false);
+        commonDialog.setCancelable(false);
+        String nickname = "TA";
+        List<UserInfo> value = vm.userInfo.getValue();
+        if (value != null) {
+            nickname = value.get(0).getNickname();
+        }
+        commonDialog.getMainView().tips.setText("确认对" + nickname + "拉黑吗？");
+        commonDialog.getMainView().cancel.setOnClickListener(v -> {
+            commonDialog.dismiss();
+            friendVM.blackListUser.setValue(friendVM.blackListUser.getValue());
+        });
+        commonDialog.getMainView().confirm.setOnClickListener(v -> {
+            commonDialog.dismiss();
+            friendVM.addBlacklist(vm.searchContent.getValue());
+        });
+        commonDialog.show();
     }
 
     void getGroupMembersInfo(List<String> ids,
@@ -299,10 +384,31 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
         return membersInfo.getRoleLevel() == GrpRole.ADMIN;
     }
 
+    private ActivityResultLauncher<Intent> resultLauncher =
+        registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            if (result.getResultCode() != Activity.RESULT_OK) return;
+            String resultStr = result.getData().getStringExtra(Constant.K_RESULT);
+
+            waitDialog.show();
+            CRIMClient.getInstance().friendshipManager.setFriendRemark(new OnBase<String>() {
+                @Override
+                public void onError(int code, String error) {
+                    waitDialog.dismiss();
+                    toast(error + code);
+                }
+
+                @Override
+                public void onSuccess(String data) {
+                    waitDialog.dismiss();
+                    vm.userInfo.getValue().get(0).setRemark(resultStr);
+                    Obs.newMessage(Constant.Event.USER_INFO_UPDATE);
+                }
+            }, vm.searchContent.getValue(), resultStr);
+        });
 
     @Override
     public void update(Observable o, Object arg) {
-        Obs.Msg message = (Obs.Msg) arg;
+        Obs.Message message = (Obs.Message) arg;
         if (message.tag == Constant.Event.USER_INFO_UPDATE) {
             vm.searchPerson();
         }

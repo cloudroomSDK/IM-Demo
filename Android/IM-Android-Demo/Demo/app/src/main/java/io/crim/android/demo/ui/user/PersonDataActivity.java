@@ -88,12 +88,14 @@ public class PersonDataActivity extends BaseActivity<PersonalVM, ActivityPersonI
         });
         view.recommend.setOnClickListener(v -> {
             UserInfo userInfo = vm.userInfo.val();
-            User user=new User(userInfo.getUserID());
-            user.setName(userInfo.getNickname());
-            user.setFaceUrl(userInfo.getFaceURL());
-            ARouter.getInstance().build(Routes.Contact.ALL_FRIEND)
-                .withSerializable("recommend",
-                    user).navigation();
+            if (userInfo != null) {
+                User user = new User(userInfo.getUserID());
+                user.setName(userInfo.getNickname());
+                user.setFaceUrl(userInfo.getFaceURL());
+                ARouter.getInstance().build(Routes.Contact.ALL_FRIEND)
+                    .withSerializable("recommend",
+                        user).navigation();
+            }
         });
         view.moreData.setOnClickListener(v -> {
             startActivity(new Intent(this, MoreDataActivity.class));

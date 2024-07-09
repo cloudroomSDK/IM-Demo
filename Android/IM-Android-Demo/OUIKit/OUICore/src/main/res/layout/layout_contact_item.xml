@@ -90,9 +90,11 @@
                     android:textColor="@color/txt_shallow"
                     android:textSize="13sp" />
 
-
                 <include
                     android:id="@+id/badge"
+                    android:layout_gravity="bottom"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     layout="@layout/view_badge" />
 
                 <ImageView

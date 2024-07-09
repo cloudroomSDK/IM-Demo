@@ -1,21 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/llTab"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:gravity="center"
+    android:orientation="vertical"
     android:paddingTop="10dp">
 
-    <RadioButton
-        android:id="@+id/menu"
+    <ImageView
+        android:id="@+id/ivImg"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@android:color/transparent"
-        android:button="@null"
-        android:drawableTop="@mipmap/ic_chat_photo"
-        android:drawablePadding="3dp"
-        android:ellipsize="end"
-        android:gravity="center"
-        android:maxLines="1"
+        android:background="@drawable/bg_white_shape_8"
+        android:padding="13dp"
+        android:src="@mipmap/ic_chat_photo" />
+
+    <TextView
+        android:id="@+id/tvDec"
+        android:layout_marginTop="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="相册"
         android:textColor="#ff999999"
         android:textSize="11sp" />

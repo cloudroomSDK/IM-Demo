@@ -15,7 +15,7 @@ public class AboutUsActivity extends BaseActivity<BaseViewModel, ActivityAboutUs
         bindViewDataBinding(ActivityAboutUsBinding.inflate(getLayoutInflater()));
         sink();
 
-        view.version.setText(Common.getAppVersionName(this));
+        view.version.setText("版本："+Common.getAppVersionName(this));
         view.update.setOnClickListener(v -> {
 
         });

@@ -1,38 +1,31 @@
 package io.crim.android.ouiconversation.adapter;
 
-import android.util.Log;
 import android.view.ViewGroup;
-
-import com.yanzhenjie.permission.AndPermission;
-import com.yanzhenjie.permission.runtime.Permission;
 
 import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-import io.crim.android.sdk.models.Msg;
-import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.sdk.models.Message;
 
 public class MessageAdapter extends RecyclerView.Adapter {
 
     private RecyclerView recyclerView;
 
-    List<Msg> messages;
-    boolean hasStorage;
+    List<Message> messages;
+//    boolean hasStorage;
 
     public MessageAdapter() {
-        hasStorage = AndPermission.hasPermissions(BaseApp.inst(), Permission.Group.STORAGE);
+//        hasStorage = AndPermission.hasPermissions(BaseApp.inst(), Permission.Group.STORAGE);
     }
 
-    public void setMessages(List<Msg> messages) {
-        Log.d("eeeeeee","setMessages=="+messages.size());
+    public void setMessages(List<Message> messages) {
         this.messages = messages;
     }
 
     @Override
     public int getItemViewType(int position) {
-//        Log.d("eeeeee","getItemViewType==position="+position+"==getContentType="+messages.get(position).getContentType());
         return messages.get(position).getContentType();
     }
 
@@ -44,7 +37,7 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Msg message = messages.get(position);
+        Message message = messages.get(position);
 
         if (getItemViewType(position) != Constant.LOADING) {
             MessageViewHolder.MsgViewHolder msgViewHolder = (MessageViewHolder.MsgViewHolder) holder;
@@ -58,11 +51,10 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
     @Override
     public int getItemCount() {
-        Log.d("eeeeeeeee","getItemCount=="+( null == messages ? 0 : messages.size()));
         return null == messages ? 0 : messages.size();
     }
 
-    public List<Msg> getMessages() {
+    public List<Message> getMessages() {
         return messages;
     }
 
@@ -72,5 +64,9 @@ public class MessageAdapter extends RecyclerView.Adapter {
 
     public RecyclerView getRecyclerView() {
         return recyclerView;
+    }
+
+    public void onDestroy(){
+        MessageViewHolder.onDestroy();
     }
 }

@@ -19,7 +19,7 @@ import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.sdk.listener.OnConversationListener;
 import io.crim.android.sdk.models.ConversationInfo;
 import io.crim.android.sdk.models.KeyValue;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.ReadReceiptInfo;
 import io.crim.android.sdk.models.RevokedInfo;
 import io.crim.android.sdk.models.UserInfo;
@@ -65,10 +65,9 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
             public void onSuccess(List<ConversationInfo> data) {
                 conversations.val().clear();
                 for (ConversationInfo datum : data) {
-//                    Log.d("eeeee","updateConversation===onSuccess==="+datum.getShowName());
-                    Msg msg = null;
+                    Message msg = null;
                     if (null!=datum.getLatestMsg()){
-                        msg = GsonHel.fromJson(datum.getLatestMsg(), Msg.class);
+                        msg = GsonHel.fromJson(datum.getLatestMsg(), Message.class);
                     }
                     conversations.val().add(new MsgConversation(msg, datum));
                 }
@@ -147,10 +146,9 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
 
     @Override
     public void onConversationChanged(List<ConversationInfo> list) {
-//        Log.d("eeeeee","onConversationChanged=====");
         for (ConversationInfo info : list) {
-            Msg message=GsonHel.fromJson(info.getLatestMsg(),
-                Msg.class);
+            Message message=GsonHel.fromJson(info.getLatestMsg(),
+                Message.class);
             MsgConversation msgConversation =
                 new MsgConversation(message, info);
             int index = conversations.val()
@@ -166,10 +164,10 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
 
     private void sortConversation(List<ConversationInfo> list) {
         List<MsgConversation> msgConversations = new ArrayList<>();
-        Iterator<MsgConversation> iterator = conversations.val().iterator();
         for (ConversationInfo info : list) {
+            Iterator<MsgConversation> iterator = conversations.val().iterator();
             msgConversations.add(new MsgConversation(GsonHel.fromJson(info.getLatestMsg(),
-                Msg.class), info));
+                Message.class), info));
             while (iterator.hasNext()) {
                 if (iterator.next().conversationInfo.getConversationID()
                     .equals(info.getConversationID()))
@@ -182,7 +180,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     }
 
     public void getSelfUserInfo(){
-        CRIMClient.getInstance().userInfoManager.getSelfUserInfo(new OnBase<UserInfo>() {
+        CRIMClient.getInstance().userInfoManager.getSelfInfo(new OnBase<UserInfo>() {
             @Override
             public void onError(int code, String error) {
             }
@@ -221,7 +219,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     }
 
     @Override
-    public void onRecvNewMsg(Msg msg) {
+    public void onRecvNewMsg(Message msg) {
 
     }
 
@@ -256,12 +254,12 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     }
 
     @Override
-    public void onMsgDeleted(Msg message) {
+    public void onMsgDeleted(Message message) {
 
     }
 
     @Override
-    public void onRecvOfflineNewMessage(List<Msg> msg) {
+    public void onRecvOfflineNewMessage(List<Message> msg) {
 
     }
 

@@ -1,7 +1,6 @@
 package io.crim.android.ouicore.utils;
 
 import java.util.Observable;
-import java.util.Observer;
 
 /**
  * 观察者
@@ -17,27 +16,27 @@ public class Obs extends Observable {
     }
 
     public static void newMessage(int tag) {
-        inst().setMessage(new Msg(tag));
+        inst().setMessage(new Message(tag));
     }
 
     public static void newMessage(int tag, Object object) {
-        inst().setMessage(new Msg(tag, object));
+        inst().setMessage(new Message(tag, object));
     }
 
-    private void setMessage(Msg message) {
+    private void setMessage(Message message) {
         observer.setChanged();
         observer.notifyObservers(message);
     }
 
-    public static class Msg {
+    public static class Message {
         public int tag;
         public Object object;
 
-        public Msg(int tag) {
+        public Message(int tag) {
             this.tag = tag;
         }
 
-        public Msg(int tag, Object object) {
+        public Message(int tag, Object object) {
             this.tag = tag;
             this.object = object;
         }

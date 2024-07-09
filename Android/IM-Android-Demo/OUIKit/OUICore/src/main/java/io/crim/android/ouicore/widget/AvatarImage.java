@@ -2,7 +2,6 @@ package io.crim.android.ouicore.widget;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.widget.FrameLayout;
@@ -11,6 +10,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.target.Target;
 
 import org.raphets.roundimageview.RoundImageView;
 
@@ -74,24 +74,26 @@ public class AvatarImage extends FrameLayout {
         nameTv.setVisibility(GONE);
         if (null == url || (url instanceof String && (String.valueOf(url).isEmpty()
             || String.valueOf(url).contains("ic_avatar")))) {
-            if (TextUtils.isEmpty(name)) {
+//            if (TextUtils.isEmpty(name)) {
                 roundImageView.setVisibility(VISIBLE);
                 roundImageView.setImageDrawable(AppCompatResources.getDrawable(getContext(),
                     resId));
-            } else {
+//                roundImageView.setBackgroundColor(Color.WHITE);
+            /*} else {
                 nameTv.setVisibility(VISIBLE);
                 name=name.substring(0,1);
                 setBackground(AppCompatResources.getDrawable(getContext(),
                     R.drawable.sty_radius_6_ff0089ff));
                 nameTv.setVisibility(VISIBLE);
                 nameTv.setText(name);
-            }
+            }*/
         } else {
             roundImageView.setVisibility(VISIBLE);
             roundImageView.setScaleType(ImageView.ScaleType.CENTER);
             Glide.with(getContext())
                 .load(url)
                 .centerCrop()
+                .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL)
                 .placeholder(resId)
                 .error(resId)
 //                .apply(RequestOptions.bitmapTransform(new RoundedCorners(100)))

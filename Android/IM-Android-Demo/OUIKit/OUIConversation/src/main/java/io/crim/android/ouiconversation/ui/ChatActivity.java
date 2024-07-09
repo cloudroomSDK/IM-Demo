@@ -28,9 +28,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.crim.android.sdk.models.SignalingInfo;
 import io.crim.android.ouiconversation.adapter.MessageAdapter;
 import io.crim.android.ouiconversation.databinding.ActivityChatBinding;
+import io.crim.android.ouiconversation.ui.emoji.EmojiFragment;
 import io.crim.android.ouiconversation.vm.ChatVM;
 import io.crim.android.ouiconversation.vm.CustomEmojiVM;
 import io.crim.android.ouiconversation.widget.BottomInputCote;
@@ -39,14 +39,17 @@ import io.crim.android.ouicore.adapter.ViewHol;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.vm.injection.Easy;
+import io.crim.android.ouicore.entity.LocationInfo;
 import io.crim.android.ouicore.entity.MsgExpand;
 import io.crim.android.ouicore.entity.NotificationMsg;
 import io.crim.android.ouicore.ex.MultipleChoice;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.net.RXRetrofit.N;
+import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.services.CallingService;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
 import io.crim.android.ouicore.utils.Routes;
@@ -55,14 +58,18 @@ import io.crim.android.ouicore.vm.ForwardVM;
 import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.vm.MultipleChoiceVM;
 import io.crim.android.ouicore.voice.SPlayer;
+import io.crim.android.ouicore.widget.AMapWebViewActivity;
 import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.ouicore.widget.CustomItemAnimator;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.models.CardElem;
+import io.crim.android.sdk.models.FriendInfo;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.Participant;
+import io.crim.android.sdk.models.SignalingInfo;
 
 @Route(path = Routes.Conversation.CHAT)
 public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> implements ChatVM.ViewAction, Observer {
-
 
     private MessageAdapter messageAdapter;
     private BottomInputCote bottomInputCote;
@@ -74,13 +81,11 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         initVM();
         super.onCreate(savedInstanceState);
         vm.init();
-
         bindViewDataBinding(ActivityChatBinding.inflate(getLayoutInflater()));
         sink();
         view.setChatVM(vm);
         callingService =
             (CallingService) ARouter.getInstance().build(Routes.Service.CALLING).navigation();
-
         initView();
         listener();
         setTouchClearFocus(false);
@@ -128,6 +133,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
     protected void onDestroy() {
         super.onDestroy();
         release();
+        messageAdapter.onDestroy();
     }
 
     @Override
@@ -173,6 +179,13 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
     private void initView() {
         bottomInputCote = new BottomInputCote(this, view.layoutInputCote);
         bottomInputCote.setChatVM(vm);
+        bottomInputCote.setEmojiClickListener(new EmojiFragment.EmojiClickListener() {
+            @Override
+            public void click(String name) {
+                String input = view.layoutInputCote.chatInput.getText() + name;
+                EmojiUtil.showSpanTextview(view.layoutInputCote.chatInput, input);
+            }
+        });
         if (vm.fromChatHistory) {
             view.layoutInputCote.getRoot().setVisibility(View.GONE);
             view.call.setVisibility(View.GONE);
@@ -194,6 +207,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         vm.setMessageAdapter(messageAdapter);
         view.recyclerView.setAdapter(messageAdapter);
         vm.messages.observe(this, v -> {
+//            Log.d("eeeeee", "messages.observe=====" + v);
             if (null == v) return;
             messageAdapter.setMessages(v);
             messageAdapter.notifyDataSetChanged();
@@ -247,7 +261,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
 //                }
 //            });
         }
-        view.waterMark.setText(BaseApp.inst().loginCertificate.nickName);
+//        view.waterMark.setText(BaseApp.inst().loginCertificate.nickName);
     }
 
     //记录原始窗口高度
@@ -310,8 +324,8 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         });
         view.join.setOnClickListener(v -> vm.signalingGetTokenByRoomID(vm.getRoomCallingInfoRoomID()));
         view.delete.setOnClickListener(v -> {
-            List<Msg> selectMsg = getSelectMsg();
-            for (Msg message : selectMsg) {
+            List<Message> selectMsg = getSelectMsg();
+            for (Message message : selectMsg) {
                 vm.deleteMessageFromLocalStorage(message);
             }
         });
@@ -347,7 +361,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         });
         view.cancel.setOnClickListener(v -> {
             vm.enableMultipleSelect.setValue(false);
-            for (Msg message : vm.messages.getValue()) {
+            for (Message message : vm.messages.getValue()) {
                 MsgExpand msgExpand = (MsgExpand) message.getExt();
                 if (null != msgExpand) msgExpand.isChoice = false;
             }
@@ -379,6 +393,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
 //                if (vm.fromChatHistory && firstVisiblePosition < 2) {
 //                    vm.loadHistoryMessageReverse();
 //                }
+//                Log.d("eeeeee","==onScrolled====");
                 vm.sendMsgReadReceipt(firstVisiblePosition, lastVisiblePosition);
             }
         });
@@ -400,6 +415,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
             bindShowName();
         });
         vm.conversationInfo.observe(this, conversationInfo -> {
+            view.ivAvatar.load(conversationInfo.getFaceURL());
             bindShowName();
         });
 
@@ -421,10 +437,10 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         });
 
         vm.subscribe(this, subject -> {
-            if (subject.equals(ChatVM.REEDIT_MSG)){
+            if (subject.equals(ChatVM.REEDIT_MSG)) {
                 view.layoutInputCote.chatInput.requestFocus();
                 String value = (String) subject.value;
-                view.layoutInputCote.chatInput.setText(value);
+                EmojiUtil.showSpanTextview(view.layoutInputCote.chatInput, value);
                 view.layoutInputCote.chatInput.setSelection(value.length());
                 Common.pushKeyboard(this);
             }
@@ -440,20 +456,25 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
 
     private void bindShowName() {
         try {
-            if (vm.isSingleChat)
-                view.nickName.setText(vm.conversationInfo.getValue().getShowName());
-            else
+            if (vm.isSingleChat) {
+                view.llUserInfoTopLeft.setVisibility(View.VISIBLE);
+                view.nickName.setVisibility(View.GONE);
+                view.nickNameLeft.setText(vm.conversationInfo.getValue().getShowName());
+            } else {
+                view.llUserInfoTopLeft.setVisibility(View.GONE);
+                view.nickName.setVisibility(View.VISIBLE);
                 view.nickName.setText(vm.conversationInfo.getValue()
                     .getShowName() + "(" + vm.groupInfo.getValue().getMemberCount() + ")");
+            }
         } catch (Exception ignored) {
         }
     }
 
 
     @NonNull
-    private List<Msg> getSelectMsg() {
-        List<Msg> selectMsg = new ArrayList<>();
-        for (Msg message : messageAdapter.getMessages()) {
+    private List<Message> getSelectMsg() {
+        List<Message> selectMsg = new ArrayList<>();
+        for (Message message : messageAdapter.getMessages()) {
             MsgExpand msgExpand = (MsgExpand) message.getExt();
             if (null != msgExpand && msgExpand.isChoice) selectMsg.add(message);
         }
@@ -475,16 +496,45 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK) return;
-
-        if (requestCode == Constant.Event.CALLING_REQUEST_CODE && null != data) {
-            //发起群通话
-            List<String> ids = data.getStringArrayListExtra(Constant.K_RESULT);
-            //邀请列表中移除自己
-            ids.remove(BaseApp.inst().loginCertificate.userID);
-            SignalingInfo signalingInfo = IMUtil.buildSignalingInfo(vm.isVideoCall, false, ids,
-                vm.groupID);
-            if (null == callingService) return;
-            callingService.call(signalingInfo);
+        switch (requestCode) {
+            case Constant.Event.CALLING_REQUEST_CODE:
+                if (null != data) {
+                    //发起群通话
+                    List<String> ids = data.getStringArrayListExtra(Constant.K_RESULT);
+                    //邀请列表中移除自己
+                    ids.remove(BaseApp.inst().loginCertificate.userID);
+                    SignalingInfo signalingInfo = IMUtil.buildSignalingInfo(vm.isVideoCall, false, ids,
+                        vm.groupID);
+                    if (null == callingService) return;
+                    callingService.call(signalingInfo);
+                }
+                break;
+            case Constant.Event.RECOMMEND_FROM_CHAT:
+                if (null != data) {
+                    String extra = data.getStringExtra(Constant.K_RESULT);
+                    if (extra != null) {
+                        FriendInfo friendInfo = GsonHel.fromJson(extra, FriendInfo.class);
+                        if (friendInfo != null) {
+                            CardElem cardElem = new CardElem();
+                            cardElem.setUserID(friendInfo.getUserID());
+                            cardElem.setNickname(friendInfo.getNickname());
+                            cardElem.setFaceURL(friendInfo.getFaceURL());
+                            Message message = CRIMClient.getInstance().messageManager.createCardMsg(cardElem);
+                            vm.sendMsg(message);
+                        }
+                    }
+                }
+                break;
+            case Constant.Event.MAP_POSITION:
+                if (null != data) {
+                    String extra = data.getStringExtra(AMapWebViewActivity.LOCATION_INFO);
+                    if (extra != null) {
+                        LocationInfo info = GsonHel.fromJson(extra, LocationInfo.class);
+                        Message msg = CRIMClient.getInstance().messageManager.createLocationMsg(info.latitude, info.longitude, extra);
+                        vm.sendMsg(msg);
+                    }
+                }
+                break;
         }
     }
 
@@ -497,7 +547,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         vm.clearSelectMsg();
     }
 
-    private void aloneSendMsg(Msg msg, MultipleChoice choice) {
+    private void aloneSendMsg(Message msg, MultipleChoice choice) {
         if (choice.isGroup) vm.aloneSendMsg(msg, null, choice.key);
         else vm.aloneSendMsg(msg, choice.key, null);
     }
@@ -505,7 +555,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
     @Override
     public void update(Observable observable, Object o) {
         try {
-            Obs.Msg message = (Obs.Msg) o;
+            Obs.Message message = (Obs.Message) o;
             if (message.tag == Constant.Event.SET_BACKGROUND) {
                 String path = "";
                 if (null != message.object) {

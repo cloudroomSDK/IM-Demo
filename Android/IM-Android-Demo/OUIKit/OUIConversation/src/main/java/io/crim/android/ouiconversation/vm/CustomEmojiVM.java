@@ -9,7 +9,7 @@ import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.vm.State;
 import io.crim.android.ouicore.base.vm.injection.BaseVM;
 import io.crim.android.ouicore.entity.CustomEmoji;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.realm.RealmResults;
 
 import static io.crim.android.ouicore.utils.Common.UIHandler;
@@ -44,7 +44,7 @@ public class CustomEmojiVM extends BaseVM {
             UIHandler.post(this::loadCustomEmoji);
         });
     }
-    public void insertEmojiDb(Msg message){
+    public void insertEmojiDb(Message message){
         PictureInfo pictureInfo = message.getPictureElem().getSourcePicture();
         PictureInfo snapshotPicture = message.getPictureElem().getSnapshotPicture();
         if (null == pictureInfo) return;

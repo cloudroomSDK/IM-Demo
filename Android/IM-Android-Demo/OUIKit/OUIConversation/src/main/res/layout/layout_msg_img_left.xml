@@ -32,6 +32,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
             android:layout_toRightOf="@id/avatar"
             android:orientation="vertical">
 
@@ -46,38 +47,57 @@
                 android:visibility="gone" />
 
             <RelativeLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="140dp"
+                android:layout_height="240dp"
                 android:clickable="true"
                 android:focusable="true">
 
                 <org.raphets.roundimageview.RoundImageView
                     android:id="@+id/content"
-                    android:layout_width="140dp"
-                    android:layout_height="240dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:layout_marginRight="8dp"
                     android:gravity="center_vertical"
                     android:src="@mipmap/ic_chat_photo"
                     app:corner_radius="7dp"
                     app:type="round" />
 
-                <io.crim.android.ouicore.widget.CirclePgBar
-                    android:id="@+id/circleBar"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:visibility="gone"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    app:strokeWidth="2dp" />
-
-                <ImageView
-                    android:id="@+id/videoPlay"
+                <RelativeLayout
+                    android:id="@+id/playLayout1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_centerHorizontal="true"
-                    android:layout_centerVertical="true"
-                    android:src="@mipmap/ic_file_download_pause"
-                    android:visibility="gone" />
+                    android:layout_centerInParent="true"
+                    android:visibility="gone">
+
+                    <io.crim.android.ouicore.widget.CirclePgBar
+                        android:id="@+id/circleBar"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        app:strokeWidth="2dp" />
+
+                    <ImageView
+                        android:id="@+id/videoPlay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerHorizontal="true"
+                        android:layout_centerVertical="true"
+                        android:src="@mipmap/ic_file_download_pause" />
+
+                    <TextView
+                        android:id="@+id/duration1"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentRight="true"
+                        android:layout_alignParentBottom="true"
+                        android:layout_marginRight="8dp"
+                        android:padding="4dp"
+                        android:textColor="#ffffffff"
+                        android:textSize="10sp" />
+                </RelativeLayout>
+
+
             </RelativeLayout>
         </LinearLayout>
 

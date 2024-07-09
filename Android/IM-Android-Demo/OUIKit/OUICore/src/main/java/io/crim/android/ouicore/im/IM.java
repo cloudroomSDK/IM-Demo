@@ -13,16 +13,17 @@ import io.crim.android.sdk.enums.Platform;
 
 public class IM {
     public static void initSdk(Application app) {
-        L.e("App", "---IM--initSdk==="+ Constant.getSdkServerUrl());
+        L.e("App", "---IM--initSdk==getSdkServerUrl=" + Constant.getSdkServerUrl());
         ///IM 初始化
-        CRIMClient.getInstance().initSDK(app,
+        CRIMClient.getInstance().initSDKWithConfig(app,
             Platform.ANDROID,
             Constant.getSdkServerUrl(),
-            Constant.getImWsUrl(), getStorageDir(), 6,
+            getStorageDir(), 6,
             true,
             Constant.File_DIR,
-            false,IMEvent.getInstance().connListener);
+            false);
         IMEvent.getInstance().init();
+        CRIMClient.getInstance().setConnListener(IMEvent.getInstance().connListener);
     }
 
     //存储路径

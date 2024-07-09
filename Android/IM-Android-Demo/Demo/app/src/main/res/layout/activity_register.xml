@@ -66,7 +66,7 @@
                     android:background="@android:color/transparent"
                     android:hint="@string/input_phone"
                     android:textColor="#ff333333"
-                    android:text="@={LoginVM.account}"
+                    android:text="@={LoginVM.phoneNum}"
                     android:textSize="18sp" />
 
                 <ImageView

@@ -53,7 +53,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="@={LoginVM.account}"
+                android:text="@={LoginVM.phoneNum}"
                 android:textColor="#ff1d6bed"
                 android:textSize="16sp" />
 

@@ -9,9 +9,12 @@
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
 
-    <application android:theme="@style/Theme.Main">
+    <application
+        android:theme="@style/Theme.Main">
         <activity
             android:name=".ui.NotificationActivity"
             android:exported="false" />
@@ -50,6 +53,8 @@
             android:exported="false" />
         <activity android:name=".ui.emoji.CustomEmojiManageActivity"
             android:exported="false"/>
+        <activity android:name="io.crim.android.ouiconversation.io.crim.android.ouicore.widget.AMapWebViewActivity"
+            android:exported="false" />
         <receiver android:name="com.huawei.hms.support.api.push.PushMsgReceiver"
             android:exported="true"
             />

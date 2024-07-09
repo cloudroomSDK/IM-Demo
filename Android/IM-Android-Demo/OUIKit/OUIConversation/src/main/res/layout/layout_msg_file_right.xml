@@ -41,55 +41,72 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
+                    android:gravity="right"
                     android:textColor="#ff666666"
                     android:textSize="12sp"
-                    android:gravity="right"
                     android:visibility="gone" />
 
                 <LinearLayout
                     android:id="@+id/content2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/sty_radius_unright_stroke_30"
+                    android:background="@drawable/sty_radius_gray"
                     android:gravity="center_vertical"
                     android:maxWidth="@dimen/msg_max_width"
                     android:minHeight="60dp"
-                    android:orientation="horizontal"
+                    android:orientation="vertical"
                     android:paddingLeft="12dp"
                     android:paddingTop="10dp"
                     android:paddingRight="12dp"
                     android:paddingBottom="10dp">
 
                     <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/title2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="2dp"
-                            android:minWidth="120dp"
-                            android:textColor="#FF0c1c33"
-                            android:textSize="17sp" />
-
-                        <TextView
-                            android:id="@+id/size2"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textColor="#ff8e9ab0"
-                            android:textSize="14sp" />
-                    </LinearLayout>
-
-                    <io.crim.android.ouicore.widget.FileUploadView
-                        android:id="@+id/fileUploadView"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="10dp" />
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/title2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="2dp"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:minWidth="120dp"
+                                android:textColor="#FF0c1c33"
+                                android:textSize="17sp" />
+
+                            <TextView
+                                android:id="@+id/size2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#ff8e9ab0"
+                                android:textSize="14sp" />
+                        </LinearLayout>
+
+                        <io.crim.android.ouicore.widget.FileUploadView
+                            android:id="@+id/fileUploadView"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="10dp" />
+                    </LinearLayout>
+
+                    <ProgressBar
+                        android:id="@+id/pbRight"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="5dp"
+                        android:progressDrawable="@drawable/progressbar" />
 
                 </LinearLayout>
+
             </LinearLayout>
         </LinearLayout>
 
@@ -97,8 +114,8 @@
             android:id="@+id/avatar2"
             android:layout_width="44dp"
             android:layout_height="44dp"
-            android:layout_marginStart="10dp"
             android:layout_alignParentEnd="true"
+            android:layout_marginStart="10dp"
             android:src="@mipmap/ic_my_friend" />
 
     </RelativeLayout>

@@ -19,17 +19,10 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.listener.OnMsgSendCallback;
-import io.crim.android.sdk.models.CardElem;
-import io.crim.android.sdk.models.FriendInfo;
-import io.crim.android.sdk.models.Msg;
-import io.crim.android.sdk.models.OfflinePushInfo;
 import io.crim.android.ouicontact.databinding.ActivityAllFriendBinding;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
 import io.crim.android.ouicore.base.BaseActivity;
-import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.databinding.LayoutCommonDialogBinding;
 import io.crim.android.ouicore.entity.ExUserInfo;
 import io.crim.android.ouicore.ex.User;
@@ -38,6 +31,12 @@ import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.vm.SocialityVM;
 import io.crim.android.ouicore.widget.CommonDialog;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.listener.OnMsgSendCallback;
+import io.crim.android.sdk.models.CardElem;
+import io.crim.android.sdk.models.FriendInfo;
+import io.crim.android.sdk.models.Message;
+import io.crim.android.sdk.models.OfflinePushInfo;
 
 @Route(path = Routes.Contact.ALL_FRIEND)
 public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFriendBinding> {
@@ -45,6 +44,8 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
     private RecyclerViewAdapter<ExUserInfo, RecyclerView.ViewHolder> adapter;
     //从聊天跳转过来
     private boolean formChat;
+    private String groupID = "";
+    private String userID = "";
     //从推荐好友跳转过来 带的userinfo
     private User recommend;
 
@@ -55,6 +56,8 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
         bindViewDataBinding(ActivityAllFriendBinding.inflate(getLayoutInflater()));
         sink();
         formChat = getIntent().getBooleanExtra("formChat", false);
+        userID = getIntent().getStringExtra("userID");
+        groupID = getIntent().getStringExtra("groupID");
         recommend = (User) getIntent().getSerializableExtra("recommend");
         vm.getAllFriend();
 
@@ -63,6 +66,9 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
     }
 
     private void initView() {
+        if (formChat){
+            view.tvTitle.setText("选择好友");
+        }
         view.scrollView.fullScroll(View.FOCUS_DOWN);
         view.recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter<ExUserInfo, RecyclerView.ViewHolder>() {
@@ -116,7 +122,7 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
                     itemViewHo.view.nickName.setText(friendInfo.getNickname());
                     itemViewHo.view.select.setVisibility(View.GONE);
                     itemViewHo.view.getRoot().setOnClickListener(v -> {
-                        if (null!=recommend) {
+                        if (null != recommend) {
                             CommonDialog commonDialog = new CommonDialog(AllFriendActivity.this);
                             commonDialog.show();
                             LayoutCommonDialogBinding mainView = commonDialog.getMainView();
@@ -125,7 +131,7 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
                             mainView.cancel.setOnClickListener(v1 -> commonDialog.dismiss());
                             mainView.confirm.setOnClickListener(v1 -> {
                                 commonDialog.dismiss();
-                                sendCardMessage(friendInfo);
+                                sendCardMessage(friendInfo.getUserID(), null, recommend.key, recommend.getName(), recommend.getFaceUrl());
                             });
                             return;
                         }
@@ -146,26 +152,28 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
     }
 
     private void sendChatWindow(FriendInfo friendInfo) {
-        CommonDialog commonDialog = new CommonDialog(AllFriendActivity.this);
+        setResult(RESULT_OK, new Intent().putExtra(Constant.K_RESULT,
+            GsonHel.toJson(friendInfo)));
+        finish();
+        /*CommonDialog commonDialog = new CommonDialog(AllFriendActivity.this);
         commonDialog.show();
         LayoutCommonDialogBinding mainView = commonDialog.getMainView();
         mainView.tips.setText(BaseApp.inst().getString(io.crim.android.ouicore.R.string.send_card_confirm));
         mainView.cancel.setOnClickListener(v1 -> commonDialog.dismiss());
         mainView.confirm.setOnClickListener(v1 -> {
             commonDialog.dismiss();
-
             setResult(RESULT_OK, new Intent().putExtra(Constant.K_RESULT,
                 GsonHel.toJson(friendInfo)));
             finish();
-        });
+        });*/
     }
 
-    private void sendCardMessage(FriendInfo friendInfo) {
-        CardElem cardElem=new CardElem();
-        cardElem.setUserID(recommend.key);
-        cardElem.setNickname(recommend.getName());
-        cardElem.setFaceURL(recommend.getFaceUrl());
-        Msg message = CRIMClient.getInstance().messageManager.createCardMsg(cardElem);
+    private void sendCardMessage(String recvUid, String recvGid, String recomUid, String recomName, String recomFaceUrl) {
+        CardElem cardElem = new CardElem();
+        cardElem.setUserID(recomUid);
+        cardElem.setNickname(recomName);
+        cardElem.setFaceURL(recomFaceUrl);
+        Message message = CRIMClient.getInstance().messageManager.createCardMsg(cardElem);
         OfflinePushInfo offlinePushInfo = new OfflinePushInfo(); // 离线推送的消息备注；不为null
         CRIMClient.getInstance().messageManager.sendMsg(new OnMsgSendCallback() {
             @Override
@@ -178,12 +186,12 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
             }
 
             @Override
-            public void onSuccess(Msg message) {
+            public void onSuccess(Message message) {
                 toast(AllFriendActivity.this.
                     getString(io.crim.android.ouicore.R.string.send_succ));
                 finish();
             }
-        }, message, friendInfo.getUserID(), null, offlinePushInfo);
+        }, message, recvUid, recvGid, offlinePushInfo);
     }
 
     @Override
@@ -196,25 +204,25 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
 
     private ActivityResultLauncher<Intent> searchFriendLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
         result -> {
-        try {
-            if (result.getResultCode()!=RESULT_OK)return;
+            try {
+                if (result.getResultCode() != RESULT_OK) return;
 
-            String uid = result.getData().getStringExtra(Constant.K_ID);
-            if (formChat){
-                for (ExUserInfo item : adapter.getItems()) {
-                    if (null!=item.userInfo&&item.userInfo.getUserID().equals(uid)){
-                        sendChatWindow(item.userInfo.getFriendInfo());
-                        return;
+                String uid = result.getData().getStringExtra(Constant.K_ID);
+                if (formChat) {
+                    for (ExUserInfo item : adapter.getItems()) {
+                        if (null != item.userInfo && item.userInfo.getUserID().equals(uid)) {
+                            sendChatWindow(item.userInfo.getFriendInfo());
+                            return;
+                        }
                     }
                 }
-            }
-            ARouter.getInstance().build(Routes.Main.PERSON_DETAIL)
-                .withString(Constant.K_ID, uid)
-                .navigation();
-        } catch (Exception ignored) {
+                ARouter.getInstance().build(Routes.Main.PERSON_DETAIL)
+                    .withString(Constant.K_ID, uid)
+                    .navigation();
+            } catch (Exception ignored) {
 
-        }
-    });
+            }
+        });
 
     private void listener() {
         view.searchView.setOnClickListener(v ->

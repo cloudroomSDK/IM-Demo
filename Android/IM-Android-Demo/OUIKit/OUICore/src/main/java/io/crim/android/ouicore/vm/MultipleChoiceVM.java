@@ -13,7 +13,6 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.LifecycleOwner;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import io.crim.android.sdk.models.FriendInfo;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
 import io.crim.android.ouicore.base.BaseApp;
@@ -25,6 +24,7 @@ import io.crim.android.ouicore.ex.MultipleChoice;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.widget.BottomPopDialog;
 import io.crim.android.ouicore.widget.ForwardDialog;
+import io.crim.android.sdk.models.FriendInfo;
 
 public class MultipleChoiceVM extends BaseVM {
     /**
@@ -85,7 +85,7 @@ public class MultipleChoiceVM extends BaseVM {
             }
             view.content.setText(builder.toString());
             view.submit.setEnabled(userInfos.size() > 0);
-            view.submit.setText(context.getString(io.crim.android.ouicore.R.string.sure) + "（" + userInfos.size() + "/999）");
+//            view.submit.setText(context.getString(io.crim.android.ouicore.R.string.sure) + "（" + userInfos.size() + "/999）");
         });
     }
 
@@ -141,12 +141,12 @@ public class MultipleChoiceVM extends BaseVM {
                 return;
             }
 
-            showConfirmDialog(v.getContext());
+            showConfirmDialog(v.getContext(), "");
         });
     }
 
-    private void showConfirmDialog(Context context) {
-        ForwardDialog dialog=new ForwardDialog(context);
-        dialog.show();
+    public void showConfirmDialog(Context context, String routePath) {
+        ForwardDialog dialog = new ForwardDialog(context);
+        dialog.setRoutePath(routePath).show();
     }
 }

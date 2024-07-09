@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import android.util.Log;
 
 import com.alibaba.android.arouter.launcher.ARouter;
+import com.amap.api.location.AMapLocationClient;
 import com.igexin.sdk.PushManager;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.vanniktech.emoji.EmojiManager;
@@ -27,6 +28,7 @@ import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.services.CallingService;
 import io.crim.android.ouicore.utils.AndroidTool;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.L;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.vm.UserLogic;
@@ -44,26 +46,25 @@ public class DemoApplication extends BaseApp {
         L.e("App", "-----onCreate");
         super.onCreate();
         initController();
-
         MultiDex.install(this);
         initBugly();
         //ARouter init
         ARouter.init(this);
-//        ARouter.crimLog();
-//        ARouter.openDebug();
-
+       /* ARouter.openDebug();
+        ARouter.openLog();
+        ARouter.printStackTrace();*/
         initPush();
         //net init
         initNet();
-
         //im 初始化
         initIM();
-
         //音频播放
         SPlayer.init(this);
         SPlayer.instance().setCacheDirPath(Constant.AUDIO_DIR);
-
+        EmojiUtil.init(this);
         EmojiManager.install(new GoogleEmojiProvider());
+        AMapLocationClient.updatePrivacyShow(this,true,true);
+        AMapLocationClient.updatePrivacyAgree(this,true);
     }
 
     private void initBugly() {
@@ -82,7 +83,7 @@ public class DemoApplication extends BaseApp {
                 try {
                     Context context = getApplicationContext();
                     StringBuilder builder = new StringBuilder();
-                    builder.append("MeetVer:").append(AndroidTool.getVersion(context)).append("\n");
+                    builder.append("IMDemoVer:").append(AndroidTool.getVersion(context)).append("\n");
                     builder.append("DumpTime:")
                         .append(AndroidTool.getCurTimeStr("yyyy-MM-dd HH:mm:ss")).append("\n");
                     builder.append("IP:").append(AndroidTool.getIPAddress(context)).append("\n");
@@ -112,9 +113,11 @@ public class DemoApplication extends BaseApp {
     private void initPush() {
         PushManager.getInstance().initialize(this);
         PushManager.getInstance().setDebugLogger(this, s -> L.i("getui", s));
+        PushManager.getInstance().turnOnPush(this);
     }
 
     private void initNet() {
+        Constant.getProtocol();
         Constant.getSdkServer();
         Constant.getBusinessServer();
         N.init(new HttpConfig().setBaseUrl(Constant.getAppAuthUrl())
@@ -139,7 +142,6 @@ public class DemoApplication extends BaseApp {
             callingService.initKeepAlive(getPackageName());
             IMEvent.getInstance().addSignalingListener(callingService);
         }
-
     }
 
     private void listenerIMOffline() {

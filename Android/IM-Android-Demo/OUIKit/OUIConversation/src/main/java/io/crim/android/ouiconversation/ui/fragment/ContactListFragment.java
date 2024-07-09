@@ -48,8 +48,10 @@ import io.crim.android.ouicore.entity.MsgConversation;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
+import io.crim.android.ouicore.utils.PermissionUtil;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.utils.SinkHelper;
 import io.crim.android.ouicore.utils.TimeUtil;
@@ -217,7 +219,7 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
             adapter.notifyDataSetChanged();
         });
         vm.subscribe(getActivity(), subject -> {
-            if (subject.equals(ContactListVM.NOTIFY_ITEM_CHANGED)){
+            if (subject.equals(ContactListVM.NOTIFY_ITEM_CHANGED)) {
                 adapter.notifyItemChanged((Integer) subject.value);
             }
         });
@@ -256,7 +258,7 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
             Common.permission(getActivity(), () -> {
                 hasScanPermission = true;
                 Common.jumpScan(getActivity(), resultLauncher);
-            }, hasScanPermission, Permission.CAMERA, Permission.READ_EXTERNAL_STORAGE);
+            }, hasScanPermission, Permission.CAMERA, PermissionUtil.getReadImgPermission());
         });
         view.addFriend.setOnClickListener(c -> {
             popupWindow.dismiss();
@@ -334,8 +336,8 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
         }
 
         @Override
-        public void onBindViewHolder(ViewHol.ContactItemHolder viewHolder,  int position) {
-            final  int index=position;
+        public void onBindViewHolder(ViewHol.ContactItemHolder viewHolder, int position) {
+            final int index = position;
             viewHolder.viewBinding.getRoot().setOnClickListener(new OnDedrepClickListener() {
                 @Override
                 public void click(View v) {
@@ -352,8 +354,8 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
             viewHolder.viewBinding.nickName.setText(msgConversation.conversationInfo.getShowName());
 
             if (msgConversation.conversationInfo.getRecvMsgOpt() != 0) {
-                    viewHolder.viewBinding.noDisturbTips
-                        .setVisibility(msgConversation.conversationInfo.getUnreadCount() > 0?View.VISIBLE:View.GONE);
+                viewHolder.viewBinding.noDisturbTips
+                    .setVisibility(msgConversation.conversationInfo.getUnreadCount() > 0 ? View.VISIBLE : View.GONE);
                 viewHolder.viewBinding.noDisturbIc.setVisibility(View.VISIBLE);
                 viewHolder.viewBinding.badge.badge.setVisibility(View.GONE);
             } else {
@@ -370,17 +372,19 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
             viewHolder.viewBinding.setTop.setVisibility(msgConversation.conversationInfo.isPinned() ? View.VISIBLE : View.GONE);
 
             CharSequence lastMsg = msgConversation.lastMsg;
-            //强提醒
-            if (msgConversation.conversationInfo.getGroupAtType() == GrpAtType.AT_ME) {
+            if (msgConversation.conversationInfo.isPrivateChat()) {
+                viewHolder.viewBinding.lastMsg.setText("[阅后即焚消息]");
+            } else if (msgConversation.conversationInfo.getGroupAtType() == GrpAtType.AT_ME) {  //强提醒
                 String target =
                     "@" + BaseApp.inst().getString(io.crim.android.ouicore.R.string.you);
                 if (!lastMsg.toString().contains(target))
                     lastMsg = target + "\t" + lastMsg;
 
-                IMUtil.buildClickAndColorSpannable((SpannableStringBuilder)
-                    lastMsg, target, android.R.color.holo_red_dark, null);
+                IMUtil.buildClickAndColorSpannable(new SpannableStringBuilder(lastMsg), target, android.R.color.holo_red_dark, null);
+                viewHolder.viewBinding.lastMsg.setText(lastMsg);
+            } else {
+                EmojiUtil.showSpanTextview(viewHolder.viewBinding.lastMsg, lastMsg.toString());
             }
-            viewHolder.viewBinding.lastMsg.setText(lastMsg);
         }
 
         @Override
@@ -401,7 +405,7 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
 
     @Override
     public void update(Observable observable, Object o) {
-        Obs.Msg message = (Obs.Msg) o;
+        Obs.Message message = (Obs.Message) o;
         if (message.tag == Constant.Event.USER_INFO_UPDATE) {
             initHeader();
         }

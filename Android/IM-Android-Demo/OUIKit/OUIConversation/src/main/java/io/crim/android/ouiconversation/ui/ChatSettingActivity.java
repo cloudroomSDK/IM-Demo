@@ -6,6 +6,7 @@ import android.os.Bundle;
 
 import com.alibaba.android.arouter.core.LogisticsCenter;
 import com.alibaba.android.arouter.facade.Postcard;
+import com.alibaba.android.arouter.facade.annotation.Route;
 import com.alibaba.android.arouter.launcher.ARouter;
 
 import java.util.ArrayList;
@@ -13,19 +14,19 @@ import java.util.List;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.enums.Opt;
-import io.crim.android.sdk.listener.OnBase;
-import io.crim.android.sdk.models.UserInfo;
 import io.crim.android.ouiconversation.databinding.ActivityChatSettingBinding;
 import io.crim.android.ouiconversation.vm.ChatVM;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.vm.ContactListVM;
-import io.crim.android.ouicore.widget.BottomPopDialog;
 import io.crim.android.ouicore.widget.CommonDialog;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.enums.Opt;
+import io.crim.android.sdk.listener.OnBase;
+import io.crim.android.sdk.models.UserInfo;
 
+@Route(path = Routes.Conversation.CHAT_SETTING)
 public class ChatSettingActivity extends BaseActivity<ChatVM, ActivityChatSettingBinding> implements ChatVM.ViewAction {
 
     ContactListVM contactListVM = new ContactListVM();
@@ -43,15 +44,17 @@ public class ChatSettingActivity extends BaseActivity<ChatVM, ActivityChatSettin
 
     private ActivityResultLauncher<Intent> personDetailLauncher =
         registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-        if (result.getResultCode() == RESULT_OK) {
-            setResult(RESULT_OK);
-            finish();
-        }
-    });
+            if (result.getResultCode() == RESULT_OK) {
+                setResult(RESULT_OK);
+                finish();
+            }
+        });
 
     private void click() {
         view.addChat.setOnClickListener(v -> {
-            BottomPopDialog dialog = new BottomPopDialog(this);
+            ARouter.getInstance().build(Routes.Group.CREATE_GROUP).withString(Constant.K_ID,
+                vm.userID).withBoolean(Constant.K_RESULT, true).navigation();
+            /*BottomPopDialog dialog = new BottomPopDialog(this);
             dialog.show();
             dialog.getMainView().menu3.setOnClickListener(v1 -> dialog.dismiss());
             dialog.getMainView().menu1.setText(io.crim.android.ouicore.R.string.general_group);
@@ -66,14 +69,15 @@ public class ChatSettingActivity extends BaseActivity<ChatVM, ActivityChatSettin
                 dialog.dismiss();
                 ARouter.getInstance().build(Routes.Group.CREATE_GROUP).withString(Constant.K_ID,
                     vm.userID).withBoolean(Constant.K_RESULT, true).navigation();
-            });
+            });*/
         });
         view.picture.setOnClickListener(v -> {
 
         });
         view.video.setOnClickListener(v -> {
         });
-        view.file.setOnClickListener(v ->{});
+        view.file.setOnClickListener(v -> {
+        });
 
         view.readVanish.setOnSlideButtonClickListener(isChecked -> {
             CRIMClient.getInstance().conversationManager.setConversationPrivateChat(new OnBase<String>() {

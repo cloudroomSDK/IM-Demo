@@ -32,31 +32,30 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="7dp"
-            android:gravity="right"
             android:layout_toLeftOf="@id/avatar2"
+            android:gravity="right"
             android:orientation="vertical">
 
             <TextView
                 android:id="@+id/nickName2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#ff8e9ab0"
-                android:layout_marginBottom="2dp"
                 android:layout_marginEnd="3dp"
+                android:layout_marginBottom="2dp"
+                android:textColor="#ff8e9ab0"
                 android:textSize="12sp"
-                android:visibility="gone"
-                />
+                android:visibility="gone" />
 
             <com.vanniktech.emoji.EmojiTextView
                 android:id="@+id/content2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/sty_radius_unright_30"
+                android:background="@drawable/sty_radius_blue"
                 android:gravity="center_vertical"
                 android:maxWidth="@dimen/msg_max_width"
                 android:minHeight="40dp"
                 android:padding="7dp"
-                android:textColor="@color/txt_black"
+                android:textColor="#fff"
                 android:textSize="@dimen/main_body"
                 app:emojiSize="23sp" />
         </LinearLayout>
@@ -90,7 +89,7 @@
                 android:ellipsize="end"
                 android:maxWidth="185dp"
                 android:maxLines="3"
-                android:textColor="#ff999999"
+                android:textColor="#000000"
                 android:textSize="12sp" />
 
             <ImageView

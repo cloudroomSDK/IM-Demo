@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <data>
 
@@ -8,95 +9,95 @@
             type="io.crim.android.demo.vm.MainVM" />
     </data>
 
-    <LinearLayout xmlns:tools="http://schemas.android.com/tools"
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
         tools:context=".ui.main.MainActivity">
 
-
         <RelativeLayout
+            android:id="@+id/rlBottom"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="@color/white">
 
-            <FrameLayout
-                android:id="@+id/fragment_container"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+            <include layout="@layout/view_dividing_line" />
 
-            <RelativeLayout
+            <LinearLayout
+                android:id="@+id/menuGroup"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:background="@color/white">
+                android:orientation="horizontal"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp">
 
-                <include layout="@layout/view_dividing_line" />
+                <RadioButton
+                    android:id="@+id/men1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:button="@null"
+                    android:drawableTop="@drawable/selector_logo"
+                    android:gravity="center"
+                    android:text="@string/msg"
+                    android:textColor="@drawable/selector_tab_txt_color"
+                    android:textSize="10sp" />
 
-                <LinearLayout
-                    android:id="@+id/menuGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingTop="8dp"
-                    android:paddingBottom="8dp">
+                <RadioButton
+                    android:id="@+id/men2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:button="@null"
+                    android:drawableTop="@drawable/selector_newsletter"
+                    android:gravity="center"
+                    android:text="@string/address_book"
+                    android:textColor="@drawable/selector_tab_txt_color"
+                    android:textSize="10sp" />
 
-                    <RadioButton
-                        android:id="@+id/men1"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:button="@null"
-                        android:drawableTop="@drawable/selector_logo"
-                        android:gravity="center"
-                        android:text="@string/msg"
-                        android:textColor="@drawable/selector_tab_txt_color"
-                        android:textSize="10sp" />
+                <RadioButton
+                    android:id="@+id/men3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:button="@null"
+                    android:drawableTop="@drawable/selector_moments"
+                    android:gravity="center"
+                    android:text="@string/find"
+                    android:textColor="@drawable/selector_tab_txt_color"
+                    android:textSize="10sp" />
 
-                    <RadioButton
-                        android:id="@+id/men2"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:button="@null"
-                        android:drawableTop="@drawable/selector_newsletter"
-                        android:gravity="center"
-                        android:text="@string/address_book"
-                        android:textColor="@drawable/selector_tab_txt_color"
-                        android:textSize="10sp" />
-
-                    <RadioButton
-                        android:id="@+id/men3"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:button="@null"
-                        android:drawableTop="@drawable/selector_moments"
-                        android:gravity="center"
-                        android:text="@string/find"
-                        android:textColor="@drawable/selector_tab_txt_color"
-                        android:textSize="10sp" />
-
-                    <RadioButton
-                        android:id="@+id/men4"
-                        android:layout_width="0dp"
-                        android:layout_height="match_parent"
-                        android:layout_weight="1"
-                        android:background="?android:attr/selectableItemBackground"
-                        android:button="@null"
-                        android:drawableTop="@drawable/selector_own"
-                        android:gravity="center"
-                        android:text="@string/my"
-                        android:textColor="@drawable/selector_tab_txt_color"
-                        android:textSize="10sp" />
-                </LinearLayout>
-
-            </RelativeLayout>
+                <RadioButton
+                    android:id="@+id/men4"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="?android:attr/selectableItemBackground"
+                    android:button="@null"
+                    android:drawableTop="@drawable/selector_own"
+                    android:gravity="center"
+                    android:text="@string/my"
+                    android:textColor="@drawable/selector_tab_txt_color"
+                    android:textSize="10sp" />
+            </LinearLayout>
 
         </RelativeLayout>
 
+        <FrameLayout
+            android:id="@+id/fragment_container"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/rlBottom"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
 
-    </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

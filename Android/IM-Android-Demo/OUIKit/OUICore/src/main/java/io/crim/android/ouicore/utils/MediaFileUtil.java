@@ -1,16 +1,18 @@
 package io.crim.android.ouicore.utils;
 
+import android.content.ContentResolver;
+import android.content.Context;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.media.MediaMetadataRetriever;
-import android.text.TextUtils;
+import android.net.Uri;
+import android.provider.MediaStore;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Random;
 import java.util.UUID;
 
 public class MediaFileUtil {
@@ -227,6 +229,29 @@ public class MediaFileUtil {
             mmr.release();
         } catch (IOException ignored) {}
         return duration;
+    }
+
+    public static long getFileSize(Context context, Uri uri) {
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            // 查询指定路径的文件信息
+            Cursor cursor = resolver.query(uri, null, null, null, null);
+            if (cursor!= null && cursor.moveToFirst()) {
+                int index = cursor.getColumnIndex(MediaStore.MediaColumns.SIZE);
+                long size=0;
+                if (index>=0){
+                    // 获取文件大小字段的值
+                    size = cursor.getLong(index);
+                }
+                cursor.close();
+                return size;
+            } else {
+                return -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
     }
 
     public static String saveBitmap(Bitmap bitmap, String dir) {

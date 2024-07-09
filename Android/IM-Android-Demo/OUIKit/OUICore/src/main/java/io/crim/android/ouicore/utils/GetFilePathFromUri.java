@@ -24,7 +24,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import androidx.annotation.RequiresApi;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.ouicore.R;
 
 public class GetFilePathFromUri {
@@ -37,7 +37,7 @@ public class GetFilePathFromUri {
         return "";
     }
     //打开文件
-    public static void openFile(Context context, Msg message) {
+    public static void openFile(Context context, Message message) {
         String path = message.getFileElem().getFilePath();
         if (TextUtils.isEmpty(path) || !fileIsExists(path)) {
             path = message.getFileElem().getSourceUrl();

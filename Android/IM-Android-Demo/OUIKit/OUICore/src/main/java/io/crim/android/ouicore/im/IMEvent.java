@@ -22,7 +22,7 @@ import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.sdk.models.GrpInfo;
 import io.crim.android.sdk.models.GrpReqInfo;
 import io.crim.android.sdk.models.KeyValue;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.ReadReceiptInfo;
 import io.crim.android.sdk.models.RevokedInfo;
 import io.crim.android.sdk.models.UserInfo;
@@ -429,11 +429,11 @@ public class IMEvent {
     private void promptSoundOrNotification(ConversationInfo conversationInfo) {
         try {
             if (BaseApp.inst().loginCertificate.globalRecvMsgOpt == 2) return;
-            Msg msg= GsonHel.fromJson(conversationInfo.getLatestMsg(),Msg.class);
+            Message msg= GsonHel.fromJson(conversationInfo.getLatestMsg(),Message.class);
             if (conversationInfo.getRecvMsgOpt() == 0
                 && conversationInfo.getUnreadCount() != 0) {
                 if (BaseApp.inst().isBackground())
-                    IMUtil.sendNotice(msg.getClientMsgID().hashCode());
+                    IMUtil.sendNotice(msg.getClientMsgID().hashCode(), conversationInfo);
                 else
                     IMUtil.playPrompt();
             }
@@ -507,7 +507,7 @@ public class IMEvent {
     private void advanceMsgListener() {
         CRIMClient.getInstance().messageManager.setAdvancedMsgListener(new OnAdvanceMsgListener() {
             @Override
-            public void onRecvNewMsg(Msg msg) {
+            public void onRecvNewMsg(Message msg) {
                 // 收到新消息，界面添加新消息
                 for (OnAdvanceMsgListener onAdvanceMsgListener : advanceMsgListeners) {
                     onAdvanceMsgListener.onRecvNewMsg(msg);
@@ -552,12 +552,12 @@ public class IMEvent {
             }
 
             @Override
-            public void onMsgDeleted(Msg message) {
+            public void onMsgDeleted(Message message) {
 
             }
 
             @Override
-            public void onRecvOfflineNewMessage(List<Msg> msg) {
+            public void onRecvOfflineNewMessage(List<Message> msg) {
 
             }
 

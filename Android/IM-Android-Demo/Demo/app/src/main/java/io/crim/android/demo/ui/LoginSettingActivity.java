@@ -33,6 +33,28 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
         view.setLoginSettingVM(loginSettingVM);
         int loginType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("LOGIN_TYPE");
         refreshLoginTypeLayout(loginType);
+        int httpType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("HTTP_TYPE");
+        if (httpType < 1) {
+            httpType = 1;
+        }
+        refreshHttpTypeLayout(httpType);
+        view.llHttp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new HttpConfigDialog(LoginSettingActivity.this)
+                    .setType(loginType)
+                    .setSelectListener(new HttpConfigDialog.HttpTypeSelectListener() {
+                        @Override
+                        public void selectType(int type) {
+                            SharedPreferencesUtil.get(BaseApp.inst()).setCache("HTTP_TYPE", type);
+                            refreshHttpTypeLayout(type);
+                            Constant.getProtocol();
+                            Constant.saveUrl();
+                        }
+                    })
+                    .show();
+            }
+        });
         view.llType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -51,8 +73,13 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
         view.etBusinessServer.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void afterTextChanged(Editable editable) {
-                SharedPreferencesUtil.get(BaseApp.inst()).setCache("DEFAULT_IP", loginSettingVM.HEAD.getValue());
-                Constant.saveUrl();
+                String value = loginSettingVM.HEAD.getValue();
+                if (value != null && value.contains(":")) {
+                    toast("业务服务器无需填写端口号");
+                } else {
+                    SharedPreferencesUtil.get(BaseApp.inst()).setCache("DEFAULT_IP", loginSettingVM.HEAD.getValue());
+                    Constant.saveUrl();
+                }
             }
         });
         view.etServer.addTextChangedListener(new SimpleTextWatcher() {
@@ -96,6 +123,9 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
                 SharedPreferencesUtil.get(BaseApp.inst()).setCache("APP_ID", "");
                 SharedPreferencesUtil.get(BaseApp.inst()).setCache("APP_SECRET", "");
                 SharedPreferencesUtil.get(BaseApp.inst()).setCache("LOGIN_TOKEN", "");
+                SharedPreferencesUtil.get(BaseApp.inst()).setCache("APP_AUTH_URL", "");
+                SharedPreferencesUtil.get(BaseApp.inst()).setCache("IM_API_URL", "");
+                SharedPreferencesUtil.get(BaseApp.inst()).setCache("HTTP_TYPE", 1);
                 view.postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -107,7 +137,7 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
         if (Constant.getAppID().equals(AccountConfig.APP_ID)) {
             loginSettingVM.APP_ID.setValue(getString(R.string.default_app_id));
         }
-        view.restart.setOnClickListener(new View.OnClickListener() {
+        view.llSave.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 restart();
@@ -115,16 +145,22 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
         });
     }
 
+    private void refreshHttpTypeLayout(int type) {
+        view.tvHttpType.setText(getResources().getStringArray(R.array.datenc_types)[type - 1]);
+    }
+
     private void refreshLoginTypeLayout(int type) {
         String typeStr = "";
         if (type == 2) {
-            LoginSettingActivity.this.view.groupAppID.setVisibility(View.GONE);
+            LoginSettingActivity.this.view.llID.setVisibility(View.GONE);
+            LoginSettingActivity.this.view.llSecret.setVisibility(View.GONE);
             LoginSettingActivity.this.view.llToken.setVisibility(View.VISIBLE);
             typeStr = "动态Token鉴权";
 //            SharedPreferencesUtil.get(BaseApp.inst()).setCache("LOGIN_TOKEN", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJRCI6Imp2eHh3bXpjaHQiLCJleHAiOjE3MTA0ODI4MTEsInNhbHQiOiJOZTlraWpQTUg4In0.zFCRoonPgOVBiujVklSzSwHM_J2iSj3j9_NZWJCLj-w");
         } else {
             typeStr = "账号密码鉴权";
-            LoginSettingActivity.this.view.groupAppID.setVisibility(View.VISIBLE);
+            LoginSettingActivity.this.view.llID.setVisibility(View.VISIBLE);
+            LoginSettingActivity.this.view.llSecret.setVisibility(View.VISIBLE);
             LoginSettingActivity.this.view.llToken.setVisibility(View.GONE);
         }
         LoginSettingActivity.this.view.tvType.setText(typeStr);
@@ -143,8 +179,5 @@ public class LoginSettingActivity extends BaseActivity<BaseViewModel, ActivityLo
         public MutableLiveData<String> APP_ID = new MutableLiveData<>(Constant.getAppID());
         public MutableLiveData<String> APP_SECRET = new MutableLiveData<>(Constant.getAppSecret());
         public MutableLiveData<String> LOGIN_TOKEN = new MutableLiveData<>(SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN"));
-       /* public MutableLiveData<String> APP_AUTH_URL = new MutableLiveData<>(Constant.getAppAuthUrl());
-        public MutableLiveData<String> IM_WS_URL = new MutableLiveData<>(Constant.getImWsUrl());
-        public MutableLiveData<String> STORAGE_TYPE = new MutableLiveData<>(Constant.getStorageType());*/
     }
 }

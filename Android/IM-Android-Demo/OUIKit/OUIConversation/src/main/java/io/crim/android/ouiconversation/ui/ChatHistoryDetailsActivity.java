@@ -11,7 +11,7 @@ import java.util.List;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import io.crim.android.sdk.enums.MsgType;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.ouiconversation.databinding.ActivityChatHistoryDetailsBinding;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
@@ -41,11 +41,11 @@ public class ChatHistoryDetailsActivity extends BaseActivity<BaseViewModel, Acti
 
     private void initView() {
         view.recyclerview.setLayoutManager(new LinearLayoutManager(this));
-        view.recyclerview.setAdapter(adapter = new RecyclerViewAdapter<Msg,
+        view.recyclerview.setAdapter(adapter = new RecyclerViewAdapter<Message,
             ViewHol.ContactItemHolder>(ViewHol.ContactItemHolder.class) {
 
             @Override
-            public void onBindView(@NonNull ViewHol.ContactItemHolder holder, Msg data, int position) {
+            public void onBindView(@NonNull ViewHol.ContactItemHolder holder, Message data, int position) {
                 holder.viewBinding.avatar.load(data.getSenderFaceUrl());
                 holder.viewBinding.nickName.setText(data.getSenderNickname());
                 holder.viewBinding.time.setText(TimeUtil.getTimeString(data.getSendTime()));
@@ -95,8 +95,8 @@ public class ChatHistoryDetailsActivity extends BaseActivity<BaseViewModel, Acti
     void init() {
         String extra = getIntent().getStringExtra(Constant.K_RESULT);
         try {
-            Type listType = new GsonHel.ParameterizedTypeImpl(List.class, new Class[]{Msg.class});
-            List<Msg> messages = GsonHel.getGson().fromJson(extra, listType);
+            Type listType = new GsonHel.ParameterizedTypeImpl(List.class, new Class[]{Message.class});
+            List<Message> messages = GsonHel.getGson().fromJson(extra, listType);
             adapter.setItems(messages);
         } catch (Exception e) {
             e.printStackTrace();

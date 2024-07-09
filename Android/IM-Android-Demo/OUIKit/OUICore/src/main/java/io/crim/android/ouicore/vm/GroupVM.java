@@ -21,6 +21,7 @@ import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.services.IConversationBridge;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.ErrUtil;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.widget.CommonDialog;
@@ -122,6 +123,15 @@ public class GroupVM extends SocialityVM {
 
             @Override
             public void onSuccess(GrpInfo data) {
+                CRIMClient.getInstance().groupManager.setGrpVerification(new OnBase<String>() {
+                    @Override
+                    public void onError(int code, String error) {
+                    }
+
+                    @Override
+                    public void onSuccess(String data) {
+                    }
+                },data.getGroupID(),2);
                 Easy.delete(MultipleChoiceVM.class);
                 getIView().onSuccess(data);
                 Common.UIHandler.postDelayed(waitDialog::dismiss, 200);
@@ -443,7 +453,7 @@ public class GroupVM extends SocialityVM {
         commonDialog.getMainView().confirm.setOnClickListener(v -> CRIMClient.getInstance().groupManager.quitGrp(new OnBase<String>() {
             @Override
             public void onError(int code, String error) {
-                getIView().toast(error + code);
+                getIView().toast(ErrUtil.getErrTip(code, error));
             }
 
             @Override

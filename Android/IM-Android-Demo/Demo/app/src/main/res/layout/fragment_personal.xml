@@ -6,10 +6,10 @@
     android:orientation="vertical">
 
     <LinearLayout
-        android:paddingTop="50dp"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:background="#5495E3"
-        android:layout_height="wrap_content">
+        android:paddingTop="50dp">
 
         <!--<ImageView
             android:id="@+id/topBg"
@@ -27,10 +27,10 @@
             android:background="@drawable/bg_white_top_16"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:paddingTop="30dp"
-            android:paddingBottom="30dp"
             android:paddingLeft="16dp"
-            android:paddingRight="16dp">
+            android:paddingTop="30dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="30dp">
 
             <io.crim.android.ouicore.widget.AvatarImage
                 android:id="@+id/avatar"
@@ -50,14 +50,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="3dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
                     android:textColor="#ff0c1c33"
                     android:textSize="24sp"
                     android:textStyle="bold" />
 
                 <LinearLayout
-                    android:layout_marginTop="5dp"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="5dp"
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
@@ -66,6 +68,8 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginRight="3dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
                         android:textColor="#ff8e9ab0"
                         android:textSize="15sp" />
 
@@ -79,9 +83,9 @@
 
             <ImageView
                 android:id="@+id/qrCode"
-                android:layout_marginRight="5dp"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:layout_marginRight="5dp"
                 android:src="@mipmap/ic_my_qr" />
 
 
@@ -133,9 +137,9 @@
         </LinearLayout>
 
         <View
-            android:background="@color/background_color"
             android:layout_width="match_parent"
-            android:layout_height="1dp"/>
+            android:layout_height="1dp"
+            android:background="@color/background_color" />
 
         <LinearLayout
             android:id="@+id/accountSetting"
@@ -165,9 +169,9 @@
         </LinearLayout>
 
         <View
-            android:background="@color/background_color"
             android:layout_width="match_parent"
-            android:layout_height="1dp"/>
+            android:layout_height="1dp"
+            android:background="@color/background_color" />
 
         <LinearLayout
             android:id="@+id/aboutLy"
@@ -197,9 +201,9 @@
         </LinearLayout>
 
         <View
-            android:background="@color/background_color"
             android:layout_width="match_parent"
-            android:layout_height="1dp"/>
+            android:layout_height="1dp"
+            android:background="@color/background_color" />
 
         <LinearLayout
             android:id="@+id/quit"

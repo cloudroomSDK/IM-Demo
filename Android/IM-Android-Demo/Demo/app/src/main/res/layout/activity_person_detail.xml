@@ -28,264 +28,502 @@
                         android:id="@+id/back"
                         layout="@layout/view_back" />
 
+                    <TextView
+                        android:text="好友名片"
+                        android:textSize="18sp"
+                        android:textColor="#333"
+                        android:layout_centerInParent="true"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@color/white"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingLeft="20dp"
-                android:paddingTop="10dp"
-                android:paddingRight="20dp"
-                android:paddingBottom="16dp">
-
-                <io.crim.android.ouicore.widget.AvatarImage
-                    android:id="@+id/avatar"
-                    android:layout_width="60dp"
-                    android:layout_height="60dp"
-                    android:background="@mipmap/ic_my_friend" />
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="20dp"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/nickName"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="5dp"
-                        android:layout_weight="1"
-                        android:textColor="#ff0c1c33"
-                        android:textSize="17sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/userId"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:textColor="@color/txt_shallow"
-                        android:textSize="14sp" />
-
-                </LinearLayout>
-
-                <FrameLayout
-                    android:id="@+id/addFriend"
-                    android:layout_width="wrap_content"
-                    android:layout_height="35dp"
-                    android:background="@drawable/sty_radius_6_ff0089ff"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="5dp">
-
-                    <RadioButton
-                        android:layout_width="wrap_content"
-                        android:layout_height="match_parent"
-                        android:button="@null"
-                        android:clickable="false"
-                        android:drawableLeft="@mipmap/ic_add_friend4"
-                        android:gravity="center_vertical"
-                        android:text="@string/add_friend"
-                        android:textColor="@color/white"
-                        android:textSize="14sp" />
-
-                </FrameLayout>
-
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:id="@+id/groupInfo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@color/white"
-                android:orientation="vertical"
-                android:visibility="gone">
+                android:layout_height="wrap_content">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-
-                    android:orientation="vertical"
-                    android:paddingLeft="20dp"
-                    android:paddingTop="15dp"
-                    android:paddingRight="20dp"
-                    android:paddingBottom="15dp">
+                    android:orientation="vertical">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:background="@color/white"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:paddingLeft="20dp"
+                        android:paddingTop="10dp"
+                        android:paddingRight="20dp"
+                        android:paddingBottom="16dp">
+
+                        <io.crim.android.ouicore.widget.AvatarImage
+                            android:id="@+id/avatar"
+                            android:layout_width="60dp"
+                            android:layout_height="60dp"
+                            android:background="@mipmap/ic_my_friend" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="20dp"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/nickName"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="5dp"
+                                android:layout_weight="1"
+                                android:textColor="#ff0c1c33"
+                                android:textSize="17sp"
+                                android:textStyle="bold" />
+
+                        </LinearLayout>
+
+                        <FrameLayout
+                            android:id="@+id/addFriend"
+                            android:layout_width="wrap_content"
+                            android:layout_height="35dp"
+                            android:background="@drawable/sty_radius_6_ff0089ff"
+                            android:paddingLeft="5dp"
+                            android:paddingRight="5dp">
+
+                            <RadioButton
+                                android:layout_width="wrap_content"
+                                android:layout_height="match_parent"
+                                android:button="@null"
+                                android:clickable="false"
+                                android:drawableLeft="@mipmap/ic_add_friend4"
+                                android:gravity="center_vertical"
+                                android:text="@string/add_friend"
+                                android:textColor="@color/white"
+                                android:textSize="14sp" />
+
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/groupInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/white"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingLeft="20dp"
+                            android:paddingTop="15dp"
+                            android:paddingRight="20dp"
+                            android:paddingBottom="15dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/group_nickName"
+                                    android:textColor="@color/txt_shallow"
+                                    android:textSize="18sp" />
+
+                                <TextView
+                                    android:id="@+id/groupNickName"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="2"
+                                    android:textColor="@color/txt_black"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/join_group_time"
+                                    android:textColor="@color/txt_shallow"
+                                    android:textSize="18sp" />
+
+                                <TextView
+                                    android:id="@+id/time"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="2"
+                                    android:textColor="@color/txt_black"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:id="@+id/joinMethodLy"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:text="@string/join_group_method"
+                                    android:textColor="@color/txt_shallow"
+                                    android:textSize="18sp" />
+
+                                <TextView
+                                    android:id="@+id/joinMethod"
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="2"
+                                    android:textColor="@color/txt_black"
+                                    android:textSize="18sp" />
+                            </LinearLayout>
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/userInfo"
+                        android:layout_width="match_parent"
+                        android:layout_height="55dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/white"
+                        android:gravity="center_vertical"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="22dp"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:text="@string/person_info"
+                            android:textColor="#ff333333"
+                            android:textSize="18sp" />
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginRight="22dp"
+                            android:src="@mipmap/ic_right" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/userIdLayout"
+                        android:layout_width="match_parent"
+                        android:layout_height="55dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/white"
+                        android:gravity="center_vertical"
+                        android:visibility="visible">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="22dp"
+                            android:layout_weight="1"
+                            android:gravity="center_vertical"
+                            android:text="ID号"
+                            android:textColor="#ff333333"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/userId"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="123456"
+                            android:textColor="#ff333333"
+                            android:textSize="18sp" />
+
+                        <FrameLayout
+                            android:id="@+id/idCopy"
+                            android:layout_width="50dp"
+                            android:layout_height="match_parent">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@mipmap/copy_blue" />
+                        </FrameLayout>
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/remark"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@color/white"
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/remark"
+                                android:textColor="#ff333333"
+                                android:textSize="18sp" />
+
+                            <TextView
+                                android:id="@+id/tvRemark"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="#ff333333"
+                                android:textSize="18sp" />
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@mipmap/ic_right" />
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <include layout="@layout/view_dividing_line" />
+
+                    <LinearLayout
+                        android:id="@+id/genderLy"
+                        android:layout_width="match_parent"
+                        android:layout_height="58dp"
+                        android:background="@color/white"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/group_nickName"
-                            android:textColor="@color/txt_shallow"
+                            android:text="@string/gender"
+                            android:textColor="#ff333333"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/groupNickName"
-                            android:layout_width="0dp"
+                            android:id="@+id/gender"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="2"
-                            android:textColor="@color/txt_black"
-                            android:textSize="18sp" />
+                            android:textColor="#ff999999"
+                            android:textSize="16sp" />
+
                     </LinearLayout>
 
+                    <include layout="@layout/view_dividing_line" />
+
                     <LinearLayout
+                        android:id="@+id/birthdayLy"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_height="58dp"
+                        android:background="@color/white"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/join_group_time"
-                            android:textColor="@color/txt_shallow"
+                            android:text="@string/birthday"
+                            android:textColor="#ff333333"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/time"
-                            android:layout_width="0dp"
+                            android:id="@+id/birthday"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_weight="2"
-                            android:textColor="@color/txt_black"
-                            android:textSize="18sp" />
+                            android:textColor="#ff999999"
+                            android:textSize="16sp" />
                     </LinearLayout>
 
+                    <include layout="@layout/view_dividing_line" />
+
                     <LinearLayout
-                        android:id="@+id/joinMethodLy"
+                        android:id="@+id/qrCode"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="20dp"
+                        android:layout_height="58dp"
+                        android:background="@color/white"
                         android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp">
 
                         <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/join_group_method"
-                            android:textColor="@color/txt_shallow"
+                            android:text="@string/phone_num"
+                            android:textColor="#ff333333"
                             android:textSize="18sp" />
 
                         <TextView
-                            android:id="@+id/joinMethod"
+                            android:id="@+id/phoneTv"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="#ff999999"
+                            android:textSize="16sp" />
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/recommend"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/white"
+                        android:paddingLeft="20dp"
+                        android:paddingRight="20dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="55dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/recommend_to_friend"
+                                android:textColor="#ff333333"
+                                android:textSize="18sp" />
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@mipmap/ic_right" />
+                        </LinearLayout>
+
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/joinBlackList"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@color/white"
+                        android:gravity="center_vertical"
+                        android:paddingLeft="22dp"
+                        android:paddingRight="22dp">
+
+                        <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_weight="2"
+                            android:layout_weight="1"
+                            android:text="@string/join_the_blacklist"
+                            android:textColor="#ff333333"
+                            android:textSize="16sp" />
+
+                        <io.crim.android.ouicore.widget.SlideButton
+                            android:id="@+id/slideButton"
+                            android:layout_width="38dp"
+                            android:layout_height="23dp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/call"
+                        android:layout_width="170dp"
+                        android:layout_height="46dp"
+                        android:background="@drawable/sty_radius_6_white"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                        <RadioButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:button="@null"
+                            android:clickable="false"
+                            android:drawableLeft="@mipmap/ic_call"
+                            android:drawablePadding="10dp"
+                            android:text="@string/media_call"
                             android:textColor="@color/txt_black"
-                            android:textSize="18sp" />
+                            android:textSize="17sp" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/bottomMenu"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="80dp"
+                        android:layout_marginBottom="60dp"
+                        android:orientation="horizontal"
+                        android:visibility="visible">
+
+                        <LinearLayout
+                            android:id="@+id/sendMsg"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:paddingStart="20dp"
+                            android:orientation="vertical">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@mipmap/ic_msg" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:text="@string/send_msg"
+                                android:textColor="#3D3D3D"
+                                android:textSize="17sp" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:id="@+id/part"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:paddingEnd="20dp"
+                            android:orientation="vertical"
+                            android:visibility="visible">
+
+                            <ImageView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:src="@mipmap/ic_del" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="15dp"
+                                android:text="@string/disassociate"
+                                android:textColor="#FF0000"
+                                android:textSize="17sp" />
+                        </LinearLayout>
+
                     </LinearLayout>
                 </LinearLayout>
-            </LinearLayout>
-
-
-            <LinearLayout
-                android:id="@+id/userInfo"
-                android:layout_width="match_parent"
-                android:layout_height="55dp"
-                android:layout_marginTop="12dp"
-                android:background="@color/white"
-                android:gravity="center_vertical"
-                android:visibility="gone">
-
-                <TextView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="22dp"
-                    android:layout_weight="1"
-                    android:gravity="center_vertical"
-                    android:text="@string/person_info"
-                    android:textColor="#ff333333"
-                    android:textSize="18sp" />
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="22dp"
-                    android:src="@mipmap/ic_right" />
-
-            </LinearLayout>
-
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1" />
-
-
-            <LinearLayout
-                android:id="@+id/bottomMenu"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginLeft="20dp"
-                android:layout_marginRight="20dp"
-                android:layout_marginBottom="60dp"
-                android:orientation="horizontal"
-                android:visibility="gone">
-
-                <LinearLayout
-                    android:id="@+id/call"
-                    android:layout_width="170dp"
-                    android:layout_height="46dp"
-                    android:gravity="center"
-                    android:visibility="gone"
-                    android:background="@drawable/sty_radius_6_white"
-                    >
-
-                    <RadioButton
-                        android:clickable="false"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:button="@null"
-                        android:drawableLeft="@mipmap/ic_call"
-                        android:drawablePadding="10dp"
-                        android:text="@string/media_call"
-                        android:textColor="@color/txt_black"
-                        android:textSize="17sp" />
-                </LinearLayout>
-
-
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="1dp"
-                    android:layout_weight="1" />
-
-                <LinearLayout
-                    android:layout_width="170dp"
-                    android:layout_height="46dp"
-                    android:id="@+id/sendMsg"
-                    android:background="@drawable/sty_radius_6_ff0089ff"
-                    android:gravity="center"
-                    >
-
-                    <RadioButton
-                        android:clickable="false"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:button="@null"
-                        android:drawableLeft="@mipmap/ic_chat"
-                        android:drawablePadding="10dp"
-                        android:text="@string/send_msg"
-                        android:textColor="@color/white"
-                        android:textSize="17sp" />
-                </LinearLayout>
-
-            </LinearLayout>
-
+            </ScrollView>
 
         </LinearLayout>
     </FrameLayout>

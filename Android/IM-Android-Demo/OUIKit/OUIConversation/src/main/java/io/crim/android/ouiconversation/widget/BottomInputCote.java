@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.SpannableString;
@@ -23,12 +24,9 @@ import java.util.List;
 
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.LifecycleOwner;
-import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.enums.GrpStatus;
-import io.crim.android.sdk.models.AtUserInfo;
-import io.crim.android.sdk.models.Msg;
 import io.crim.android.ouiconversation.R;
 import io.crim.android.ouiconversation.databinding.LayoutInputCoteBinding;
+import io.crim.android.ouiconversation.ui.emoji.EmojiFragment;
 import io.crim.android.ouiconversation.ui.fragment.InputExpandFragment;
 import io.crim.android.ouiconversation.vm.ChatVM;
 import io.crim.android.ouicore.base.BaseActivity;
@@ -38,7 +36,14 @@ import io.crim.android.ouicore.entity.MsgExpand;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.EmojiUtil;
+import io.crim.android.ouicore.utils.MediaFileUtil;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.enums.ConversationType;
+import io.crim.android.sdk.enums.GrpStatus;
+import io.crim.android.sdk.models.AtUserInfo;
+import io.crim.android.sdk.models.Message;
+import io.crim.android.sdk.models.SoundElem;
 
 import static android.view.View.GONE;
 import static android.view.View.VISIBLE;
@@ -51,8 +56,9 @@ public class BottomInputCote {
     private boolean hasMicrophone = false;
     private ChatVM vm;
     private Context context;
-
+    private TouchVoiceDialog touchVoiceDialog = null;
     InputExpandFragment inputExpandFragment;
+    EmojiFragment mEmojiFragment;
     public LayoutInputCoteBinding view;
     //是否可发送内容
     private boolean isSend;
@@ -68,21 +74,14 @@ public class BottomInputCote {
         initFragment();
         Common.UIHandler.postDelayed(() -> hasMicrophone = AndPermission.hasPermissions(context,
             Permission.Group.MICROPHONE), 300);
-
-        view.chatMoreOrSend.setOnClickListener(new OnDedrepClickListener() {
+        view.tvSend.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void click(View v) {
+            public void onClick(View v) {
                 if (!isSend) {
-                    view.voice.setChecked(false);
-                    clearFocus();
-                    Common.hideKeyboard(BaseApp.inst(), v);
-                    view.fragmentContainer.setVisibility(VISIBLE);
-                    switchFragment(inputExpandFragment);
                     return;
                 }
-
-                List<Msg> atMessages = vm.atMessages.getValue();
-                final Msg msg;
+                List<Message> atMessages = vm.atMessages.getValue();
+                final Message msg;
                 if (null != vm.replyMessage.getValue()) {
                     msg =
                         CRIMClient.getInstance().messageManager
@@ -97,7 +96,74 @@ public class BottomInputCote {
                     Editable msgEdit = view.chatInput.getText();
                     final ForegroundColorSpan spans[] = view.chatInput.getText().getSpans(0,
                         view.chatInput.getText().length(), ForegroundColorSpan.class);
-                    for (Msg atMessage : atMessages) {
+                    for (Message atMessage : atMessages) {
+                        atUserIDList.add(atMessage.getSendID());
+                        AtUserInfo atUserInfo = new AtUserInfo();
+                        atUserInfo.setAtUserID(atMessage.getSendID());
+                        atUserInfo.setGroupNickname(atMessage.getSenderNickname());
+                        atUserInfoList.add(atUserInfo);
+
+                        try {
+                            for (ForegroundColorSpan span : spans) {
+                                if (span == null) continue;
+                                MsgExpand msgExpand = (MsgExpand) atMessage.getExt();
+                                if (msgExpand.spanHashCode == span.hashCode()) {
+                                    final int spanStart =
+                                        view.chatInput.getText().getSpanStart(span);
+                                    final int spanEnd = view.chatInput.getText().getSpanEnd(span);
+                                    msgEdit.replace(spanStart, spanEnd,
+                                        " @" + atMessage.getSendID() + " ");
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    msg =
+                        CRIMClient.getInstance().messageManager.createTextAtMsg(msgEdit.toString(), atUserIDList, atUserInfoList, null);
+                }
+                if (null != msg) {
+                    if (msg.getSessionType() == ConversationType.UNDEFINE) {
+                        if (vm.isSingleChat) {
+                            msg.setSessionType(ConversationType.SINGLE_CHAT);
+                        } else {
+                            msg.setSessionType(ConversationType.SUPER_GROUP_CHAT);
+                        }
+                    }
+                    vm.sendMsg(msg);
+                    reset();
+                }
+            }
+        });
+        view.chatMoreOrSend.setOnClickListener(new OnDedrepClickListener() {
+            @Override
+            public void click(View v) {
+//                if (!isSend) {
+                view.voice.setChecked(false);
+                clearFocus();
+                Common.hideKeyboard(BaseApp.inst(), v);
+                view.fragmentContainer.setVisibility(VISIBLE);
+                switchFragment(inputExpandFragment);
+//                    return;
+//                }
+
+                /*List<Message> atMessages = vm.atMessages.getValue();
+                final Message msg;
+                if (null != vm.replyMessage.getValue()) {
+                    msg =
+                        CRIMClient.getInstance().messageManager
+                            .createQuoteMsg(vm.inputMsg.getValue(), vm.replyMessage.getValue());
+                } else if (atMessages.isEmpty())
+                    msg =
+                        CRIMClient.getInstance().messageManager.createTextMsg(vm.inputMsg.getValue());
+                else {
+                    List<String> atUserIDList = new ArrayList<>();
+                    List<AtUserInfo> atUserInfoList = new ArrayList<>();
+
+                    Editable msgEdit = view.chatInput.getText();
+                    final ForegroundColorSpan spans[] = view.chatInput.getText().getSpans(0,
+                        view.chatInput.getText().length(), ForegroundColorSpan.class);
+                    for (Message atMessage : atMessages) {
                         atUserIDList.add(atMessage.getSendID());
                         AtUserInfo atUserInfo = new AtUserInfo();
                         atUserInfo.setAtUserID(atMessage.getSendID());
@@ -126,13 +192,57 @@ public class BottomInputCote {
                 if (null != msg) {
                     vm.sendMsg(msg);
                     reset();
-                }
+                }*/
             }
         });
         view.voice.setOnCheckedChangeListener((v, isChecked) -> {
-
+            if (isChecked) {
+                if (AndPermission.hasPermissions(v.getContext(), Permission.RECORD_AUDIO)) {
+                    view.touchSay.setVisibility(VISIBLE);
+                    view.inputLy.setVisibility(GONE);
+                } else {
+                    AndPermission.with(v.getContext()).runtime().permission(Permission.RECORD_AUDIO).onGranted(permissions -> {
+                        // Storage permission are allowed.
+                        view.touchSay.setVisibility(VISIBLE);
+                        view.inputLy.setVisibility(GONE);
+                    }).onDenied(permissions -> {
+                        // Storage permission are not allowed.
+                        view.inputLy.setVisibility(VISIBLE);
+                        view.touchSay.setVisibility(GONE);
+                        view.voice.setChecked(!isChecked);
+                    }).start();
+                }
+            } else {
+                view.inputLy.setVisibility(VISIBLE);
+                view.touchSay.setVisibility(GONE);
+            }
         });
-
+        view.touchSay.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                touchVoiceDialog = new TouchVoiceDialog(view.getContext());
+                touchVoiceDialog.setOnSelectResultListener(new TouchVoiceDialog.OnSelectResultListener() {
+                    @Override
+                    public void result(int code, Uri audioPath, int duration) {
+                        if (code == TouchVoiceDialog.TYPE_RECORD) {
+                            SoundElem elem = new SoundElem();
+                            elem.setSoundPath(audioPath.getPath());
+                            elem.setDataSize(MediaFileUtil.getFileSize(view.getContext(), audioPath));
+                            elem.setDuration(duration);
+                            Message msg = CRIMClient.getInstance().messageManager.createSoundMsgByURL(elem);
+                            vm.sendMsg(msg);
+                        }
+                    }
+                }).show();
+                return false;
+            }
+        });
+        view.touchSay.setOnTouchListener((view1, event) -> {
+            if (touchVoiceDialog != null) {
+                touchVoiceDialog.dispatchTouchEvent(event);
+            }
+            return false;
+        });
         view.chatInput.setOnFocusChangeListener((v, hasFocus) -> {
             if (hasFocus) setExpandHide();
 //            InputMethodManager inputMethodManager =
@@ -141,7 +251,10 @@ public class BottomInputCote {
         });
 
         view.emoji.setOnClickListener(v -> {
-
+            clearFocus();
+            Common.hideKeyboard(BaseApp.inst(), v);
+            view.fragmentContainer.setVisibility(VISIBLE);
+            switchFragment(mEmojiFragment);
         });
         view.cancelReply.setOnClickListener(v -> vm.replyMessage.setValue(null));
         view.chatInput.addTextChangedListener(new TextWatcher() {
@@ -164,13 +277,18 @@ public class BottomInputCote {
 
     }
 
-
     private void setSendButton(boolean isSend) {
         if (BottomInputCote.this.isSend == isSend) return;
-        view.chatMoreOrSend.setImageResource(isSend ? R.mipmap.ic_c_send : R.mipmap.ic_chat_add);
+//        view.chatMoreOrSend.setImageResource(isSend ? R.mipmap.ic_c_send : R.mipmap.ic_chat_add);
+        if (isSend) {
+            view.tvSend.setTextColor(Color.parseColor("#ffffff"));
+            view.tvSend.setBackgroundResource(R.drawable.bg_blue);
+        } else {
+            view.tvSend.setTextColor(Color.parseColor("#888888"));
+            view.tvSend.setBackgroundResource(R.drawable.bg_gray);
+        }
         BottomInputCote.this.isSend = isSend;
     }
-
 
     //消息发出后重置UI
     private void reset() {
@@ -183,8 +301,15 @@ public class BottomInputCote {
 
     private void initFragment() {
         inputExpandFragment = new InputExpandFragment();
+        mEmojiFragment = new EmojiFragment();
         inputExpandFragment.setPage(1);
+        mEmojiFragment.setPage(2);
+    }
 
+    public void setEmojiClickListener(EmojiFragment.EmojiClickListener listener) {
+        if (mEmojiFragment != null) {
+            mEmojiFragment.setEmojiClickListener(listener);
+        }
     }
 
     public void clearFocus() {
@@ -194,7 +319,7 @@ public class BottomInputCote {
     public void setChatVM(ChatVM vm) {
         this.vm = vm;
         inputExpandFragment.setChatVM(vm);
-
+        mEmojiFragment.setChatVM(vm);
         view.chatInput.setChatVM(vm);
         view.setChatVM(vm);
         vmListener();
@@ -209,7 +334,7 @@ public class BottomInputCote {
             ForegroundColorSpan colorSpan = new ForegroundColorSpan(Color.parseColor("#009ad6"));
             spannableString.setSpan(colorSpan, 0, spannableString.length(),
                 Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-            Msg lastMsg = messages.get(messages.size() - 1);
+            Message lastMsg = messages.get(messages.size() - 1);
             MsgExpand msgExpand = (MsgExpand) lastMsg.getExt();
             if (null != msgExpand) msgExpand.spanHashCode = colorSpan.hashCode();
             view.chatInput.append(spannableString);
@@ -242,7 +367,6 @@ public class BottomInputCote {
                     view.inputLy.setVisibility(VISIBLE);
                     setSendButton(true);
                     view.touchSay.setVisibility(GONE);
-
                     view.root.setIntercept(true);
                     view.root.setAlpha(0.5f);
                     view.notice.setVisibility(VISIBLE);
@@ -257,6 +381,7 @@ public class BottomInputCote {
             if (null == message) {
                 view.replyLy.setVisibility(GONE);
             } else {
+                view.voice.setChecked(false);
                 view.replyLy.setVisibility(VISIBLE);
                 view.replyContent.setText(message.getSenderNickname() + ":" + IMUtil.getMsgParse(message));
             }

@@ -4,10 +4,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 
 import com.liulishuo.okdownload.DownloadTask;
 import com.liulishuo.okdownload.StatusUtil;
@@ -19,6 +17,8 @@ import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
 import java.io.File;
 import java.math.BigDecimal;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.crim.android.ouicore.R;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
@@ -28,11 +28,14 @@ import io.crim.android.ouicore.utils.OnDedrepClickListener;
 import io.crim.android.ouicore.utils.OpenFileUtil;
 
 public class FileDownloadView extends RelativeLayout {
-    private ImageView res, bgMask, downBtn;
-    private CirclePgBar circlePgBar;
+    private ImageView res;
+//    private ImageView bgMask, downBtn;
+//    private CirclePgBar circlePgBar;
     private String targetUrl;
     private boolean isDownloading = false, isDownLoadCompleted;
     private DownloadTask task;
+    private FileDownViewListener mFileDownViewListener;
+    private ProgressBar mProgressBar;
 
     public FileDownloadView(Context context) {
         super(context);
@@ -46,7 +49,7 @@ public class FileDownloadView extends RelativeLayout {
 
     void init() {
         res = new ImageView(getContext());
-        bgMask = new ImageView(getContext());
+        /*bgMask = new ImageView(getContext());
         bgMask.setImageResource(R.mipmap.ic_file_mask);
         downBtn = new ImageView(getContext());
         downBtn.setImageResource(R.mipmap.ic_file_download);
@@ -64,12 +67,12 @@ public class FileDownloadView extends RelativeLayout {
         params2.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         params2.width = 40;
         params2.height = 40;
-        downBtn.setLayoutParams(params2);
+        downBtn.setLayoutParams(params2);*/
 
         addView(res);
-        addView(bgMask);
+        /*addView(bgMask);
         addView(circlePgBar);
-        addView(downBtn);
+        addView(downBtn);*/
 
         setOnClickListener(new OnDedrepClickListener() {
             @Override
@@ -101,7 +104,10 @@ public class FileDownloadView extends RelativeLayout {
             public void taskStart(@NonNull DownloadTask task,
                                   @NonNull Listener1Assist.Listener1Model model) {
                 isDownloading = true;
-                downBtn.setImageResource(R.mipmap.ic_file_download_pause);
+//                downBtn.setImageResource(R.mipmap.ic_file_download_pause);
+                if (mProgressBar != null) {
+                    mProgressBar.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -120,7 +126,10 @@ public class FileDownloadView extends RelativeLayout {
                 int current =
                     BigDecimal.valueOf(currentOffset).divide(BigDecimal.valueOf(totalLength), 2,
                         BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).intValue();
-                circlePgBar.setTargetProgress(current);
+//                circlePgBar.setTargetProgress(current);
+                if (mProgressBar != null) {
+                    mProgressBar.setProgress(current);
+                }
             }
 
             @Override
@@ -129,15 +138,36 @@ public class FileDownloadView extends RelativeLayout {
                                 @NonNull Listener1Assist.Listener1Model model) {
                 if (cause == EndCause.COMPLETED) {
                     isDownLoadCompleted = true;
-                    bgMask.setVisibility(GONE);
+                    /*bgMask.setVisibility(GONE);
                     downBtn.setVisibility(GONE);
-                    circlePgBar.setVisibility(GONE);
+                    circlePgBar.setVisibility(GONE);*/
                 } else {
                     isDownloading = false;
-                    downBtn.setImageResource(R.mipmap.ic_file_download);
+//                    downBtn.setImageResource(R.mipmap.ic_file_download);
+                }
+                if (mFileDownViewListener != null) {
+                    mFileDownViewListener.complete(cause, realCause);
+                }
+                if (mProgressBar != null) {
+                    mProgressBar.setVisibility(View.INVISIBLE);
                 }
             }
         });
+    }
+
+    public void setProgressBar(ProgressBar progressBar) {
+        mProgressBar = progressBar;
+    }
+
+    public interface FileDownViewListener {
+        void complete(EndCause cause, Exception exception);
+        /*void taskStart();
+        void progress(int progress);
+        void taskEnd();*/
+    }
+
+    public void setFileDownViewListener(FileDownViewListener listener) {
+        mFileDownViewListener = listener;
     }
 
     public void setRes(String url) {
@@ -149,12 +179,15 @@ public class FileDownloadView extends RelativeLayout {
         else res.setImageResource(R.mipmap.ic_file_unknown);
 
         isDownLoadCompleted = isDownLoadCompleted();
-        bgMask.setVisibility(isDownLoadCompleted ? GONE : VISIBLE);
+        /*bgMask.setVisibility(isDownLoadCompleted ? GONE : VISIBLE);
         circlePgBar.setVisibility(isDownLoadCompleted ? GONE : VISIBLE);
-        downBtn.setVisibility(isDownLoadCompleted ? GONE : VISIBLE);
+        downBtn.setVisibility(isDownLoadCompleted ? GONE : VISIBLE);*/
+        if (mProgressBar != null) {
+            mProgressBar.setVisibility(isDownLoadCompleted ? GONE : INVISIBLE);
+        }
     }
 
-    boolean isDownLoadCompleted() {
+    public boolean isDownLoadCompleted() {
         return StatusUtil.isCompleted(targetUrl, Constant.File_DIR, Common.md5(targetUrl) +
             "." + GetFilePathFromUri.getFileSuffix(targetUrl));
     }

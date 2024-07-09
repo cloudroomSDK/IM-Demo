@@ -183,7 +183,7 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
     private void cacheGroupDot(GrpReqInfo info) {
         if (info.getHandleResult() == 0
             && !info.getUserID().equals(BaseApp.inst().loginCertificate.userID)) {
-            Log.d("eeeeeee","contact vm=cacheGroupDot=="+friendDotNum.getValue());
+//            Log.d("eeeeeee","contact vm=cacheGroupDot=="+friendDotNum.getValue());
             groupDotNum.setValue(friendDotNum.getValue() + 1);
             SharedPreferencesUtil.get(getContext()).setCache(Constant.K_GROUP_NUM,
                 groupDotNum.getValue());
@@ -193,7 +193,7 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
     private void cacheFriendDot(FriendReqInfo u) {
         if (u.getHandleResult() == 0
             && !u.getFromUserID().equals(BaseApp.inst().loginCertificate.userID)) {
-            Log.d("eeeeeee","contact vm=cacheFriendDot=="+friendDotNum.getValue());
+//            Log.d("eeeeeee","contact vm=cacheFriendDot=="+friendDotNum.getValue());
             friendDotNum.setValue(friendDotNum.getValue() + 1);
             SharedPreferencesUtil.get(getContext()).setCache(Constant.K_FRIEND_NUM,
                 friendDotNum.getValue());

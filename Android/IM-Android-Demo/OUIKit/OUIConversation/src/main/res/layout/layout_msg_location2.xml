@@ -26,22 +26,24 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_marginRight="8dp" />
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="12dp"
             android:orientation="vertical">
+
             <TextView
                 android:id="@+id/nickName2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#ff8e9ab0"
                 android:layout_gravity="right"
-                android:layout_marginBottom="2dp"
                 android:layout_marginEnd="3dp"
+                android:layout_marginBottom="2dp"
+                android:textColor="#ff8e9ab0"
                 android:textSize="12sp"
-                android:visibility="gone"
-                />
+                android:visibility="gone" />
+
             <LinearLayout
                 android:id="@+id/content2"
                 android:layout_width="222dp"
@@ -74,18 +76,28 @@
                     android:textColor="#ff999999"
                     android:textSize="12sp" />
 
-                <org.raphets.roundimageview.RoundImageView
-                    android:id="@+id/map2"
-                    android:layout_width="222dp"
-                    android:layout_height="80dp"
-                    android:layout_marginTop="8dp"
-                    android:scaleType="centerCrop"
-                    app:type="round"
-                    app:rightBottom_corner_radius="6dp"
-                    app:leftBottom_corner_radius="6dp" />
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content">
+
+                    <com.amap.api.maps.TextureMapView
+                        android:id="@+id/map"
+                        android:layout_width="222dp"
+                        android:layout_height="80dp"
+                        android:layout_marginTop="8dp"
+                        android:clickable="false"
+                        android:scaleType="centerCrop"
+                        app:leftBottom_corner_radius="6dp"
+                        app:rightBottom_corner_radius="6dp"
+                        app:type="round" />
+
+                    <View
+                        android:id="@+id/overView"
+                        android:layout_width="222dp"
+                        android:layout_height="80dp" />
+                </FrameLayout>
             </LinearLayout>
         </LinearLayout>
-
 
 
         <io.crim.android.ouicore.widget.AvatarImage

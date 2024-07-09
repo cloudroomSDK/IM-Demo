@@ -28,6 +28,7 @@ import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.base.BaseApp;
+import io.crim.android.ouicore.entity.LoginCertificate;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.GetFilePathFromUri;
@@ -37,7 +38,7 @@ import io.crim.android.sdk.enums.ConversationType;
 import io.crim.android.sdk.enums.MsgType;
 import io.crim.android.sdk.models.FriendInfo;
 import io.crim.android.sdk.models.GrpInfo;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.SearchResultItem;
 
 @Route(path = Routes.Conversation.SEARCH)
@@ -169,7 +170,7 @@ public class SearchActivity extends BaseActivity<SearchVM, ActivitySearchBinding
 
         });
         vm.fileItems.observe(this, searchResultItems -> {
-            List<Msg> fileMessages = new ArrayList<>();
+            List<Message> fileMessages = new ArrayList<>();
             for (SearchResultItem searchResultItem : searchResultItems) {
                 fileMessages.addAll(searchResultItem.getMessageList());
             }
@@ -227,7 +228,7 @@ public class SearchActivity extends BaseActivity<SearchVM, ActivitySearchBinding
                     return GROUP_ITEM;
                 if (o instanceof SearchResultItem)
                     return CHAT_ITEM;
-                if (o instanceof Msg)
+                if (o instanceof Message)
                     return FILE_ITEM;
 
                 //-1 表示分割线
@@ -304,13 +305,23 @@ public class SearchActivity extends BaseActivity<SearchVM, ActivitySearchBinding
                                     chatVM = new ChatVM();
                                     BaseApp.inst().putVM(chatVM);
                                 }
-                                Msg message;
+                                Message message;
                                 chatVM.startMsg = message = da.getMessageList().get(0);
                                 chatVM.isSingleChat = message.getSessionType() == ConversationType.SINGLE_CHAT;
-                                if (chatVM.isSingleChat)
-                                    chatVM.userID = message.getSendID();
-                                else
+                                String userID = "";
+                                LoginCertificate loginCertificate = BaseApp.inst().loginCertificate;
+                                if (loginCertificate != null) {
+                                    userID = loginCertificate.userID;
+                                }
+                                if (chatVM.isSingleChat) {
+                                    if (userID.equals(message.getSendID())) {
+                                        chatVM.userID = message.getRecvID();
+                                    } else {
+                                        chatVM.userID = message.getSendID();
+                                    }
+                                } else {
                                     chatVM.groupID = message.getGroupID();
+                                }
                                 /*NotificationMsg notificationMsg = GsonHel.fromJson(message.getNotificationElem().getDetail(),
                                     NotificationMsg.class);
                                 chatVM.notificationMsg.setValue(notificationMsg);*/
@@ -337,7 +348,7 @@ public class SearchActivity extends BaseActivity<SearchVM, ActivitySearchBinding
                     case FILE_ITEM:
                         ViewHol.FileItemViewHo fileItemViewHo = (ViewHol.FileItemViewHo) holder;
                         fileItemViewHo.view.divider.getRoot().setVisibility(View.GONE);
-                        Msg da = (Msg) data;
+                        Message da = (Message) data;
                         Common.stringBindForegroundColorSpan(fileItemViewHo.view.title, da.getFileElem().getFileName(), vm.searchContent.getValue());
                         fileItemViewHo.view.size.setText(getString(io.crim.android.ouicore.R.string.sender) + ":" + da.getSenderNickname());
                         fileItemViewHo.view.getRoot().setOnClickListener(v ->

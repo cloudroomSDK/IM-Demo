@@ -17,7 +17,7 @@ import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.ouiconversation.vm.ChatVM;
 import io.crim.android.ouicore.entity.MsgExpand;
 
@@ -82,10 +82,10 @@ public class TailInputEditText extends EmojiEditText {
             }
             if (characterStyle instanceof ForegroundColorSpan) {
                 //表示@消息
-                List<Msg> atMessages = chatVM.atMessages.getValue();
+                List<Message> atMessages = chatVM.atMessages.getValue();
                 Iterator iterator = atMessages.iterator();
                 while (iterator.hasNext()) {
-                    Msg message = (Msg) iterator.next();
+                    Message message = (Message) iterator.next();
                     try {
                         MsgExpand msgExpand = (MsgExpand) message.getExt();
                         if (msgExpand.spanHashCode == characterStyle.hashCode()) {

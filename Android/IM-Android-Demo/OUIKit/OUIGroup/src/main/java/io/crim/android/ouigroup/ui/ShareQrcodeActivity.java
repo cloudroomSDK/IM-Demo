@@ -77,7 +77,7 @@ public class ShareQrcodeActivity extends BaseActivity<GroupVM, ActivityGroupQrCo
 
     private void bindData(String shareContent) {
         try {
-            view.avatar.load(vm.groupsInfo.getValue().getFaceURL());
+            view.avatar.load(vm.groupsInfo.getValue().getFaceURL(),null != vm);
             qrCodeBitmap = CodeCreator.createQRCode(shareContent, Common.dp2px(182),
                 Common.dp2px(182), null);
             view.qrCode.setImageBitmap(qrCodeBitmap);

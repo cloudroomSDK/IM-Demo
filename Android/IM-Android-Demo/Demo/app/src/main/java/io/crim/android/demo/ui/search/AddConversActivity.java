@@ -4,21 +4,21 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-import androidx.activity.result.ActivityResultLauncher;
-
 import com.alibaba.android.arouter.facade.annotation.Route;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.permission.runtime.Permission;
 
+import androidx.activity.result.ActivityResultLauncher;
 import io.crim.android.demo.R;
 import io.crim.android.demo.databinding.ActivityAddFriendBinding;
+import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.PermissionUtil;
 import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.vm.SearchVM;
-import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.utils.SinkHelper;
+import io.crim.android.ouicore.vm.SearchVM;
 
 @Route(path = Routes.Main.ADD_CONVERS)
 public class AddConversActivity extends BaseActivity<SearchVM, ActivityAddFriendBinding> {
@@ -44,7 +44,13 @@ public class AddConversActivity extends BaseActivity<SearchVM, ActivityAddFriend
     }
 
     private void initView() {
-        view.input.getEditText().setHint(vm.isPerson ? io.crim.android.ouicore.R.string.search_by_id : R.string.search_group_by_id);
+//        view.input.getEditText().setHint(vm.isPerson ? io.crim.android.ouicore.R.string.search_by_id : R.string.search_group_by_id);
+        if (vm.isPerson){
+            view.tvTitle.setText(R.string.add_friend);
+        }else {
+            view.tvTitle.setText(R.string.add_group);
+        }
+        view.input.getEditText().setHint(R.string.search);
         view.back.back.setOnClickListener(v -> finish());
         view.input.setOnClickListener(v -> {
             startActivity(new Intent(this, SearchContactActivity.class));
@@ -62,7 +68,7 @@ public class AddConversActivity extends BaseActivity<SearchVM, ActivityAddFriend
             Common.permission(AddConversActivity.this, () -> {
                 hasScanPermission = true;
                 Common.jumpScan(this,resultLauncher);
-            }, hasScanPermission, Permission.CAMERA, Permission.READ_EXTERNAL_STORAGE);
+            }, hasScanPermission, Permission.CAMERA, PermissionUtil.getReadImgPermission());
         });
     }
 

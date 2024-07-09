@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import io.crim.android.sdk.listener.OnBase;
-import io.crim.android.sdk.models.UserInfo;
 import io.crim.android.demo.repository.CRIMService;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.BaseViewModel;
@@ -18,6 +16,8 @@ import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.widget.WaitDialog;
+import io.crim.android.sdk.listener.OnBase;
+import io.crim.android.sdk.models.UserInfo;
 
 public class PersonalVM extends BaseViewModel {
     public WaitDialog waitDialog;

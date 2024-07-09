@@ -14,8 +14,6 @@ import java.util.Observer;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.demo.databinding.FragmentPersonalBinding;
 import io.crim.android.demo.ui.login.LoginActivity;
 import io.crim.android.ouicore.base.BaseApp;
@@ -28,6 +26,8 @@ import io.crim.android.ouicore.utils.OnDedrepClickListener;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.ouicore.widget.WaitDialog;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.listener.OnBase;
 
 public class PersonalFragment extends BaseFragment implements Observer {
     public FragmentPersonalBinding view;
@@ -114,7 +114,7 @@ public class PersonalFragment extends BaseFragment implements Observer {
 
     @Override
     public void update(Observable observable, Object o) {
-        Obs.Msg message = (Obs.Msg) o;
+        Obs.Message message = (Obs.Message) o;
         if (message.tag == Constant.Event.USER_INFO_UPDATE) {
             view.avatar.load(BaseApp.inst().loginCertificate.faceURL);
             view.name.setText(BaseApp.inst().loginCertificate.nickName);

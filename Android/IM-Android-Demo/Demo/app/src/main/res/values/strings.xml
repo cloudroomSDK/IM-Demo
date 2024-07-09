@@ -50,9 +50,6 @@
     <string name="msg">消息</string>
     <string name="address_book">通讯录</string>
     <string name="nickname">昵称</string>
-    <string name="Invite_add_friends">邀请对方扫码，添加好友</string>
-
-//------------------------------------Login2Activity--------------------------------------
-//------------------------------------Login2Activity--------------------------------------
+    <string name="Invite_add_friends">邀请对方扫码添加好友</string>
 
 </resources>

@@ -8,15 +8,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.lqr.audio.AudioRecordManager;
-import com.lqr.audio.IAudioRecordListener;
-
 import java.io.File;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import io.crim.android.ouiconversation.R;
+import io.crim.android.ouiconversation.audio.AudioRecordManager;
+import io.crim.android.ouiconversation.audio.IAudioRecordListener;
 import io.crim.android.ouiconversation.databinding.LayoutTouchVoiceBinding;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.BaseDialog;
@@ -26,6 +24,9 @@ import io.crim.android.ouicore.utils.Constant;
 public class TouchVoiceDialog extends BaseDialog {
     //和布局里保持一致
     private static final float VOICE_HEIGHT = 129;
+    public static final int TYPE_RECORD = 0;
+    public static final int TYPE_CANCEL = 1;
+    public static final int TYPE_TO_TEXT = 2;
 
     public TouchVoiceDialog(@NonNull Context context) {
         super(context);
@@ -63,9 +64,8 @@ public class TouchVoiceDialog extends BaseDialog {
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-
         //默认时长秒
-        AudioRecordManager.getInstance(getContext()).setMaxVoiceDuration(60 * 5);
+        AudioRecordManager.getInstance(getContext()).setMaxVoiceDuration(60);
         //该库内不对文件夹是否存在进行判断，所以请在你的项目中自行判断
         File mAudioDir = new File(Constant.AUDIO_DIR);
         if (!mAudioDir.exists()) {
@@ -81,7 +81,6 @@ public class TouchVoiceDialog extends BaseDialog {
 
             @Override
             public void setTimeoutTipView(int counter) {
-
             }
 
             @Override
@@ -111,8 +110,10 @@ public class TouchVoiceDialog extends BaseDialog {
 
             @Override
             public void onFinish(Uri audioPath, int duration) {
-                if (null != onSelectResultListener)
+                if (null != onSelectResultListener) {
                     onSelectResultListener.result(code, audioPath, duration);
+                }
+                dismiss();
             }
 
             @Override
@@ -149,39 +150,44 @@ public class TouchVoiceDialog extends BaseDialog {
         float x = event.getRawX();
         float y = event.getRawY();
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
-            if (x > (screenWidth / 2)) {
+            /*if (x > (screenWidth / 2)) {
                 view.voice.setBackground(getContext().getDrawable(R.mipmap.bg_chat_voice2));
-
                 view.speechTxt.setVisibility(View.VISIBLE);
                 view.cancelTips.setVisibility(View.GONE);
                 view.voiceCancel.setVisibility(View.GONE);
-
                 view.recordTips.setVisibility(View.GONE);
                 view.sendTips.setVisibility(View.GONE);
-
-                code = 2;
+                code = TYPE_TO_TEXT;
             } else {
                 view.voice.setBackground(getContext().getDrawable(R.mipmap.bg_chat_voice2));
                 view.voiceCancel.setVisibility(View.VISIBLE);
                 view.cancelTips.setVisibility(View.VISIBLE);
                 view.speechTxt.setVisibility(View.GONE);
-
                 view.recordTips.setVisibility(View.GONE);
                 view.sendTips.setVisibility(View.GONE);
-
-                code = 1;
-            }
-
+                code = TYPE_CANCEL;
+            }*/
+            view.voice.setBackground(getContext().getDrawable(R.mipmap.bg_chat_voice2));
+            view.voiceCancel.setVisibility(View.VISIBLE);
+            view.cancelTips.setVisibility(View.VISIBLE);
+            view.speechTxt.setVisibility(View.GONE);
+            view.recordTips.setVisibility(View.GONE);
+            view.sendTips.setVisibility(View.GONE);
+            code = TYPE_CANCEL;
             if (y > (screenHeight - Common.dp2px(VOICE_HEIGHT))) {
                 initRecord();
-
-                code = 0;
+                code = TYPE_RECORD;
             }
         }
         if (event.getAction() == MotionEvent.ACTION_UP) {
             dismiss();
         }
-        return super.dispatchTouchEvent(event);
+        return true;
+    }
+
+    @Override
+    public boolean onTouchEvent(@NonNull MotionEvent event) {
+        return true;
     }
 
     //show 时视图初始化
@@ -196,8 +202,9 @@ public class TouchVoiceDialog extends BaseDialog {
 
     private OnSelectResultListener onSelectResultListener;
 
-    public void setOnSelectResultListener(OnSelectResultListener onSelectResultListener) {
+    public TouchVoiceDialog setOnSelectResultListener(OnSelectResultListener onSelectResultListener) {
         this.onSelectResultListener = onSelectResultListener;
+        return this;
     }
 
 
@@ -209,10 +216,9 @@ public class TouchVoiceDialog extends BaseDialog {
 
     public interface OnSelectResultListener {
         /**
-         *
-         * @param code  0 录音 1 取消录音 2 录音转文字
-         * @param audioPath  只有code=0时才有效
-         * @param duration 只有code=0时才有效
+         * @param code      0 录音 1 取消录音 2 录音转文字
+         * @param audioPath 只有code=0时才有效
+         * @param duration  只有code=0时才有效
          */
         void result(int code, Uri audioPath, int duration);
     }

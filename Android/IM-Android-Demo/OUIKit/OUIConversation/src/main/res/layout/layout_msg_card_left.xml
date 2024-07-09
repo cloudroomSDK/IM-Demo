@@ -33,53 +33,32 @@
 
                 <io.crim.android.ouicore.widget.InterceptLinearLayout
                     android:id="@+id/content"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/sty_radius_unleft_stroke_30"
+                    android:layout_width="200dp"
+                    android:layout_height="60dp"
+                    android:background="@drawable/bg_gray_shape_18"
                     android:gravity="center_vertical"
                     android:minHeight="40dp"
-                    android:minWidth="@dimen/msg_min_width"
-                    android:maxWidth="@dimen/msg_max_width"
-                    android:orientation="vertical"
-                    android:padding="7dp">
+                    android:paddingStart="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="12dp">
 
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginRight="10dp"
-                        android:gravity="center_vertical"
-                        android:minWidth="210dp"
-                        android:orientation="horizontal"
-                        android:paddingLeft="16dp"
-                        android:paddingRight="16dp">
-
-                        <io.crim.android.ouicore.widget.AvatarImage
-                            android:id="@+id/otherAvatar"
-                            android:layout_width="42dp"
-                            android:layout_height="42dp"
-                            android:layout_marginTop="12dp"
-                            android:layout_marginBottom="12dp"
-                            android:src="@mipmap/ic_my_friend" />
-
-                        <TextView
-                            android:id="@+id/cardNickName"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginLeft="8dp"
-                            android:textColor="#ff333333"
-                            android:textSize="16sp" />
-                    </LinearLayout>
-
-                    <include layout="@layout/view_dividing_line" />
+                    <io.crim.android.ouicore.widget.AvatarImage
+                        android:id="@+id/otherAvatar"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@mipmap/ic_my_friend" />
 
                     <TextView
+                        android:id="@+id/cardNickName"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="22dp"
-                        android:paddingTop="4dp"
-                        android:text="@string/card"
-                        android:textColor="#ff999999"
-                        android:textSize="11sp" />
+                        android:layout_marginLeft="8dp"
+                        android:ellipsize="end"
+                        android:maxWidth="100dp"
+                        android:maxLines="1"
+                        android:textColor="#ff333333"
+                        android:textSize="16sp" />
 
                 </io.crim.android.ouicore.widget.InterceptLinearLayout>
 

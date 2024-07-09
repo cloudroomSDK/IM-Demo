@@ -49,6 +49,8 @@ android {
 
 dependencies {
     api fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+//    compileOnly fileTree(include: ['*.jar', '*.aar'], dir: 'libs')
+
     implementation "androidx.core:core-ktx:1.8.0"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 
@@ -81,7 +83,8 @@ dependencies {
     api 'com.github.maogedadada:SortLetter-Master:1.0.9'
     api 'com.google.android.material:material:1.5.0'
 
-    implementation 'com.alibaba:arouter-api:1.5.2'
+    api 'com.alibaba:arouter-api:1.5.2'
+    annotationProcessor 'com.alibaba:arouter-compiler:1.5.2'
 
     //crim sdk
 //    api 'io.crim:android-sdk:3.0.0-beta03@aar'
@@ -101,4 +104,7 @@ dependencies {
 
 
     api 'q.rorbin:badgeview:1.1.3'
+//    api 'com.amap.api:location:latest.integration'
+    api 'com.amap.api:3dmap:latest.integration'
+    api 'com.amap.api:search:9.7.0'
 }

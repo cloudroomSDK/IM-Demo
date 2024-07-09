@@ -10,17 +10,18 @@ import com.alibaba.android.arouter.launcher.ARouter;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.listener.OnBase;
-import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.ErrUtil;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.utils.SinkHelper;
 import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.ouigroup.databinding.ActivityGroupDetailBinding;
+import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.listener.OnBase;
+import io.crim.android.sdk.models.GroupMembersInfo;
 
 @Route(path = Routes.Group.DETAIL)
 public class GroupDetailActivity extends BaseActivity<GroupVM, ActivityGroupDetailBinding> {
@@ -44,6 +45,7 @@ public class GroupDetailActivity extends BaseActivity<GroupVM, ActivityGroupDeta
 
     private void listener() {
         vm.groupsInfo.observe(this, groupInfo -> {
+            view.avatar.load(groupInfo.getFaceURL(), true);
             if (groupInfo.getNeedVerification() == Constant.GroupVerification.directly) {
                 startChat();
             } else {
@@ -83,23 +85,31 @@ public class GroupDetailActivity extends BaseActivity<GroupVM, ActivityGroupDeta
                 CRIMClient.getInstance().groupManager.joinGrp(new OnBase<String>() {
                     @Override
                     public void onError(int code, String error) {
+                        toast(ErrUtil.getErrTip(code, error));
                         dialog.dismiss();
                     }
 
                     @Override
                     public void onSuccess(String data) {
                         dialog.dismiss();
-                        ARouter.getInstance().build(Routes.Conversation.CHAT)
-                            .withString(Constant.K_GROUP_ID, vm.groupId)
-                            .withString(Constant.K_NAME, vm.groupsInfo.getValue().getGroupName())
-                            .navigation();
+                        view.joinGroup.postDelayed(new Runnable() {
+                            @Override
+                            public void run() {
+                                ARouter.getInstance().build(Routes.Conversation.CHAT)
+                                    .withString(Constant.K_GROUP_ID, vm.groupId)
+                                    .withString(Constant.K_NAME, vm.groupsInfo.getValue().getGroupName())
+                                    .navigation();
+                            }
+                        }, 300);
+
                     }
                 }, vm.groupId, "", 2);
-            } else
+            } else {
                 ARouter.getInstance().build(Routes.Conversation.CHAT)
                     .withString(Constant.K_GROUP_ID, vm.groupId)
                     .withString(Constant.K_NAME, vm.groupsInfo.getValue().getGroupName())
                     .navigation();
+            }
         });
     }
 

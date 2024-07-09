@@ -22,6 +22,7 @@ import com.alibaba.android.arouter.facade.Postcard;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.google.gson.Gson;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -37,10 +38,6 @@ import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.NotificationCompat;
-import io.crim.android.sdk.enums.ConversationType;
-import io.crim.android.sdk.models.OfflinePushInfo;
-import io.crim.android.sdk.models.SignalingInfo;
-import io.crim.android.sdk.models.SignalingInvitationInfo;
 import io.crim.android.ouicore.R;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.entity.AtMsgInfo;
@@ -64,19 +61,25 @@ import io.crim.android.ouicore.ex.MultipleChoice;
 import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.services.CallingService;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.MediaPlayerUtil;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.utils.TimeUtil;
 import io.crim.android.ouicore.widget.BottomPopDialog;
 import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.enums.ConversationType;
 import io.crim.android.sdk.enums.LoginStatus;
 import io.crim.android.sdk.enums.MsgType;
 import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.sdk.models.AtUserInfo;
+import io.crim.android.sdk.models.ConversationInfo;
 import io.crim.android.sdk.models.GroupMembersInfo;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.NotificationElem;
+import io.crim.android.sdk.models.OfflinePushInfo;
 import io.crim.android.sdk.models.RevokedInfo;
+import io.crim.android.sdk.models.SignalingInfo;
+import io.crim.android.sdk.models.SignalingInvitationInfo;
 import io.crim.android.sdk.models.SoundElem;
 
 public class IMUtil {
@@ -110,10 +113,10 @@ public class IMUtil {
      * @param list
      * @return
      */
-    public static List<Msg> calChatTimeInterval(List<Msg> list) {
+    public static List<Message> calChatTimeInterval(List<Message> list) {
         long lastShowTimeStamp = 0;
         for (int i = list.size() - 1; i >= 0; i--) {
-            Msg message = list.get(i);
+            Message message = list.get(i);
             MsgExpand msgExpand = (MsgExpand) message.getExt();
             if (null == msgExpand) msgExpand = new MsgExpand();
             //重置
@@ -130,9 +133,9 @@ public class IMUtil {
         return list;
     }
 
-    public static Msg createMergerMessage(String title, List<Msg> list) {
+    public static Message createMergerMessage(String title, List<Message> list) {
         List<String> summaryList = new ArrayList<>();
-        for (Msg message : list) {
+        for (Message message : list) {
             summaryList.add(message.getSenderNickname() + ":" + getMsgParse(message));
             if (summaryList.size() >= 2) break;
         }
@@ -146,7 +149,7 @@ public class IMUtil {
      *
      * @param msg
      */
-    public static Msg buildExpandInfo(Msg msg) {
+    public static Message buildExpandInfo(Message msg) {
         MsgExpand msgExpand = (MsgExpand) msg.getExt();
         if (null == msgExpand) msgExpand = new MsgExpand();
         msg.setExt(msgExpand);
@@ -221,7 +224,7 @@ public class IMUtil {
     /**
      * 处理通知
      */
-    private static void handleNotification(Msg msg) {
+    private static void handleNotification(Message msg) {
         NotificationElem notificationElem = msg.getNotificationElem();
         if (null == notificationElem) return;
         MsgExpand msgExpand = (MsgExpand) msg.getExt();
@@ -548,10 +551,11 @@ public class IMUtil {
             new ForegroundColorSpan(BaseApp.inst().getResources().getColor(colorId));
         int start = spannableString.toString().indexOf(tag);
         int end = spannableString.toString().indexOf(tag) + tag.length();
-        if (null != clickableSpan)
+        if (null != clickableSpan) {
             spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
+        }
         spannableString.setSpan(colorSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-
+        EmojiUtil.setEmojiSapn(spannableString, spannableString.toString());
         return spannableString;
     }
 
@@ -561,14 +565,14 @@ public class IMUtil {
      * @param msg
      * @return
      */
-    public static CharSequence getMsgParse(Msg msg) {
+    public static CharSequence getMsgParse(Message msg) {
         MsgExpand msgExpand = (MsgExpand) msg.getExt();
         CharSequence lastMsg = "";
         try {
             switch (msg.getContentType()) {
                 default:
                     if (!TextUtils.isEmpty(msgExpand.tips))
-                        lastMsg=msgExpand.tips.toString();
+                        lastMsg = msgExpand.tips.toString();
                     break;
 
                 case MsgType.TEXT:
@@ -717,7 +721,7 @@ public class IMUtil {
         from.finish();
     }
 
-    public static void sendNotice(int id) {
+    public static void sendNotice(int id, ConversationInfo conversationInfo) {
         NotificationManager manager =
             (NotificationManager) BaseApp.inst().getSystemService(Context.NOTIFICATION_SERVICE);
 
@@ -729,9 +733,23 @@ public class IMUtil {
 
         String CHANNEL_ID = Constant.NOTICE_TAG;
         String CHANNEL_NAME = BaseApp.inst().getString(R.string.msg_notification);
+        String desc = BaseApp.inst().getString(R.string.a_message_is_received);
+        Message msg = new Gson().fromJson(conversationInfo.getLatestMsg(), Message.class);
+        String title = msg.getSenderNickname();
+        if (msg != null) {
+            desc = getMsgParse(msg) + "";
+            if (msg.getAttachedInfoElem().isPrivateChat()) {
+                desc = "[阅后即焚消息]";
+            }
+            int sessionType = msg.getSessionType();
+            if (sessionType == ConversationType.SUPER_GROUP_CHAT || sessionType == ConversationType.GROUP_CHAT) {
+                desc = title + ": " + desc;
+                title = conversationInfo.getShowName();
+            }
+        }
         Notification notification =
             new NotificationCompat.Builder(BaseApp.inst(), CHANNEL_ID)
-                .setContentTitle(BaseApp.inst().getString(R.string.app_name)).setContentText(BaseApp.inst().getString(R.string.a_message_is_received))
+                .setContentTitle(title).setContentText(desc)
                 .setSmallIcon(R.mipmap.ic_logo)
                 .setContentIntent(hangPendingIntent)
                 .setAutoCancel(true)

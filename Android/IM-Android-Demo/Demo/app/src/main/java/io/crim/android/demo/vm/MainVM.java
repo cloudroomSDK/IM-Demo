@@ -3,6 +3,7 @@ package io.crim.android.demo.vm;
 import android.view.View;
 
 import com.alibaba.android.arouter.launcher.ARouter;
+import com.igexin.sdk.PushManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -71,24 +72,57 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
             if (loginType == 1) {
                 appID = Constant.getAppID();
                 appSecret = md5(Constant.getAppSecret());
+                sdkLoginByAppId(BaseApp.inst().loginCertificate, appID, appSecret);
             } else {
                 token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
+                sdkLoginByToken(BaseApp.inst().loginCertificate, token);
             }
+        }
+        if (null != BaseApp.inst().loginCertificate.nickName)
+            nickname.setValue(BaseApp.inst().loginCertificate.nickName);
+    }
+
+    private void sdkLoginByAppId(LoginCertificate loginCertificate, String appId, String appSecret) {
+        try {
             CRIMClient.getInstance().login(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
-                    getIView().toast(error + code);
-                    getIView().jump();
+                    sdkLoginOnError(code, error);
                 }
 
                 @Override
                 public void onSuccess(String data) {
                     initDate();
                 }
-            }, BaseApp.inst().loginCertificate.userID, token, appID, appSecret);
+            }, loginCertificate.userID, appId, appSecret);
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        if (null != BaseApp.inst().loginCertificate.nickName)
-            nickname.setValue(BaseApp.inst().loginCertificate.nickName);
+    }
+
+    private void sdkLoginByToken(LoginCertificate loginCertificate, String token) {
+        try {
+            CRIMClient.getInstance().login(new OnBase<String>() {
+                @Override
+                public void onError(int code, String error) {
+                    sdkLoginOnError(code, error);
+                }
+
+                @Override
+                public void onSuccess(String data) {
+                    initDate();
+                }
+            }, loginCertificate.userID, token);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void sdkLoginOnError(int code, String error) {
+        getIView().toast(error + code);
+        getIView().jump();
     }
 
     private void initDate() {
@@ -133,7 +167,7 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
     }
 
     void getSelfUserInfo() {
-        CRIMClient.getInstance().userInfoManager.getSelfUserInfo(new OnBase<UserInfo>() {
+        CRIMClient.getInstance().userInfoManager.getSelfInfo(new OnBase<UserInfo>() {
             @Override
             public void onError(int code, String error) {
                 getIView().toast(error + code);
@@ -145,6 +179,7 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
                 BaseApp.inst().loginCertificate.nickName = (null == data.getNickname()) ? "" : data.getNickname();
                 BaseApp.inst().loginCertificate.faceURL = data.getFaceURL();
                 BaseApp.inst().loginCertificate.cache(getContext());
+                PushManager.getInstance().bindAlias(getContext(), data.getUserID(), "sn" + data.getUserID());
                 nickname.setValue(BaseApp.inst().loginCertificate.nickName);
                 Obs.newMessage(Constant.Event.USER_INFO_UPDATE);
             }

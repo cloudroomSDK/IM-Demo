@@ -102,12 +102,13 @@
                 android:hint="请输入手机号"
                 android:inputType="phone"
                 android:singleLine="true"
-                android:text="@={loginVM.account}"
+                android:text="@={loginVM.phoneNum}"
                 android:textColorHint="@color/text_color_gray3"
                 android:textSize="17sp" />
         </LinearLayout>
 
         <View
+            android:id="@+id/line1"
             android:layout_width="0dp"
             android:layout_height="0.5dp"
             android:background="@color/text_color_gray3"
@@ -140,7 +141,7 @@
                 android:hint="请输入验证码"
                 android:inputType="number"
                 android:singleLine="true"
-                android:text="@={loginVM.pwd}"
+                android:text="@={loginVM.veriCode}"
                 android:textColorHint="@color/text_color_gray3"
                 android:textSize="17sp" />
 
@@ -158,15 +159,17 @@
 
         <TextView
             android:id="@+id/tvVerCodeTip"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="15dp"
-            app:layout_constraintTop_toBottomOf="@+id/llCode"
-            app:layout_constraintLeft_toLeftOf="@+id/llCode"
-            android:text="私有云验证码用8888"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:layout_marginTop="10dp"
+            android:text="私有云验证码用8888"
+            android:textColor="@color/text_color_gray3"
+            app:layout_constraintLeft_toLeftOf="@+id/llCode"
+            app:layout_constraintTop_toBottomOf="@+id/llCode" />
 
         <View
+            android:id="@+id/line2"
             android:layout_width="0dp"
             android:layout_height="0.5dp"
             android:background="@color/text_color_gray3"
@@ -191,5 +194,123 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/llCode" />
+
+        <TextView
+            android:id="@+id/tvSwitchPwdLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="密码登录"
+            android:textColor="@color/base_color"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLogin" />
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/codeLoginGroup"
+            app:constraint_referenced_ids="tvCodeLogin,tvTip,llInput,line1,llCode,tvVerCodeTip,
+            line2,tvLogin,tvSwitchPwdLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <androidx.constraintlayout.widget.Group
+            android:id="@+id/pwdLoginGroup"
+            android:visibility="gone"
+            app:constraint_referenced_ids="etAccount,line3,etPwd,line4,tvPwdLogin,tvSwitchCodeLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <EditText
+            android:id="@+id/etAccount"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toBottomOf="@+id/ivLogo"
+            android:paddingTop="20dp"
+            android:paddingBottom="15dp"
+            android:paddingStart="10dp"
+            android:layout_marginStart="23dp"
+            android:layout_marginEnd="23dp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="@null"
+            android:gravity="center_vertical"
+            android:layout_marginTop="58dp"
+            android:hint="请输入账号"
+            android:singleLine="true"
+            android:text="@={loginVM.account}"
+            android:textColorHint="@color/text_color_gray3"
+            android:textSize="17sp" />
+
+        <View
+            android:id="@+id/line3"
+            android:layout_width="0dp"
+            android:layout_height="0.5dp"
+            android:background="@color/text_color_gray3"
+            app:layout_constraintLeft_toLeftOf="@+id/etAccount"
+            app:layout_constraintRight_toRightOf="@+id/etAccount"
+            app:layout_constraintTop_toBottomOf="@+id/etAccount" />
+
+        <EditText
+            android:id="@+id/etPwd"
+            android:layout_width="0dp"
+            app:layout_constraintTop_toBottomOf="@+id/etAccount"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
+            android:paddingBottom="15dp"
+            android:layout_marginStart="23dp"
+            android:layout_marginEnd="23dp"
+            android:paddingStart="10dp"
+            android:layout_weight="3"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:background="@null"
+            android:gravity="center_vertical"
+            android:hint="请输入密码"
+            android:inputType="textPassword"
+            android:singleLine="true"
+            android:text="@={loginVM.pwd}"
+            android:textColorHint="@color/text_color_gray3"
+            android:textSize="17sp" />
+
+        <View
+            android:id="@+id/line4"
+            android:layout_width="0dp"
+            android:layout_height="0.5dp"
+            android:background="@color/text_color_gray3"
+            app:layout_constraintLeft_toLeftOf="@+id/etPwd"
+            app:layout_constraintRight_toRightOf="@+id/etPwd"
+            app:layout_constraintTop_toBottomOf="@+id/etPwd" />
+
+        <TextView
+            android:id="@+id/tvPwdLogin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="48dp"
+            android:layout_marginTop="98dp"
+            android:layout_marginEnd="48dp"
+            android:background="@drawable/bg_blue_rect_select_shape"
+            android:gravity="center"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:text="登录"
+            android:textColor="#fff"
+            android:textSize="17sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/tvSwitchCodeLogin" />
+
+        <TextView
+            android:id="@+id/tvSwitchCodeLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="20dp"
+            android:paddingBottom="20dp"
+            android:text="验证码登录"
+            android:textColor="@color/base_color"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            android:layout_marginBottom="100dp"
+            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

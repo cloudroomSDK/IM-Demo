@@ -37,6 +37,8 @@ public class Routes {
         //聊天页
         public final static String CHAT = "/conversation/ChatActivity";
 
+        public final static String CHAT_SETTING = "/conversation/ChatSettingActivity";
+
         public static final String CHAT_HISTORY = "/conversation/ChatHistorySearchActivity";
         //全局搜索
         public final static String SEARCH = "/conversation/SearchActivity";
@@ -85,5 +87,10 @@ public class Routes {
     //会议
     public static class Meeting {
         public static final String HOME = "/meeting/MeetingLaunchActivity";
+    }
+
+    //Core
+    public static class Core {
+        public static final String AMAP = "/core/MapWebViewActivity";
     }
 }

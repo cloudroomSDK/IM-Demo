@@ -7,32 +7,14 @@ import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.im.IM;
 
 public class Constant {
-//  public static final String DEFAULT_IP = "test-web.rentsoft.cn";//43
-//  public static final String DEFAULT_IP = "web.rentsoft.cn";//121
 
-    public static final String DEFAULT_IP = "demo.cloudroom.com";//121
-//    public static final String DEFAULT_IP = "203.56.175.233";//121
-//    public static final String DEFAULT_IP = "43.154.157.177";//43
-//    public static final String DEFAULT_IP = "59.36.173.89";//43
-
+    public static final String DEFAULT_IP = "demo.cloudroom.com";
     private static final String SERVER_IP = "sdk.cloudroom.com";
-//    private static final String APP_ID = "demo@cloudroom.com";
-
-    //登录注册手机验 证服务器地址
-    private static final String APP_AUTH_URL = "https://" + DEFAULT_IP + "/chat/";
-    //IM sdk api地址
-    private static final String IM_API_URL = "https://" + DEFAULT_IP + "/api";
-    //web socket
-    private static final String IM_WS_URL = "wss://" + DEFAULT_IP + "/msg_gateway";
 
     //--------IP----------
-    private static final String APP_AUTH_PORT = "8018";
-    private static final String IM_API_PORT = "10002";
-    private static final String IM_WS_PORT = "10001";
-    private static final String APP_AUTH = "http://" + DEFAULT_IP + ":" + APP_AUTH_PORT + "/";
-    private static final String IM_API = "http://" + DEFAULT_IP + ":" + IM_API_PORT;
-    private static final String IM_WS = "ws://" + DEFAULT_IP + ":" + IM_WS_PORT;
-    private static final Boolean isIP = true;
+    private static String PROTOCOL = "http";
+    private static String APP_AUTH_PORT = "8018";
+    private static String IM_API_PORT = "8002";
     //--------------------
 
     public static String getBusinessServer() {
@@ -51,8 +33,21 @@ public class Constant {
         return SERVER_IP;
     }
 
+    public static void getProtocol() {
+        int httpType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("HTTP_TYPE");
+        if (httpType < 2) {
+            PROTOCOL = "http";
+            APP_AUTH_PORT = "8018";
+            IM_API_PORT = "8002";
+        } else {
+            PROTOCOL = "https";
+            APP_AUTH_PORT = "8218";
+            IM_API_PORT = "8443";
+        }
+    }
+
     public static String getSdkServerUrl() {
-        return "http://" + getSdkServer();
+        return PROTOCOL + "://" + getSdkServer();
     }
 
     public static String getAppID() {
@@ -73,19 +68,13 @@ public class Constant {
 
     public static String getImApiUrl() {
         String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("IM_API_URL");
-        if (TextUtils.isEmpty(url)) return isIP ? IM_API : IM_API_URL;
+        if (TextUtils.isEmpty(url)) return PROTOCOL + "://" + DEFAULT_IP + ":" + IM_API_PORT;
         return url;
     }
 
     public static String getAppAuthUrl() {
         String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("APP_AUTH_URL");
-        if (TextUtils.isEmpty(url)) return isIP ? APP_AUTH : APP_AUTH_URL;
-        return url;
-    }
-
-    public static String getImWsUrl() {
-        String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("IM_WS_URL");
-        if (TextUtils.isEmpty(url)) return isIP ? IM_WS : IM_WS_URL;
+        if (TextUtils.isEmpty(url)) return PROTOCOL + "://" + DEFAULT_IP + ":" + APP_AUTH_PORT + "/";
         return url;
     }
 
@@ -98,20 +87,11 @@ public class Constant {
     public static void saveUrl() {
         String imApi = "";
         String appAuth = "";
-        String imWs = "";
         String businessServer = getBusinessServer();
-        if (isIP) {
-            appAuth = "http://" + businessServer + ":" + APP_AUTH_PORT + "/";
-            imApi = "http://" + businessServer + ":" + IM_API_PORT;
-            imWs = "ws://" + businessServer + ":" + IM_WS_PORT;
-        } else {
-            appAuth = "https://" + businessServer + "/chat/";
-            imApi = "https://" + businessServer + "/api";
-            imWs = "wss://" + businessServer + "/msg_gateway";
-        }
+        appAuth = PROTOCOL + "://" + businessServer + ":" + APP_AUTH_PORT + "/";
+        imApi = PROTOCOL + "://" + businessServer + ":" + IM_API_PORT;
         SharedPreferencesUtil.get(BaseApp.inst()).setCache("IM_API_URL", imApi);
         SharedPreferencesUtil.get(BaseApp.inst()).setCache("APP_AUTH_URL", appAuth);
-        SharedPreferencesUtil.get(BaseApp.inst()).setCache("IM_WS_URL", imWs);
     }
 
     //存储音频的文件夹
@@ -145,6 +125,10 @@ public class Constant {
         public static final int SET_GROUP_NOTIFICATION = 10007;
         //插入了消息到本地
         public static final int INSERT_MSG = 10008;
+        //推荐名片到当前聊天
+        public static final int RECOMMEND_FROM_CHAT = 10009;
+        //调转到地图
+        public static final int MAP_POSITION = 10010;
     }
 
     public static final String K_ID = "Id";

@@ -50,6 +50,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
     private boolean isRemoveGroup = false;
     private boolean isSelectMember = false;
     private boolean isSelectFriend = false;
+    private boolean fromSelectTarget = false;
     private int maxNum;
 
     //选择的人数
@@ -66,6 +67,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
         isRemoveGroup = getIntent().getBooleanExtra(Constant.IS_REMOVE_GROUP, false);
         isSelectMember = getIntent().getBooleanExtra(Constant.IS_SELECT_MEMBER, false);
         isSelectFriend = getIntent().getBooleanExtra(Constant.IS_SELECT_FRIEND, false);
+        fromSelectTarget = getIntent().getBooleanExtra("fromSelectTarget", false);
         maxNum = getIntent().getIntExtra(Constant.K_SIZE, 0);
         String groupId = getIntent().getStringExtra(Constant.K_GROUP_ID);
         title = getIntent().getStringExtra(Constant.K_NAME);
@@ -110,6 +112,9 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
 
     private void initView() {
         sink();
+        if (fromSelectTarget){
+            view.title.setText("");
+        }
         if (isInviteToGroup)
             view.title.setText(io.crim.android.ouicore.R.string.Invite_to_the_group);
         if (isRemoveGroup) view.title.setText(io.crim.android.ouicore.R.string.remove_group);
@@ -211,9 +216,10 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
     private void selected() {
         selectMemberNum = getSelectNum();
         view.bottom.selectNum.setText(String.format(getString(io.crim.android.ouicore.R.string.selected_tips), selectMemberNum));
-        if (isSelectMember)
+        /*if (isSelectMember)
             view.bottom.submit.setText("确定（" + selectMemberNum + "/" + maxNum + "）");
-        else view.bottom.submit.setText("确定（" + selectMemberNum + "/999）");
+        else view.bottom.submit.setText("确定（" + selectMemberNum + "/999）");*/
+        view.bottom.submit.setText("确定");
         view.bottom.submit.setEnabled(selectMemberNum > 0);
     }
 
@@ -365,8 +371,9 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
                         finish();
                         return;
                     }
-                    createLauncher.launch(getIntent().setClass(InitiateGroupActivity.this,
-                        CreateGroupActivity.class));
+                    multipleChoiceVM.showConfirmDialog(InitiateGroupActivity.this, Routes.Group.CREATE_GROUP);
+//                    createLauncher.launch(getIntent().setClass(InitiateGroupActivity.this,
+//                        CreateGroupActivity.class));
                 } catch (Exception ignored) {
                 }
             }

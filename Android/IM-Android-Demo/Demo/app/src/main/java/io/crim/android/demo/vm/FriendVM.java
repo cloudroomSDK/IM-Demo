@@ -26,7 +26,7 @@ public class FriendVM extends BaseViewModel {
 
     public void addBlacklist(String uid) {
         waitDialog.show();
-        CRIMClient.getInstance().friendshipManager.addBlacklist(new OnCallBack<String>() {
+        CRIMClient.getInstance().friendshipManager.addToBlacklist(new OnCallBack<String>() {
             @Override
             public void onSuccess(String data) {
                 waitDialog.dismiss();
@@ -41,7 +41,7 @@ public class FriendVM extends BaseViewModel {
 
     public void removeBlacklist(String uid) {
         waitDialog.show();
-        CRIMClient.getInstance().friendshipManager.removeBlacklist(new OnCallBack<String>() {
+        CRIMClient.getInstance().friendshipManager.removeFromBlacklist(new OnCallBack<String>() {
             @Override
             public void onSuccess(String data) {
                 waitDialog.dismiss();

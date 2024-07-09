@@ -4,6 +4,7 @@ package io.crim.android.demo.ui.user;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import com.alibaba.android.arouter.launcher.ARouter;
@@ -113,9 +114,9 @@ public class PersonalInfoActivity extends BaseActivity<PersonalVM, ActivityPerso
                 .putExtra(EditTextActivity.TITLE,
                     getString(R.string.mail)));
         });
-        view.IDNum.setOnClickListener(v->{
-            Intent intent = new Intent(this,IDActivity.class);
-            intent.putExtra("ID",view.tvIDNum.getText().toString());
+        view.IDNum.setOnClickListener(v -> {
+            Intent intent = new Intent(this, IDActivity.class);
+            intent.putExtra("ID", view.tvIDNum.getText().toString());
             startActivity(intent);
         });
         view.qrCard.setOnClickListener(v -> {
@@ -141,12 +142,20 @@ public class PersonalInfoActivity extends BaseActivity<PersonalVM, ActivityPerso
             if (null == v) return;
             view.avatar.load(v.getFaceURL(), v.getNickname());
             view.nickName.setText(v.getNickname());
-            view.gender.setText(v.getGender() == 1 ? io.crim.android.ouicore.R.string.male :
-                io.crim.android.ouicore.R.string.girl);
+            String gender = "";
+            int genderInt = v.getGender();
+            if (genderInt == 1) {
+                gender = getString(io.crim.android.ouicore.R.string.male);
+            } else if (genderInt == 2) {
+                gender = getString(io.crim.android.ouicore.R.string.girl);
+            }
+            view.gender.setText(gender);
             if (v.getBirth() > 0) {
-                view.birthday.setText(TimeUtil.getTime(v.getBirth() ,
+                view.birthday.setText(TimeUtil.getTime(v.getBirth(),
                     TimeUtil.yearMonthDayFormat));
             }
+            Log.d("eeeee","getBirth===="+v.getBirth());
+            Log.d("eeeee","getPhoneNumber===="+v.getPhoneNumber());
             view.phoneNumTv.setText(v.getPhoneNumber());
             view.emailTV.setText(v.getEmail());
             view.tvIDNum.setText(v.getUserID());

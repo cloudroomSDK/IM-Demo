@@ -3,13 +3,11 @@ package io.crim.android.ouicore.net.RXRetrofit;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
-
-import java.io.IOException;
-
+import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.net.RXRetrofit.Exception.NetworkException;
 import io.crim.android.ouicore.net.RXRetrofit.Exception.RXRetrofitException;
-import io.crim.android.ouicore.base.BaseApp;
 import io.reactivex.Observer;
 import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.Disposable;

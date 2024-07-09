@@ -5,32 +5,16 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.Toast;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-
-import com.liulishuo.okdownload.DownloadTask;
-import com.liulishuo.okdownload.StatusUtil;
-import com.liulishuo.okdownload.core.cause.EndCause;
-import com.liulishuo.okdownload.core.cause.ResumeFailedCause;
-import com.liulishuo.okdownload.core.listener.DownloadListener1;
-import com.liulishuo.okdownload.core.listener.assist.Listener1Assist;
-
-import java.io.File;
-import java.math.BigDecimal;
 
 import io.crim.android.ouicore.R;
-import io.crim.android.ouicore.utils.Common;
-import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.GetFilePathFromUri;
 import io.crim.android.ouicore.utils.MediaFileUtil;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
-import io.crim.android.ouicore.utils.OpenFileUtil;
 
 public class FileUploadView extends RelativeLayout {
-    private ImageView res, bgMask;
-    private CirclePgBar circlePgBar;
+    private ImageView res;
+//    private ImageView bgMask;
+//    private CirclePgBar circlePgBar;
     private String localUrl = "";
 
     public FileUploadView(Context context) {
@@ -45,20 +29,20 @@ public class FileUploadView extends RelativeLayout {
 
     void init() {
         res = new ImageView(getContext());
-        bgMask = new ImageView(getContext());
-        bgMask.setImageResource(R.mipmap.ic_file_mask);
+//        bgMask = new ImageView(getContext());
+//        bgMask.setImageResource(R.mipmap.ic_file_mask);
 
         LayoutParams params =
             new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
         params.addRule(RelativeLayout.CENTER_IN_PARENT, RelativeLayout.TRUE);
         params.width = 80;
         params.height = 80;
-        circlePgBar = new CirclePgBar(getContext());
-        circlePgBar.setLayoutParams(params);
+//        circlePgBar = new CirclePgBar(getContext());
+//        circlePgBar.setLayoutParams(params);
 
         addView(res);
-        addView(bgMask);
-        addView(circlePgBar);
+//        addView(bgMask);
+//        addView(circlePgBar);
 
         setOnClickListener(new OnDedrepClickListener() {
             @Override
@@ -79,14 +63,14 @@ public class FileUploadView extends RelativeLayout {
     }
 
     public void setForegroundVisibility(boolean visibility) {
-        bgMask.setVisibility(visibility ? GONE : VISIBLE);
-        circlePgBar.setVisibility(visibility ? GONE : VISIBLE);
-        if (visibility)
-            circlePgBar.reset();
+//        bgMask.setVisibility(visibility ? GONE : VISIBLE);
+//        circlePgBar.setVisibility(visibility ? GONE : VISIBLE);
+//        if (visibility)
+//            circlePgBar.reset();
     }
 
     public void setProgress(int progress) {
-        circlePgBar.setTargetProgress(progress);
+//        circlePgBar.setTargetProgress(progress);
     }
 
 }

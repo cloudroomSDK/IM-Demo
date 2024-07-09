@@ -130,7 +130,7 @@ public class SearchVM extends BaseViewModel {
 
                 @Override
                 protected void onFailure(Throwable e) {
-
+                    getIView().onError("搜索失败");
                 }
             });
     }

@@ -24,7 +24,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * 网络请求类
  */
 public class N {
-    final static String TAG = "CRIM-net";
+    final static String TAG = "CRIM-N";
     private static N n = null;
     private static Retrofit mRetrofit;
     private static HashMap<String, ListCompositeDisposable> disposableHashMap = null;

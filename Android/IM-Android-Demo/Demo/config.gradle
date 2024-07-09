@@ -11,7 +11,7 @@ ext {
             targetSdk  : 33,
             compileSdk : 33,
             versionCode: 3,
-            versionName: "1.0.7",
+            versionName: "2.7.4",
             abiFilters : ['armeabi-v7a', 'arm64-v8a']
     ]
 

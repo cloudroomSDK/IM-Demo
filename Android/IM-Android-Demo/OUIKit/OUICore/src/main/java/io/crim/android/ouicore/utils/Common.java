@@ -16,11 +16,12 @@ import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.view.Gravity;
+import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.bumptech.glide.Glide;
@@ -41,14 +42,14 @@ import java.util.Locale;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
-import io.crim.android.sdk.models.PictureElem;
-import io.crim.android.sdk.models.VideoElem;
 import io.crim.android.ouicore.R;
 import io.crim.android.ouicore.api.OneselfService;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.net.RXRetrofit.N;
-import io.crim.android.ouicore.widget.WebViewActivity;
-import io.crim.android.sdk.models.Msg;
+import io.crim.android.ouicore.widget.AMapWebViewActivity;
+import io.crim.android.sdk.models.Message;
+import io.crim.android.sdk.models.PictureElem;
+import io.crim.android.sdk.models.VideoElem;
 import io.reactivex.Observable;
 import q.rorbin.badgeview.QBadgeView;
 
@@ -130,6 +131,7 @@ public class Common {
         float scale = BaseApp.inst().getResources().getDisplayMetrics().density;
         return (int) (px / scale + 0.5f);
     }
+
     //收起键盘
     public static void hideKeyboard(Context context, View v) {
         InputMethodManager imm =
@@ -145,8 +147,9 @@ public class Common {
             (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         inputMethodManager.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
     }
+
     //软键盘是否弹出
-    public static boolean isShowKeyboard(Context context){
+    public static boolean isShowKeyboard(Context context) {
         InputMethodManager imm = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
         //获取状态信息
         return imm.isActive();//true 打开
@@ -335,10 +338,12 @@ public class Common {
      * @param message
      * @param v
      */
-    public static void toMap(Msg message, View v) {
-        v.getContext().startActivity(new Intent(v.getContext(), WebViewActivity.class)
-            .putExtra(WebViewActivity.LOAD_URL,
-                "https://apis.map.qq.com/uri/v1/geocoder?coord=" + message.getLocationElem().getLatitude() + "," + message.getLocationElem().getLongitude() + "&referer=" + WebViewActivity.mapAppKey));
+    public static void toMap(Message message, View v) {
+        v.getContext().startActivity(new Intent(v.getContext(), AMapWebViewActivity.class)
+            .putExtra(AMapWebViewActivity.LATITUDE,message.getLocationElem().getLatitude())
+            .putExtra(AMapWebViewActivity.LONGITUDE,message.getLocationElem().getLongitude()));
+//            .putExtra(WebViewActivity.LOAD_URL,
+//                "https://apis.map.qq.com/uri/v1/geocoder?coord=" + message.getLocationElem().getLatitude() + "," + message.getLocationElem().getLongitude() + "&referer=" + WebViewActivity.mapAppKey));
     }
 
     /***
@@ -372,6 +377,8 @@ public class Common {
                 String groupId = content.substring(content.lastIndexOf("/") + 1);
                 if (!TextUtils.isEmpty(groupId))
                     ARouter.getInstance().build(Routes.Group.DETAIL).withString(io.crim.android.ouicore.utils.Constant.K_GROUP_ID, groupId).navigation();
+            } else {
+                Toast.makeText(compatActivity, "不存在", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -405,7 +412,7 @@ public class Common {
             return;
         }
         target.setTag(new QBadgeView(context).bindTarget(target)
-            .setGravityOffset(target.getWidth()/2 - dp2px(25), dp2px(-2),
+            .setGravityOffset(target.getWidth() / 2 - dp2px(25), dp2px(-2),
                 false)
             .setBadgeNumber(badgeNumber)
             .setBadgeTextSize(8, true)
@@ -414,6 +421,7 @@ public class Common {
 
     /**
      * (x,y)是否在view的区域内
+     *
      * @param view
      * @param x
      * @param y

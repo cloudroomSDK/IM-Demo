@@ -43,7 +43,7 @@ public class PersonalVM extends BaseViewModel {
 
     public void getSelfUserInfo() {
         waitDialog.show();
-        CRIMClient.getInstance().userInfoManager.getSelfUserInfo(new OnBase<UserInfo>() {
+        CRIMClient.getInstance().userInfoManager.getSelfInfo(new OnBase<UserInfo>() {
             @Override
             public void onError(int code, String error) {
                 waitDialog.dismiss();

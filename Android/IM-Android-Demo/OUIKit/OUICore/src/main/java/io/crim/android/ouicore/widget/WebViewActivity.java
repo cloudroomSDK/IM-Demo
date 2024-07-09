@@ -1,10 +1,9 @@
 package io.crim.android.ouicore.widget;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
@@ -13,17 +12,9 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.net.Uri;
 import android.webkit.WebViewClient;
 
-
-import com.yanzhenjie.permission.Action;
-import com.yanzhenjie.permission.AndPermission;
-import com.yanzhenjie.permission.runtime.Permission;
-
-import java.security.Permissions;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import io.crim.android.ouicore.R;
@@ -31,7 +22,6 @@ import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.base.BaseViewModel;
 import io.crim.android.ouicore.databinding.ActivityWebViewBinding;
 import io.crim.android.ouicore.net.bage.GsonHel;
-import io.crim.android.ouicore.utils.L;
 
 
 public class WebViewActivity extends BaseActivity<BaseViewModel, ActivityWebViewBinding> {
@@ -52,7 +42,6 @@ public class WebViewActivity extends BaseActivity<BaseViewModel, ActivityWebView
     public static String mapAppKey = "TMNBZ-3CGC6-C6SSL-EJA3B-E2P5Q-V7F6Q",
         mapThumbnailSize = "1200*600",
         mapBackUrl = "http://callback";
-
 
     @SuppressLint("WrongConstant")
     @Override
@@ -80,7 +69,6 @@ public class WebViewActivity extends BaseActivity<BaseViewModel, ActivityWebView
         if (null == right)
             right = "";
         view.right.setText(right);
-
 
         view.right.setOnClickListener(v -> finish());
 
@@ -193,4 +181,16 @@ public class WebViewActivity extends BaseActivity<BaseViewModel, ActivityWebView
         view.title.setText(R.string.my_location);
         view.webView.loadUrl(loadUrl);
     }
+
+    /*@Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (null != mAMapLocaitonClient) {
+            mAMapLocaitonClient.stopAssistantLocation();
+            mAMapLocaitonClient.onDestroy();
+        }
+        if(null != view.webView){
+            view.webView.destroy();
+        }
+    }*/
 }

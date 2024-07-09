@@ -7,16 +7,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.recyclerview.widget.GridLayoutManager;
-
 import com.alibaba.android.arouter.core.LogisticsCenter;
 import com.alibaba.android.arouter.facade.Postcard;
 import com.alibaba.android.arouter.launcher.ARouter;
 
 import org.jetbrains.annotations.NotNull;
 
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.GridLayoutManager;
 import io.crim.android.ouicore.R;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
@@ -38,6 +36,8 @@ public class ForwardDialog extends BaseDialog {
     @NotNull("forwardVM cannot be empty")
     private ForwardVM forwardVM = Easy.find(ForwardVM.class);
 
+    private String fromRoutePath = "";
+
 
     public ForwardDialog(@NonNull Context context) {
         super(context);
@@ -46,7 +46,7 @@ public class ForwardDialog extends BaseDialog {
 
 
     private void initView() {
-        DialogForwardBinding view = DialogForwardBinding.inflate(getLayoutInflater(),null, false);
+        DialogForwardBinding view = DialogForwardBinding.inflate(getLayoutInflater(), null, false);
         setContentView(view.getRoot());
 
         WindowManager.LayoutParams params = getWindow().getAttributes();
@@ -56,7 +56,11 @@ public class ForwardDialog extends BaseDialog {
         getWindow().setAttributes(params);
         getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
-        view.content.setText(forwardVM.tips);
+        String content = forwardVM.tips;
+        if (!TextUtils.isEmpty(forwardVM.cardNickname)) {
+            content = forwardVM.cardNickname;
+        }
+        view.content.setText(content);
         if (choiceVM.metaData.val().size() == 1) {
             //单个
             MultipleChoice data = choiceVM.metaData.val().get(0);
@@ -67,7 +71,7 @@ public class ForwardDialog extends BaseDialog {
             view.tips.setText(R.string.multiple_send);
             view.recyclerView.setLayoutManager(new GridLayoutManager(getContext(), 4));
             RecyclerViewAdapter<MultipleChoice, ViewHol.ImageTxtViewHolder> adapter;
-            view.recyclerView.setAdapter(adapter=new RecyclerViewAdapter<MultipleChoice, ViewHol.ImageTxtViewHolder>(ViewHol.ImageTxtViewHolder.class) {
+            view.recyclerView.setAdapter(adapter = new RecyclerViewAdapter<MultipleChoice, ViewHol.ImageTxtViewHolder>(ViewHol.ImageTxtViewHolder.class) {
 
                 @Override
                 public void onBindView(@NonNull ViewHol.ImageTxtViewHolder holder, MultipleChoice data, int position) {
@@ -79,21 +83,31 @@ public class ForwardDialog extends BaseDialog {
         }
         view.cancel.setOnClickListener(view1 -> dismiss());
         view.sure.setOnClickListener(view1 -> {
-            String leave=view.leave.getText().toString();
-            if (!TextUtils.isEmpty(leave)){
+            String leave = view.leave.getText().toString();
+            if (!TextUtils.isEmpty(leave)) {
                 forwardVM.createLeaveMsg(leave);
             }
 
             finish();
-            Obs.newMessage(Constant.Event.FORWARD,choiceVM.metaData.val());
+            Obs.newMessage(Constant.Event.FORWARD, choiceVM.metaData.val());
             dismiss();
         });
     }
 
-    private static void finish() {
-        Postcard postcard =ARouter.getInstance().build(Routes.Group.SELECT_TARGET);
-        LogisticsCenter.completion(postcard);
-        ActivityManager.finishActivity(postcard.getDestination());
+    public ForwardDialog setRoutePath(String routePath) {
+        fromRoutePath = routePath;
+        return this;
+    }
+
+    private void finish() {
+        Postcard postcard = ARouter.getInstance().build(Routes.Group.CREATE_GROUP);
+        Postcard postcard1 = ARouter.getInstance().build(Routes.Group.SELECT_TARGET);
+        LogisticsCenter.completion(postcard1);
+        if (fromRoutePath.equals(Routes.Group.CREATE_GROUP)) {
+            LogisticsCenter.completion(postcard);
+            ActivityManager.finishActivity(postcard.getDestination());
+        }
+        ActivityManager.finishActivity(postcard1.getDestination());
     }
 
 }
