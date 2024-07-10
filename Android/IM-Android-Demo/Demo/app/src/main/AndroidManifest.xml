@@ -21,7 +21,7 @@
         android:usesCleartextTraffic="true">
         <meta-data
             android:name="com.amap.api.v2.apikey"
-            android:value="57c197aa4fc47fa72262e6a5c0dd947e"/>
+            android:value=""/>
         <service android:name="com.amap.api.location.APSService"></service>
         <activity
             android:name=".ui.user.UserDetailActivityV3"

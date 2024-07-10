@@ -49,17 +49,17 @@ android {
             rootProject.ext.androidConfig.abiFilters
         }
         //getui
-        manifestPlaceholders = [GETUI_APPID    : "AKO73DOTtmAIsCcEnTWS58",
+        manifestPlaceholders = [GETUI_APPID    : "",
 
                                 XIAOMI_APP_ID  : "",
                                 XIAOMI_APP_KEY : "",
                                 MEIZU_APP_ID   : "",
                                 MEIZU_APP_KEY  : "",
                                 HUAWEI_APP_ID  : "",
-                                OPPO_APP_KEY   : "a3961ebe5cb143da9c014754dc376156",
-                                OPPO_APP_SECRET: "f6049e267b834f8488462a516656a6e7",
-                                VIVO_APP_ID    : "105702641",
-                                VIVO_APP_KEY   : "b13e17301b02121b4132cf24cffc81d8",
+                                OPPO_APP_KEY   : "",
+                                OPPO_APP_SECRET: "",
+                                VIVO_APP_ID    : "",
+                                VIVO_APP_KEY   : "",
                                 // 荣耀相关应用参数
                                 HONOR_APP_ID   : "",]
     }
