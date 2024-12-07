@@ -14,8 +14,15 @@
         </span>
       </div>
       <div class="second">
-        <span v-if="conversationItem.latestMsg" class="desc">
-          {{ toLastMessage(JSON.parse(conversationItem.latestMsg)) }}
+        <span v-if="conversationItem.draftText" class="desc">
+          <span style="color: #ff1210; margin-right: 2px"> [草稿] </span>
+          <TextMsgRender :arr="chatTextSplit(conversationItem.draftText)" />
+        </span>
+        <span v-else-if="latestMsg" class="desc">
+          <template v-if="[106, 101, 114].indexOf(latestMsg.contentType) > -1">
+            <TextMsgRender :arr="chatTextSplit(latestMsg)" />
+          </template>
+          <template v-else>{{ toLastMessage(latestMsg) }}</template>
         </span>
         <i class="msgCount" v-if="conversationItem?.unreadCount">
           <span>{{
@@ -56,6 +63,8 @@ import Avatar from "./Avatar.vue";
 import { toLastMessage } from "~/utils/index";
 import { formatListString } from "~/utils/dayjs";
 import { computed } from "vue";
+import { chatTextSplit } from "~/utils/index";
+import { TextMsgRender } from "~/components";
 
 const bgc = computed(() => {
   if (props.active) {
@@ -65,6 +74,12 @@ const bgc = computed(() => {
     return "#efefef";
   }
   return "";
+});
+
+const latestMsg = computed<IMTYPE.MessageItem>(() => {
+  if (props.conversationItem?.latestMsg) {
+    return JSON.parse(props.conversationItem.latestMsg);
+  }
 });
 </script>
 
@@ -86,6 +101,7 @@ const bgc = computed(() => {
   position: relative;
   margin-bottom: 2px;
   text-wrap: nowrap;
+  width: 100%;
   &:hover {
     @extend .active;
   }

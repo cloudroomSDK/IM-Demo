@@ -1,10 +1,10 @@
 <template>
   <div class="card">
     <UserHeader
-      v-if="userStore.userInfo?.userID === userID"
+      v-if="isMe"
       :img-src="userStore.userInfo?.faceURL"
-      :nickname="userStore.userInfo?.nickname"
-      :userID="userStore.userInfo?.userID"
+      :nickname="userStore.userInfo?.nickname!"
+      :userID="userStore.userInfo?.userID!"
     />
     <UserHeader
       v-else
@@ -27,7 +27,7 @@
           <el-date-picker
             v-model="form.birth"
             type="date"
-            :placeholder="isEdit ? '选择生日' : ''"
+            :placeholder="isEdit ? '选择生日' : '-'"
             :disabled="!isEdit"
             format="YYYY/MM/DD"
             value-format="x"
@@ -36,6 +36,22 @@
         </el-form-item>
         <el-form-item label="手机号码">
           <el-input v-model="form.phoneNumber" disabled />
+        </el-form-item>
+        <el-form-item label="性别">
+          <el-select
+            class="select"
+            :class="{ disabled: !isEdit }"
+            v-model="form.gender"
+            placeholder="-"
+            :disabled="!isEdit"
+          >
+            <el-option label="-" :value="0" style="display: none" />
+            <el-option label="男" :value="1" />
+            <el-option label="女" :value="2" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="form.email" :disabled="!isEdit" />
         </el-form-item>
       </el-form>
       <template v-if="inGroupInfo">
@@ -94,7 +110,7 @@
 </template>
 <script lang="ts" setup>
 import { UserHeader, AddFriend } from "~/components";
-import { ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, h, onMounted, Ref, ref } from "vue";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
 import { useUserStore, useConversationStore } from "~/stores";
@@ -104,30 +120,84 @@ import { formatString } from "~/utils/dayjs";
 const userStore = useUserStore();
 const conversationStore = useConversationStore();
 
-const props = defineProps<{
+interface Props {
   userID: string;
   groupID?: string;
-  isApiOpen: boolean;
-}>();
+  allowLookInfo?: boolean;
+  allowAddFriend?: boolean;
+}
+const props = withDefaults(defineProps<Props>(), {
+  allowLookInfo: true,
+  allowAddFriend: true,
+});
 
 const isEdit = ref(false);
 const isFriend = ref(false);
 const isMe = ref(false);
 let imgSrc = ref("");
 
+const $emit = defineEmits(["close"]);
+
 const form = ref({
-  nickname: "",
-  phoneNumber: "",
+  nickname: "-",
+  phoneNumber: "-",
   birth: 0,
+  gender: 0,
+  email: "-",
 });
+
 const info = ref({
-  nickname: "",
-  phoneNumber: "",
+  nickname: "-",
+  phoneNumber: "-",
   birth: 0,
+  gender: 0,
+  email: "-",
 });
 
 let inGroupInfo: Ref<IMTYPE.GroupMemberItem>;
 onMounted(async () => {
+  // 如果打开自己的窗口
+  if (userStore.getMyUserID === props.userID) {
+    isMe.value = true;
+    const userInfo = (await getBusinessUserInfo([props.userID])).users[0];
+
+    info.value.phoneNumber = userInfo.phoneNumber || "-";
+    info.value.birth = userInfo.birth || 0;
+    info.value.nickname = userStore.userInfo!.nickname || "-";
+    info.value.gender = userInfo!.gender || 0;
+    info.value.email = userInfo!.email || "-";
+    imgSrc = computed(() => userStore.userInfo!.faceURL);
+    resetInfo();
+  } else {
+    if (!props.allowLookInfo) {
+      ElMessage.error("管理员禁止查看成员资料");
+      return;
+    }
+    //检查好友关系
+    const { data: friendshipInfoArr } = await IMSDK.checkFriend([props.userID]);
+    if (friendshipInfoArr[0].userID === props.userID) {
+      isFriend.value = !!friendshipInfoArr[0].result;
+      //如果是好友
+      if (isFriend.value) {
+        const userInfo = (await getBusinessUserInfo([props.userID])).users[0];
+
+        info.value.birth = userInfo.birth || 0;
+        info.value.nickname = userInfo.nickname || "-";
+        info.value.phoneNumber = userInfo.phoneNumber || "-";
+        info.value.gender = userInfo.gender || 0;
+        info.value.email = userInfo.email || "-";
+        imgSrc.value = userInfo.faceURL;
+      } else {
+        //如果不是好友
+        const userInfo = (await IMSDK.getUsersInfo([props.userID])).data[0];
+        imgSrc.value = userInfo.publicInfo!.faceURL;
+        info.value.nickname = userInfo.publicInfo!.nickname;
+      }
+
+      resetInfo();
+    }
+  }
+
   if (props.groupID) {
     const { data } = await IMSDK.getSpecifiedGrpMembersInfo({
       groupID: props.groupID,
@@ -135,43 +205,12 @@ onMounted(async () => {
     });
     inGroupInfo = ref(data[0]);
   }
-
-  // 如果打开自己的窗口
-  if (userStore.getMyUserID === props.userID) {
-    isMe.value = true;
-    const userInfo = (await getBusinessUserInfo([props.userID])).users[0];
-
-    info.value.phoneNumber = userInfo.phoneNumber;
-    info.value.birth = userInfo.birth;
-    info.value.nickname = userStore.userInfo!.nickname;
-    imgSrc = computed(() => userStore.userInfo!.faceURL);
-    resetInfo();
-    return;
-  }
-
-  //检查好友关系
-  const { data: friendshipInfoArr } = await IMSDK.checkFriend([props.userID]);
-  if (friendshipInfoArr[0].userID === props.userID) {
-    isFriend.value = !!friendshipInfoArr[0].result;
-    //如果是好友
-    if (isFriend.value) {
-      const userInfo = (await getBusinessUserInfo([props.userID])).users[0];
-
-      info.value.birth = userInfo.birth ?? 0;
-      info.value.nickname = userInfo.nickname;
-      info.value.phoneNumber = userInfo.phoneNumber;
-      imgSrc.value = userInfo.faceURL;
-    } else {
-      //如果不是好友
-      const userInfo = (await IMSDK.getUsersInfo([props.userID])).data[0];
-      imgSrc.value = userInfo.publicInfo!.faceURL;
-      info.value.nickname = userInfo.publicInfo!.nickname;
-    }
-
-    resetInfo();
-  }
 });
 const add = () => {
+  if (!props.allowAddFriend) {
+    ElMessage.error("管理员禁止添加好友");
+    return;
+  }
   let str = "";
   ElMessageBox({
     title: "好友验证",
@@ -210,14 +249,16 @@ const add = () => {
 };
 
 const goChat = () => {
+  $emit("close");
   conversationStore.gotoConversationChat({ userID: props.userID });
-  props.isApiOpen && ElMessageBox.close();
 };
 
 const resetInfo = () => {
   form.value.nickname = info.value.nickname;
   form.value.birth = info.value.birth;
   form.value.phoneNumber = info.value.phoneNumber;
+  form.value.gender = info.value.gender;
+  form.value.email = info.value.email;
 };
 
 const cancel = () => {
@@ -238,6 +279,8 @@ const editInfo = async () => {
   await updateBusinessUserInfo(obj);
   info.value.nickname = form.value.nickname;
   info.value.birth = form.value.birth;
+  info.value.email = form.value.email;
+  info.value.gender = form.value.gender;
 
   isEdit.value = false;
 };
@@ -246,6 +289,20 @@ const editInfo = async () => {
 .card {
   .body {
     padding: 10px;
+    .select {
+      --el-select-width: 100px;
+      --el-select-disabled-border: transparent;
+      --el-select-disabled-color: #333;
+      --el-fill-color-light: transparent;
+      &.disabled {
+        :deep(.el-select__wrapper.is-disabled) {
+          cursor: auto;
+        }
+        :deep(.el-select__suffix) {
+          display: none;
+        }
+      }
+    }
     :deep(.el-input__prefix) {
       display: none;
     }

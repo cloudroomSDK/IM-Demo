@@ -3,7 +3,7 @@
     class="item"
     :class="{
       quote: isQuote,
-      isMe: source.sendID === userStore.userInfo?.userID,
+      isMe: !leftLayout && source.sendID === userStore.getMyUserID,
     }"
   >
     <template
@@ -34,23 +34,48 @@
           @click="
             openUserInfo(
               source.sendID,
-              conversationStore.currentConversation?.groupID
+              groupStore.currentGroupInfo,
+              groupStore.isCurrentGroupAdmin
             )
           "
         />
-        <div class="context">
-          <span class="name">{{ source.senderNickname }}</span>
+        <div class="context" :style="{ flex: leftLayout ? 1 : 'none' }">
+          <span class="name">
+            {{ source.senderNickname }}
+            <span v-if="leftLayout" class="sendTime">
+              {{ formatChatString(source.sendTime) }}
+            </span>
+          </span>
           <span v-if="isQuote" class="maohao">:&nbsp;</span>
           <div class="message">
             <div class="content">
               <component
-                :is="isQuote ? 'div' : Popover"
-                :getData="getClickData"
+                :is="disabledRightClick ? 'div' : 'el-dropdown'"
+                ref="dropdownRef"
+                trigger="contextmenu"
+                :placement="
+                  !leftLayout && source.sendID === userStore.getMyUserID
+                    ? 'left'
+                    : 'right'
+                "
+                @visible-change="visibleChange($event, $refs.dropdownRef)"
               >
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item
+                      v-for="item in rightMenuList"
+                      @click="item.fn"
+                    >
+                      {{ item.text }}
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
                 <!-- 普通文本消息 -->
-                <div v-if="source.contentType === 101">
+                <div
+                  v-if="source.contentType === 101 && source?.textElem?.content"
+                >
                   <span class="text">
-                    {{ source?.textElem?.content }}
+                    <TextMsgRender :arr="chatTextSplit(source)" />
                   </span>
                 </div>
                 <!-- 图片 -->
@@ -63,7 +88,14 @@
                     loading="lazy"
                   />
                 </div>
-                <p v-else-if="source.contentType === 103">[暂不支持语音消息]</p>
+                <p v-else-if="source.contentType === 103">
+                  <MessageAudioView
+                    :data="source.soundElem"
+                    :reverse="
+                      !leftLayout && source.sendID === userStore.getMyUserID
+                    "
+                  />
+                </p>
                 <!-- 视频 -->
                 <div
                   v-else-if="source.contentType === 104"
@@ -98,50 +130,41 @@
                 <!-- @消息 -->
                 <div v-else-if="source.contentType === 106">
                   <span class="text">
-                    <template v-for="(obj, i) in data" :key="i">
-                      <Nickname
-                        v-if="obj.type === 'at'"
-                        class="at"
-                        :nickname="obj.nickname"
-                        :userID="obj.userID"
-                        showAt
-                      />
-                      <template v-else>{{ obj.text }}</template>
-                    </template>
+                    <TextMsgRender :arr="chatTextSplit(source)" />
                   </span>
                 </div>
                 <!-- 聊天记录 -->
-                <div v-else-if="source.contentType === 107" class="chatRecords">
+                <div
+                  v-else-if="source.contentType === 107"
+                  class="chatRecords"
+                  @click="openChatRecord"
+                >
                   <p class="title">{{ source.mergeElem.title }}</p>
                   <div
                     class="chatItem"
                     v-for="item in source.mergeElem.abstractList"
                   >
-                    {{ item }}
+                    <TextMsgRender :arr="chatTextSplit(item)" />
                   </div>
                 </div>
                 <!-- 引用消息 -->
-                <template v-else-if="source.contentType === 114">
+                <div v-else-if="source.contentType === 114">
                   <div>
                     <span class="text">
-                      {{ source?.quoteElem?.text }}
+                      <TextMsgRender :arr="chatTextSplit(source)" />
                     </span>
                   </div>
                   <MessageItem
                     :source="source.quoteElem.quoteMessage"
                     isQuote
+                    disabledRightClick
                   />
-                </template>
+                </div>
                 <!-- 名片 -->
                 <div
                   v-else-if="source.contentType === 108"
                   class="businessCard"
-                  @click="
-                    openUserInfo(
-                      source.cardElem.userID,
-                      conversationStore.currentConversation?.groupID
-                    )
-                  "
+                  @click="openUserInfo(source.cardElem.userID)"
                 >
                   <div class="info">
                     <Avatar :src="source.cardElem.faceURL" />
@@ -150,21 +173,39 @@
                   <p>个人名片</p>
                 </div>
                 <!-- 定位 -->
-                <div v-else-if="source.contentType === 109" class="map">
+                <div
+                  v-else-if="source.contentType === 109"
+                  class="map"
+                  @click="openMap"
+                >
                   <p class="locationName">{{ data.name }}</p>
                   <p class="locationDesc">{{ data.addr }}</p>
+                  <MapContainer
+                    style="height: 120px"
+                    :title="data.name"
+                    :LngLat="[data.longitude, data.latitude]"
+                    simple
+                  />
                 </div>
                 <p v-else>[暂不支持该内容]</p>
-
-                <!-- </Popover> -->
               </component>
             </div>
           </div>
         </div>
         <template v-if="!isQuote">
-          <div v-if="source.status === 1" class="icon" v-loading="true"></div>
-          <div v-else-if="source.status === 3" class="icon">
-            <el-icon color="#f00" size="20px"><i-ep-warningFilled /></el-icon>
+          <div v-if="source.status === 1" class="icon" v-loading="true" />
+          <div
+            v-else-if="source.status === 3"
+            class="icon"
+            style="cursor: pointer"
+            @click="reSendMsg"
+          >
+            <el-icon color="#f00" size="20px">
+              <i-ep-warningFilled />
+            </el-icon>
+          </div>
+          <div v-if="attachedTime >= 0" class="attachedTime">
+            {{ attachedTime }}s
           </div>
         </template>
       </div>
@@ -254,7 +295,7 @@
           :nickname="data.opUser.nickname"
           :userID="data.opUser.userID"
         />
-        禁言{{ ~~(data.mutedSeconds / 60) }}分{{ data.mutedSeconds % 60 }}秒
+        禁言<!-- {{ ~~(data.mutedSeconds / 60) }}分{{ data.mutedSeconds % 60 }}秒 -->
       </span>
     </div>
     <div class="centerToast" v-else-if="source.contentType === 1513">
@@ -329,18 +370,48 @@
 </template>
 <script setup lang="ts">
 import { ElMessageBox } from "element-plus";
-import { computed, h } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
-import { PicPreview, Avatar, Popover, MemberSelect } from "~/components";
+import {
+  computed,
+  h,
+  onBeforeMount,
+  onBeforeUnmount,
+  ref,
+  inject,
+  Ref,
+  watch,
+} from "vue";
+import { getPrivateExpirationMsgTime, IMSDK, IMTYPE } from "~/utils/imsdk";
+import {
+  PicPreview,
+  Avatar,
+  MemberSelect,
+  TextMsgRender,
+  Nickname,
+  MessageAudioView,
+  MessageItem,
+  MessageRecord,
+  MapContainer,
+} from "~/components";
 import { formatChatString } from "~/utils/dayjs";
-import MessageItem from "./messageItem.vue";
-import Nickname from "./nickname.vue";
-import { downloadUrl, openUserInfo, formatFileSize } from "~/utils";
-import { useAppStore, useConversationStore, useUserStore } from "~/stores";
+import {
+  downloadUrl,
+  openUserInfo,
+  formatFileSize,
+  chatTextSplit,
+  errorHandle,
+} from "~/utils";
+import {
+  useAppStore,
+  useConversationStore,
+  useGroupStore,
+  useUserStore,
+} from "~/stores";
+import { getSvrTime } from "~/api/login";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
 const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 
 type MsgItem = IMTYPE.MessageItem & {
   isShowTime?: boolean;
@@ -348,7 +419,54 @@ type MsgItem = IMTYPE.MessageItem & {
 const props = defineProps<{
   source: MsgItem;
   isQuote?: boolean;
+  leftLayout?: boolean;
+  disabledRightClick?: boolean;
 }>();
+
+let attachedTimerId: NodeJS.Timeout, revokeTimerId: NodeJS.Timeout;
+const attachedTime = ref();
+const dropdownVisibleChange = props.disabledRightClick
+  ? undefined
+  : (inject("dropdownVisibleChange") as (e: boolean, ref: any) => void);
+const dropdownRef = ref();
+const rightMenuList = ref<any[]>([]); //右键菜单列表
+
+// 阅后即焚处理
+const attachedHandle = async () => {
+  const msg = props.source;
+  if (!msg.attachedInfoElem?.isPrivateChat) return;
+  if (msg.isRead || msg.sendID !== userStore.getMyUserID) {
+    const time = await getPrivateExpirationMsgTime(
+      conversationStore.currentConversation?.conversationID!,
+      msg
+    );
+    if (time > 0) {
+      attachedTime.value = Math.ceil(time / 1000);
+      clearInterval(attachedTimerId);
+      attachedTimerId = setInterval(() => {
+        attachedTime.value--;
+        if (attachedTime.value < 0) {
+          clearInterval(attachedTimerId);
+        }
+      }, 1e3);
+    }
+  }
+};
+
+watch(
+  () => [props.source?.isRead, props.source?.attachedInfoElem?.hasReadTime],
+  () => {
+    attachedHandle();
+  }
+);
+
+onBeforeMount(() => {
+  attachedHandle();
+});
+onBeforeUnmount(() => {
+  clearInterval(attachedTimerId);
+  clearTimeout(revokeTimerId);
+});
 
 const data = computed(() => {
   if (props.isQuote && props.source.contentType === 2101) {
@@ -362,41 +480,20 @@ const data = computed(() => {
   ) {
     return JSON.parse(props.source.notificationElem.detail);
   }
-  // @消息
-  if (props.source.contentType === 106) {
-    // 使用此处代码分割，注意数据渲染时的xss攻击
-    const regex = /(@\S+\s)|(\S+)/g;
-    const result = [];
-    const { text, atUsersInfo = [] } = props.source.atTextElem;
-    let match;
-    while ((match = regex.exec(text)) !== null) {
-      if (match[1]) {
-        const userID = match[1].slice(1, -1);
-        const member = atUsersInfo.find((user) => user.atUserID === userID);
-        if (member) {
-          result.push({
-            type: "at",
-            userID: member?.atUserID,
-            nickname: `${member?.groupNickname}`,
-          });
-        } else {
-          result.push({
-            type: "text",
-            text: match[1],
-          });
-        }
-      } else {
-        result.push({
-          type: "text",
-          text: match[2],
-        });
-      }
-    }
-    return result;
-  }
 
   if (props.source.contentType === 109) {
-    return JSON.parse(props.source.locationElem.description);
+    try {
+      const locationElem = props.source.locationElem;
+      const description = JSON.parse(locationElem.description);
+      return {
+        name: description.name,
+        addr: description.addr,
+        latitude: locationElem.latitude,
+        longitude: locationElem.longitude,
+      };
+    } catch (error) {
+      return {};
+    }
   }
   return null;
 });
@@ -413,11 +510,40 @@ const openMediaPreview = (chat: IMTYPE.MessageItem, title: string) => {
   });
 };
 
-const getClickData = () => {
-  const arr = [
-    {
+const openChatRecord = () => {
+  ElMessageBox({
+    title: props.source.mergeElem.title,
+    message: h(MessageRecord, {
+      list: props.source.mergeElem.multiMessage,
+    }),
+    customClass: "histroy-message-box",
+    showClose: true,
+    showConfirmButton: false,
+  });
+};
+
+const openMap = () => {
+  ElMessageBox({
+    message: h(MapContainer, {
+      title: data.value.name,
+      LngLat: [data.value.longitude, data.value.latitude],
+    }),
+    showClose: true,
+    customClass: "map-container",
+    showConfirmButton: false,
+  });
+};
+
+// 创建右键菜单
+const visibleChange = async (isOpen: boolean, ref: Ref) => {
+  dropdownVisibleChange!(isOpen, ref);
+  if (!isOpen) return;
+  rightMenuList.value = [];
+  // 语音消息不让转发
+  if (props.source.contentType !== 103) {
+    rightMenuList.value.push({
       text: "转发",
-      async click() {
+      fn: async () => {
         const data = await appStore.showDialog<
           {
             userID?: string;
@@ -446,48 +572,104 @@ const getClickData = () => {
           });
         });
       },
+    });
+  }
+  rightMenuList.value.push({
+    text: "多选",
+    fn: () => {
+      conversationStore.multipleSelect = [props.source.clientMsgID];
+      conversationStore.multipleStatus = true;
     },
-    {
-      text: "多选",
-      click() {
-        conversationStore.multipleSelect = [props.source.clientMsgID];
-        conversationStore.multipleStatus = true;
-      },
+  });
+  rightMenuList.value.push({
+    text: "回复",
+    fn: () => {
+      conversationStore.currentQuoteMessage = props.source;
     },
-    {
-      text: "回复",
-      click() {
-        conversationStore.currentQuoteMessage = props.source;
-      },
+  });
+  rightMenuList.value.push({
+    text: "删除",
+    fn: async () => {
+      await IMSDK.deleteMsg({
+        conversationID: conversationStore.currentConversation!.conversationID,
+        clientMsgID: props.source.clientMsgID,
+      });
+      conversationStore.removeList([props.source.clientMsgID]);
     },
-    {
-      text: "删除",
-      async click() {
-        await IMSDK.deleteMsg({
-          conversationID: conversationStore.currentConversation!.conversationID,
-          clientMsgID: props.source.clientMsgID,
-        });
-        conversationStore.removeList([props.source.clientMsgID]);
-      },
-    },
-  ];
-  //成员可撤回两分钟内的消息,管理员可以随时撤回
-  (conversationStore.isCurrentGroupAdmin ||
-    (props.source.sendID === userStore.userInfo?.userID &&
-      Math.abs(props.source.sendTime - Date.now()) / 6e4 < 2)) &&
-    arr.splice(4, 0, {
+  });
+  let flag = false;
+
+  // 管理员允许随时撤回消息
+  if (groupStore.isCurrentGroupAdmin) {
+    if (props.source.sendID === userStore.getMyUserID) {
+      flag = true;
+    } else {
+      // 找到该消息所属的成员，如果该成员的级别低于我，则允许我撤回
+      groupStore.currentGroupMemberList?.some((item) => {
+        if (item.userID === props.source.sendID) {
+          if (groupStore.currentMemberInGroup!.roleLevel > item.roleLevel) {
+            flag = true;
+          }
+          return true;
+        }
+      });
+    }
+  } else if (props.source.sendID === userStore.getMyUserID) {
+    // 消息在发出两分钟内允许撤回
+    if (props.source.sendTime + 120e3 - (await getSvrTime()) > 0) {
+      flag = true;
+    }
+  }
+
+  if (flag) {
+    rightMenuList.value.push({
       text: "撤回",
-      click() {
+      fn: () => {
         IMSDK.revokeMsg({
           conversationID: conversationStore.currentConversation!.conversationID,
           clientMsgID: props.source.clientMsgID,
         });
       },
     });
+  }
+};
 
-  return arr;
+const reSendMsg = async () => {
+  try {
+    props.source.status = 1;
+    const { data: successMessage } = await IMSDK.sendMsg({
+      recvID: conversationStore.isCurrentGroupChat
+        ? ""
+        : conversationStore.currentConversation!.userID,
+      groupID: conversationStore.isCurrentGroupChat
+        ? conversationStore.currentConversation!.groupID
+        : "",
+      message: props.source,
+      // offlinePushInfo?: OfflinePush;
+    });
+
+    console.log(successMessage);
+    conversationStore.updateMsgList([successMessage]);
+  } catch (error) {
+    errorHandle(error as IMTYPE.WsResponse);
+    props.source.status = 3;
+    conversationStore.updateMsgList([props.source]);
+  }
 };
 </script>
+
+<style lang="scss">
+.map-container {
+  width: 90vw;
+  height: 80vh;
+  max-width: unset;
+  padding: 0;
+  .el-message-box__message {
+    width: 90vw;
+    height: 80vh;
+  }
+}
+</style>
 
 <style lang="scss" scoped>
 .item {
@@ -502,12 +684,17 @@ const getClickData = () => {
   .chat {
     display: flex;
     .avatar {
+      flex: none;
+      margin-top: 4px;
       cursor: pointer;
     }
     .context {
-      margin: -4px 12px 0 12px;
+      margin: 0 12px;
       display: inline-block;
       max-width: 80%;
+      .sendTime {
+        float: right;
+      }
       .name {
         display: block;
         font-size: 14px;
@@ -616,6 +803,8 @@ const getClickData = () => {
           width: 240px;
           text-align: left;
           border-radius: 4px;
+          cursor: pointer;
+
           .title {
             font-size: 14px;
             line-height: 30px;
@@ -631,15 +820,26 @@ const getClickData = () => {
         .map {
           border: 1px solid #ccc;
           border-radius: 10px;
-          padding: 10px;
-          width: 240px;
+          width: 260px;
+          overflow: hidden;
+          cursor: pointer;
+
           .locationName {
             font-size: 14px;
-            line-height: 30px;
+            line-height: 20px;
+
+            padding: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
           .locationDesc {
             color: #999;
             font-size: 12px;
+            padding: 10px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
           }
         }
       }
@@ -649,6 +849,10 @@ const getClickData = () => {
       height: 20px;
       margin-top: 22px;
       --el-loading-spinner-size: 20px;
+    }
+    .attachedTime {
+      color: var(--el-color-primary);
+      font-size: 12px;
     }
   }
   .centerToast {
@@ -666,7 +870,7 @@ const getClickData = () => {
 
   &.isMe {
     .quote {
-      transform-origin: right;
+      transform-origin: right top;
     }
     .chat {
       flex-direction: row-reverse;
@@ -685,7 +889,8 @@ const getClickData = () => {
     margin-top: 4px;
     display: inline-block;
     transform: scale(0.8);
-    transform-origin: left;
+    transform-origin: left top;
+    margin-bottom: -20px;
 
     .chat {
       margin-right: 0;

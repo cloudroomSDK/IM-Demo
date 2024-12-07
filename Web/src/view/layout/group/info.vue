@@ -1,42 +1,44 @@
 <template>
-  <div class="wrap" v-if="groupInfo && myMemberInfo">
+  <div
+    class="wrap"
+    v-if="groupStore.currentGroupInfo && groupStore.currentMemberInGroup"
+  >
     <el-scrollbar class="scroll">
       <div class="w header">
         <CanEditAvatar
-          :src="groupInfo?.faceURL"
+          :src="groupStore.currentGroupInfo?.faceURL"
           :size="60"
-          :disabled="!isManager"
+          :disabled="!groupStore.isCurrentGroupAdmin"
           type="group"
           @updateUrl="updateAvatar"
         />
         <div class="text">
-          <div class="grounpName">群名称：{{ groupInfo?.groupName }}</div>
-          <div class="grounpID">群ID：{{ groupInfo?.groupID }}</div>
+          <div class="grounpName">
+            群名称：{{ groupStore.currentGroupInfo?.groupName }}
+          </div>
+          <div class="grounpID">
+            群ID：{{ groupStore.currentGroupInfo?.groupID }}
+          </div>
         </div>
       </div>
       <el-divider />
       <div class="w memberList">
         <GroupMemberList
-          :key="groupInfo"
-          :groupInfo="groupInfo"
-          :myMemberInfo="myMemberInfo"
+          v-if="
+            groupStore.currentGroupMemberList && groupStore.currentMemberInGroup
+          "
         />
       </div>
       <el-divider />
       <div class="w setting">
-        <GroupSetting
-          :key="conversationInfo"
-          :groupInfo="groupInfo"
-          :conversationInfo="conversationInfo"
-          :myMemberInfo="myMemberInfo"
-        />
+        <GroupSetting />
       </div>
     </el-scrollbar>
-    <div class="btn-group" v-if="myMemberInfo">
+    <div class="btn-group" v-if="groupStore.currentMemberInGroup">
       <el-button
         type="danger"
         @click="dissolutionHandle"
-        v-if="myMemberInfo?.roleLevel === 100"
+        v-if="groupStore.currentMemberInGroup.roleLevel === 100"
       >
         解散群组
       </el-button>
@@ -45,7 +47,7 @@
         type="primary"
         @click="
           conversationStore.gotoConversationChat({
-            conversationItem: conversationInfo,
+            conversationItem: conversationStore.currentConversation,
           })
         "
       >
@@ -64,17 +66,14 @@
       <div class="main">
         <div class="header">群成员</div>
         <div class="body">
-          <GroupMemberDetailList
-            :groupID="$route.params.groupID"
-            :myMemberInfo="myMemberInfo"
-          />
+          <GroupMemberDetailList />
         </div>
       </div>
     </el-drawer>
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, onBeforeUnmount, provide, ref, watch } from "vue";
+import { onBeforeUnmount, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
 import {
@@ -83,95 +82,53 @@ import {
   GroupSetting,
   GroupMemberDetailList,
 } from "~/components";
-import { useUserStore, useConversationStore } from "~/stores";
+import { useConversationStore, useGroupStore } from "~/stores";
 import { ElMessageBox } from "element-plus";
 
 const $route = useRoute();
 const $router = useRouter();
-const userStore = useUserStore();
+const groupStore = useGroupStore();
 const conversationStore = useConversationStore();
 
 const openMemberList = ref(false);
-const groupInfo = ref<IMTYPE.GroupItem>();
-const myMemberInfo = ref<IMTYPE.GroupMemberItem>();
-const conversationInfo = ref<IMTYPE.ConversationItem>();
-
-const isManager = computed(() => {
-  if (!myMemberInfo.value) return false;
-  return (
-    myMemberInfo.value.roleLevel === 100 || myMemberInfo.value.roleLevel === 60
-  );
-});
 
 const groupIDChange = async function (groupID: string) {
-  const { data } = await IMSDK.getSpecifiedGrpsInfo([groupID]);
-  if (data.length && data[0].memberCount > 0) {
-    groupInfo.value = data[0];
-
-    const { data: conversation } = await IMSDK.getOneConversation({
+  try {
+    const { data: conversationItem } = await IMSDK.getOneConversation({
       sourceID: groupID,
       sessionType: 3,
     });
-    conversationInfo.value = conversation;
 
-    const { data: memberList } = await IMSDK.getSpecifiedGrpMembersInfo({
-      groupID: groupID,
-      userIDList: [userStore.userInfo!.userID],
-    });
-
-    if (memberList.length) {
-      myMemberInfo.value = memberList[0];
-    }
-  } else {
+    await conversationStore.changeConversation(conversationItem);
+  } catch (error) {
     $router.replace({ name: "group" });
   }
 };
 groupIDChange($route.params.groupID as string);
 watch(() => $route.params.groupID as string, groupIDChange);
 
-const onGrpInfoChanged = ({ data }: { data: IMTYPE.GroupItem }) => {
-  if (data.groupID === groupInfo.value?.groupID) {
-    groupInfo.value = data;
-  }
-};
-const onConversationChanged = ({
-  data,
-}: {
-  data: IMTYPE.ConversationItem[];
-}) => {
-  data.forEach((item) => {
-    if (item.conversationID === conversationInfo.value?.conversationID) {
-      conversationInfo.value = item;
-    }
-  });
-};
-
 const onJoinedGrpDeleted = ({ data }: { data: IMTYPE.GroupItem }) => {
-  if (data.groupID === groupInfo.value?.groupID) {
+  if (data.groupID === groupStore.currentGroupInfo?.groupID!) {
     $router.replace({ name: "group" });
   }
 };
 
-IMSDK.on("OnGrpInfoChanged", onGrpInfoChanged);
 IMSDK.on("OnJoinedGrpDeleted", onJoinedGrpDeleted);
-IMSDK.on("OnConversationChanged", onConversationChanged);
 
 onBeforeUnmount(() => {
-  IMSDK.off("OnGrpInfoChanged", onGrpInfoChanged);
   IMSDK.off("OnJoinedGrpDeleted", onJoinedGrpDeleted);
-  IMSDK.off("OnConversationChanged", onConversationChanged);
 });
 
 const updateAvatar = async (url: string) => {
   await IMSDK.setGrpInfo({
-    groupID: groupInfo.value?.groupID!,
+    groupID: groupStore.currentGroupInfo?.groupID!,
     faceURL: url,
   });
 };
 
 const dissolutionHandle = async () => {
   await ElMessageBox.confirm(
-    `确认要解散群组"${groupInfo.value?.groupName}"吗?`,
+    `确认要解散群组"${groupStore.currentGroupInfo?.groupName}"吗?`,
     "解散群组",
     {
       confirmButtonText: "确定",
@@ -180,12 +137,12 @@ const dissolutionHandle = async () => {
     }
   );
 
-  await IMSDK.dismissGrp(groupInfo.value?.groupID!);
+  await IMSDK.dismissGrp(groupStore.currentGroupInfo?.groupID!);
 };
 
 const exitHandle = async () => {
   await ElMessageBox.confirm(
-    `确认要退出群组"${groupInfo.value?.groupName}"吗?`,
+    `确认要退出群组"${groupStore.currentGroupInfo?.groupName}"吗?`,
     "退出群组",
     {
       confirmButtonText: "确定",
@@ -194,7 +151,7 @@ const exitHandle = async () => {
     }
   );
 
-  await IMSDK.quitGrp(groupInfo.value?.groupID!);
+  await IMSDK.quitGrp(groupStore.currentGroupInfo?.groupID!);
 };
 
 provide("showGroupMoreMemberList", () => {

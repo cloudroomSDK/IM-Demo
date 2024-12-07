@@ -12,9 +12,10 @@
 </template>
 <script setup lang="ts">
 import { Avatar } from ".";
-import { importFile } from "~/utils";
+import { getPicInfo, importFile } from "~/utils";
 import { IMSDK } from "~/utils/imsdk";
 import { v4 as uuidv4 } from "uuid";
+import { ElMessage } from "element-plus";
 
 withDefaults(
   defineProps<{
@@ -29,6 +30,15 @@ const $emit = defineEmits(["updateUrl"]);
 
 const openSelectFile = async () => {
   const [file] = await importFile({ accept: "image/*", multiple: false });
+  if (file.size > 2 * 1024 * 1024) {
+    return ElMessage.error("图片大小不能超过2MB");
+  }
+  const info = await getPicInfo(file);
+
+  if (info.width > 512 || info.height > 512) {
+    return ElMessage.error("图片分辨率不能超过512x512");
+  }
+
   const { data } = await IMSDK.uploadFile({
     name: file.name,
     contentType: file.type,

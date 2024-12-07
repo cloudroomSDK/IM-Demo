@@ -63,6 +63,7 @@ interface Member {
   userID: string;
   nickname: string;
   imgSrc?: string;
+  reqMsg?: string;
   handleResult: IMTYPE.ApplicationHandleResult;
 }
 const list = ref<Member[]>([]);

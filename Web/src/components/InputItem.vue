@@ -8,25 +8,37 @@
   >
     <div class="key">
       <Avatar class="img" v-if="iconUrl" :src="iconUrl" :size="30" />
-      <span class="text">
-        {{ text }}
-      </span>
+      <span class="text"> {{ text }} </span>
     </div>
     <div class="value">
       <div v-if="type === 'text'" class="text">{{ value }}</div>
+
       <el-switch
         v-else-if="type === 'switch'"
-        v-model="switchValue"
-        @change="$emit('change', switchValue)"
+        v-model="model"
+        @change="emit('change', $event)"
       />
+      <el-select
+        v-else-if="type === 'select'"
+        v-model="model"
+        :style="`width: ${selectWidth}px`"
+        @change="emit('change', $event)"
+      >
+        <el-option
+          v-for="item in options"
+          :key="item.value"
+          :label="item.text"
+          :value="item.value"
+        />
+      </el-select>
       <el-icon class="icon" v-if="showArrow"><i-ep-arrowRight /></el-icon>
       <el-popover
+        v-if="canCopy"
         placement="bottom"
         :width="150"
         :visible="copyToast"
         effect="dark"
         content="已复制"
-        v-if="canCopy"
       >
         <template #reference>
           <el-icon @click="copy" class="icon"> <i-ep-documentCopy /></el-icon>
@@ -39,21 +51,27 @@
 </template>
 <script lang="ts" setup>
 import { ElMessageBox } from "element-plus";
-import { ref, Ref } from "vue";
+import { ref } from "vue";
 import { copyToClipboard } from "~/utils";
 import { Avatar } from ".";
+const model = defineModel<boolean | number>();
+const emit = defineEmits(["change", "updateValue"]);
 
-const $emit = defineEmits(["change", "updateValue"]);
-
+interface Option {
+  text: string;
+  value: number | string;
+}
 interface Props {
-  type?: "text" | "switch" | "btn" | "showIcon";
+  type?: "text" | "switch" | "btn" | "showIcon" | "select";
   height?: number;
   text: string;
-  value?: string | boolean;
+  value?: string | boolean | number;
   canEdit?: boolean;
   canCopy?: boolean;
   showArrow?: boolean;
   iconUrl?: string;
+  options?: Option[];
+  selectWidth?: number;
 }
 const props = withDefaults(defineProps<Props>(), {
   type: "text",
@@ -61,16 +79,10 @@ const props = withDefaults(defineProps<Props>(), {
   canEdit: false,
   canCopy: false,
   showArrow: false,
+  selectWidth: 90,
 });
 
-let switchValue: Ref<boolean>;
-let copyToast: Ref<boolean>;
-if (props.type === "switch") {
-  switchValue = ref(props.value as boolean);
-}
-if (props.canCopy) {
-  copyToast = ref(false);
-}
+let copyToast = ref(false);
 
 const edit = async () => {
   try {
@@ -82,7 +94,7 @@ const edit = async () => {
         cancelButtonText: "取消",
       }
     );
-    $emit("updateValue", value);
+    emit("updateValue", value);
   } catch (error) {}
 };
 const copy = async () => {
@@ -111,6 +123,7 @@ const copy = async () => {
     display: flex;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
     .text {
       color: #000;
       text-wrap: nowrap;

@@ -2,6 +2,7 @@
   <div class="search">
     <el-input
       :prefix-icon="Search"
+      :disabled="disabled"
       clearable
       class="input"
       v-model="model"
@@ -12,7 +13,13 @@
 
 <script lang="ts" setup>
 import { Search } from "@element-plus/icons-vue";
-const model = defineModel();
+const model = defineModel<string>();
+defineProps({
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+})
 </script>
 <style lang="scss" scoped>
 .search {

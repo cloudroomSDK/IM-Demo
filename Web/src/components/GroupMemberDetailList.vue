@@ -1,60 +1,140 @@
 <template>
   <div class="scroll">
-    <ul
-      class="ul"
-      v-infinite-scroll="getList"
-      :infinite-scroll-disabled="!canLoading && scrollDisabled"
-    >
-      <li v-for="item in list" :key="item.userID">
-        <div class="item" @click="openUserInfo(item.userID, groupID)">
-          <Avatar :src="item.faceURL" :size="36" />
-          <div class="r">
-            <span class="name">{{ item.nickname }}</span>
-            <span class="identity owner" v-if="item.roleLevel === 100">
-              群主
-            </span>
-            <span class="identity admin" v-else-if="item.roleLevel === 60">
-              管理员
-            </span>
+    <ul class="ul">
+      <li
+        v-for="(item, index) in groupStore.currentGroupMemberList"
+        :key="item.userID"
+      >
+        <el-dropdown
+          @command="handleCommand"
+          trigger="contextmenu"
+          style="width: 100%"
+          placement="left"
+          ref="dropdownRef"
+          type="primary"
+          @visible-change="
+            // @ts-ignore
+            visibleChange($event, $refs.dropdownRef[index], item)
+          "
+        >
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item v-for="item in list" @click="item.fn">
+                {{ item.text }}
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+          <div
+            class="item"
+            @click="
+              openUserInfo(
+                item.userID,
+                groupStore.currentGroupInfo,
+                groupStore.isCurrentGroupAdmin
+              )
+            "
+          >
+            <Avatar :src="item.faceURL" :size="36" />
+            <div class="r">
+              <span class="name">{{ item.nickname }}</span>
+              <span class="identity owner" v-if="item.roleLevel === 100">
+                群主
+              </span>
+              <span class="identity admin" v-else-if="item.roleLevel === 60">
+                管理员
+              </span>
+            </div>
           </div>
-        </div>
+        </el-dropdown>
       </li>
-      <p v-if="canLoading" style="text-align: center">Loading...</p>
     </ul>
   </div>
 </template>
 <script lang="ts" setup>
-import { ref } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
 import { Avatar } from "~/components";
 import { openUserInfo } from "~/utils";
-const props = defineProps<{
-  groupID: string;
-  myMemberInfo: IMTYPE.GroupMemberItem;
-}>();
-console.log(props.groupID, props.myMemberInfo);
-const count = 100; //分页拉取成员数量
-let offset = 0;
-const canLoading = ref(true);
-const list = ref<IMTYPE.GroupMemberItem[]>([]);
-const scrollDisabled = ref(false);
+import { useGroupStore } from "~/stores";
+import { inject, Ref, ref } from "vue";
+import { IMSDK, IMTYPE } from "~/utils/imsdk";
 
-const getList = async () => {
-  if (scrollDisabled.value) return;
-  scrollDisabled.value = true;
-  const { data } = await IMSDK.getGrpMemberList({
-    groupID: props.groupID,
-    filter: 0,
-    offset: offset,
-    count: count,
+const groupStore = useGroupStore();
+
+const dropdownVisibleChange = inject("dropdownVisibleChange") as (
+  e: boolean,
+  ref: any
+) => void;
+const dropdownRef = ref();
+
+const handleCommand = (command: string) => {};
+const list = ref<any[]>([]);
+
+const visibleChange = (
+  isOpen: boolean,
+  ref: Ref,
+  item: IMTYPE.GroupMemberItem
+) => {
+  dropdownVisibleChange(isOpen, ref);
+  if (!isOpen) return;
+  list.value = [];
+  list.value.push({
+    text: "查看资料",
+    fn: () => {
+      openUserInfo(
+        item.userID,
+        groupStore.currentGroupInfo,
+        groupStore.isCurrentGroupAdmin
+      );
+    },
   });
-  canLoading.value = data.length >= count;
-  offset += count;
-  list.value = list.value.concat(data);
-  scrollDisabled.value = false;
+  if (groupStore.currentMemberInGroup?.roleLevel! > item.roleLevel) {
+    const isMute = !!item.muteEndTime;
+    list.value.push({
+      text: isMute ? "取消禁言" : "禁言",
+      fn: () => {
+        IMSDK.changeGrpMemberMute({
+          groupID: groupStore.currentGroupInfo?.groupID!,
+          userID: item.userID,
+          mutedSeconds: isMute ? 0 : 315360000, //禁言十年大礼包
+        });
+      },
+    });
+    list.value.push({
+      text: "移出本群",
+      fn: () => {
+        IMSDK.kickGrpMember({
+          groupID: groupStore.currentGroupInfo?.groupID!,
+          reason: "reason",
+          userIDList: [item.userID],
+        });
+      },
+    });
+  }
+  if (
+    groupStore.currentMemberInGroup?.roleLevel! === 100 &&
+    groupStore.currentMemberInGroup?.userID !== item.userID
+  ) {
+    list.value.push({
+      text: "转让群主",
+      fn: () => {
+        IMSDK.transferGrpOwner({
+          groupID: groupStore.currentGroupInfo?.groupID!,
+          newOwnerUserID: item.userID,
+        });
+      },
+    });
+    const isManager = item.roleLevel === 60;
+    list.value.push({
+      text: isManager ? "取消管理员" : "设为管理员",
+      fn: () => {
+        IMSDK.setGrpMemberInfo({
+          groupID: groupStore.currentGroupInfo?.groupID!,
+          userID: item.userID,
+          roleLevel: isManager ? 20 : 60,
+        });
+      },
+    });
+  }
 };
-
-getList();
 </script>
 <style lang="scss" scoped>
 .scroll {
@@ -65,12 +145,12 @@ getList();
     overflow: auto;
     padding-top: 10px;
     li {
-      height: 50px;
       padding: 0 6px;
 
       .item {
+        width: 100%;
         height: 100%;
-        padding-left: 10px;
+        padding: 10px;
         display: flex;
         align-items: center;
         border-radius: 4px;
@@ -101,7 +181,7 @@ getList();
           }
         }
         &:hover {
-          background: #f3f8fe;
+          background: #e9ebf4;
         }
       }
     }

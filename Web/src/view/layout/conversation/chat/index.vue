@@ -12,9 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { IMSDK } from "~/utils/imsdk";
 import { useConversationStore } from "~/stores";
 import List from "./list.vue";
 import Header from "./header.vue";
@@ -26,16 +24,15 @@ const conversationStore = useConversationStore();
 
 const conversationChange = async function (conversationID: string) {
   if (!conversationStore.currentConversation) {
-    const { data } = await IMSDK.getMultipleConversation([conversationID]);
-    if (data.length) {
-      conversationStore.changeConversation(data[0]);
-    } else {
+    try {
+      await conversationStore.gotoConversationChat({ conversationID });
+    } catch (error) {
+      console.log(error);
       $router.push({ name: "chat" });
     }
   }
 };
 conversationChange($route.params.conversationID as string);
-watch(() => $route.params.conversationID as string, conversationChange);
 </script>
 <style lang="scss" scoped>
 .container {

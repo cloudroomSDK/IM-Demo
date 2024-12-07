@@ -1,17 +1,19 @@
 import { getSDK } from "@cloudroom/im-wasm-sdk";
 export type { IMTYPE } from "@cloudroom/im-wasm-sdk";
+import SDK_WASM_URL from "@cloudroom/im-wasm-sdk/dist/CRIM.wasm?url";
+
 import { getPicInfo } from ".";
 import { v4 as uuidV4 } from "uuid";
 import { useFriendStore, useAppStore, useConversationStore } from "~/stores";
 import { MemberSelect } from "~/components";
 
 // vite里获取使用显示url引入wasm，webpack里需要使用url-loader解析
-import SDK_WASM_URL from "@cloudroom/im-wasm-sdk/dist/CRIM.wasm?url";
 import SQL_WASM_URL from "@jlongster/sql.js/dist/sql-wasm.wasm?url";
+import { getSvrTime } from "~/api/login";
 
-/* import { getSDK } from "@/index";
-export type { IMTYPE } from "@/index";
-import SDK_WASM_URL from "@/assets/CRIM.wasm?url"; */
+// import { getSDK, IMTYPE } from "@/index";
+// export type { IMTYPE } from "@/index";
+// import SDK_WASM_URL from "@/assets/CRIM.wasm?url";
 
 export const IMSDK = getSDK({
   assetsUrl: {
@@ -136,3 +138,36 @@ export const clearConversationMsg = async (conversationID: string) => {
     conversationStore.msgList = [];
   }
 };
+
+/**
+ * 获取阅后即焚消息剩余时间
+ * @param meesageItem
+ * @returns { number } 剩余毫秒时间
+ */
+export const getPrivateExpirationMsgTime = (() => {
+  let obj: Record<string, number> = {};
+  return async (
+    conversationID: string,
+    msg: IMTYPE.MessageItem
+  ): Promise<number> => {
+    const svrTime = await getSvrTime();
+    if (obj[msg.clientMsgID]) {
+      return obj[msg.clientMsgID] - svrTime;
+    }
+    const hasReadTime = msg.attachedInfoElem.hasReadTime || svrTime; //已读时间
+    const endTime = hasReadTime + msg.attachedInfoElem.burnDuration * 1e3; //到期时间
+    obj[msg.clientMsgID] = endTime; //存储到期时间
+
+    const time = endTime - svrTime; //剩余时间
+    setTimeout(() => {
+      const conversationStore = useConversationStore();
+      IMSDK.deleteMsg({
+        conversationID: conversationID,
+        clientMsgID: msg.clientMsgID,
+      });
+      conversationStore.removeList([msg.clientMsgID]);
+      delete obj[msg.clientMsgID];
+    }, time);
+    return time;
+  };
+})();

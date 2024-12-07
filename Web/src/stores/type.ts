@@ -1,18 +1,13 @@
 import { API } from "~/api/typings";
 import { IMTYPE } from "~/utils/imsdk";
-import { ComponentOptions } from "vue";
+import { Component } from "vue";
 
 export interface ConfigStore {
   businessServer: string;
-  sdkServer: string;
-  useToken: boolean;
-  appId: string;
-  appSecret: string;
-  token: string;
 }
 
 export interface Dialog {
-  component?: ComponentOptions;
+  component?: Component;
   show: boolean;
   title?: string;
   data?: any;
@@ -27,7 +22,6 @@ export interface AppStore {
 
 export interface SDKLoginInfo {
   sdkServer: string;
-  // userID: string;
   appId?: string;
   appSecret?: string;
   token?: string;
@@ -36,7 +30,6 @@ export interface SDKLoginInfo {
 export interface UserStore {
   businessData?: API.Login.LoginData;
   userInfo?: IMTYPE.SelfUserInfo;
-  lastLoginInfo?: SDKLoginInfo;
 }
 
 export declare enum MessageReceiveOptType {
@@ -49,9 +42,7 @@ export type MsgItem = IMTYPE.MessageItem & {
 };
 
 export interface ConversationStore {
-  currentConversationIndex?: number;
-  currentGroupInfo?: IMTYPE.GroupItem;
-  currentMemberInGroup?: IMTYPE.GroupMemberItem;
+  currentConversation?: IMTYPE.ConversationItem;
   conversationList?: IMTYPE.ConversationItem[];
   conversationListPromise?: Promise<IMTYPE.ConversationItem[]>;
   currentQuoteMessage?: MsgItem;
@@ -71,6 +62,10 @@ export interface FriendStore {
 }
 
 export interface GroupStore {
+  messageCount: number;
   list?: IMTYPE.GroupItem[];
   listPromise?: Promise<IMTYPE.GroupItem[]>;
+  currentGroupInfo?: IMTYPE.GroupItem;
+  currentMemberInGroup?: IMTYPE.GroupMemberItem;
+  currentGroupMemberList?: IMTYPE.GroupMemberItem[];
 }

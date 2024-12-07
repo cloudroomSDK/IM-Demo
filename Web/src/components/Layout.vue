@@ -2,15 +2,15 @@
   <div class="container">
     <div class="left" :style="{ width: appStore.sideWidth + 'px' }">
       <div class="search">
-        <slot name="search"></slot>
+        <slot name="search" />
       </div>
       <el-scrollbar class="scrollbar">
         <ul class="list">
-          <slot name="list"></slot>
+          <slot name="list" />
         </ul>
       </el-scrollbar>
     </div>
-    <router-view class="right"></router-view>
+    <router-view class="right" />
   </div>
 </template>
 

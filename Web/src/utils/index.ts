@@ -5,6 +5,8 @@ import { errorDesc, IMTYPE } from "./imsdk";
 import { UserInfo } from "~/components";
 import { h } from "vue";
 import { useUserStore } from "~/stores";
+import useClipboard from "vue-clipboard3";
+import { getFaceList, unicodeToChar } from "./face";
 export function base64Parms(str: string) {
   return CryptoJS.enc.Base64.parse(str).toString(CryptoJS.enc.Utf8);
 }
@@ -103,29 +105,6 @@ export const getVideoSnshotFile = (file: File): Promise<File> => {
   });
 };
 
-// element form的通用表单检验规则
-export const commonValidator = (
-  rule: any,
-  value: string,
-  callback: Function
-) => {
-  const str = {
-    account: "账号",
-    code: "验证码",
-    appId: "AppID",
-    appSecret: "AppSecret",
-  }[rule.field as string];
-  console.log(rule.field);
-  if (!value) {
-    return callback(new Error(`请输入${str}`));
-  }
-
-  if (/\W/.test(value)) {
-    return callback(new Error(`${str}不能包含非法字符`));
-  }
-  callback();
-};
-
 export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
   if (messageItem.contentType === 101) {
     return messageItem.textElem.content;
@@ -141,6 +120,14 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
   }
   if (messageItem.contentType === 105) {
     return "[文件]";
+  }
+  if (messageItem.contentType === 106) {
+    let text = messageItem.atTextElem.text;
+    messageItem.atTextElem.atUsersInfo?.forEach((item) => {
+      const reg = new RegExp(`@${item.atUserID}`, "g");
+      text = text.replace(reg, `@${item.groupNickname}`);
+    });
+    return text;
   }
   if (messageItem.contentType === 107) {
     return "[聊天记录]";
@@ -241,13 +228,25 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
   return "[未知消息]" + messageItem.contentType;
 };
 
-export const openUserInfo = (userID: String, groupID?: string) => {
+export const openUserInfo = (
+  userID: string,
+  groupInfo?: IMTYPE.GroupItem,
+  isAdmin: boolean = false
+) => {
   ElMessageBox({
     title: "",
     message: h(UserInfo, {
       userID,
-      groupID,
-      isApiOpen: true,
+      groupID: groupInfo?.groupID,
+      allowLookInfo: groupInfo?.groupID
+        ? isAdmin || groupInfo?.lookMemberInfo === 0
+        : true,
+      allowAddFriend: groupInfo?.groupID
+        ? isAdmin || groupInfo?.applyMemberFriend === 0
+        : true,
+      onClose: () => {
+        ElMessageBox.close();
+      },
     }),
     showClose: true,
     customStyle: { width: "300px" },
@@ -256,9 +255,14 @@ export const openUserInfo = (userID: String, groupID?: string) => {
     console.log(action);
   });
 };
-
 export async function copyToClipboard(text: string) {
-  return await navigator.clipboard.writeText(text);
+  try {
+    const { toClipboard } = useClipboard();
+    await toClipboard(text);
+    console.log("Copied to clipboard");
+  } catch (e) {
+    console.error(e);
+  }
 }
 
 export const downloadUrl = (url: string) => {
@@ -292,3 +296,86 @@ export const errorHandle = (error: IMTYPE.WsResponse) => {
     });
   }
 };
+
+export const chatTextSplit = (function () {
+  const emoticons = getFaceList();
+  return (message: IMTYPE.MessageItem | string) => {
+    let text = "";
+    let atUsersInfo: any[] = [];
+    if (typeof message === "string") {
+      text = message;
+    } else if (message.contentType === 101) {
+      text = message.textElem.content;
+    } else if (message.contentType === 106) {
+      text = message.atTextElem.text;
+      atUsersInfo = message.atTextElem.atUsersInfo || [];
+    } else if (message.contentType === 114) {
+      text = message.quoteElem.text;
+    }
+    const atIds = atUsersInfo.map((item) => `@${item.atUserID}`);
+    const idsReg = atIds.length ? `(${atIds.join("|")})|` : "";
+    const easyAtReg = `(@\{\\w+\\|.+?\})|`;
+    const regex = new RegExp(
+      `${idsReg}${easyAtReg}(?:${emoticons.join("|")})`,
+      "g"
+    );
+
+    // 执行匹配并生成结果
+    let result = [];
+    let lastIndex = 0;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+      // 将当前表情之前的文本作为普通文本部分加入结果
+      if (match.index > lastIndex) {
+        result.push({
+          type: "text",
+          text: text.substring(lastIndex, match.index),
+        });
+      }
+      // 将匹配到的表情加入结果
+      if (match[0].startsWith("@{")) {
+        const idx = match[0].indexOf("|");
+        const userID = match[0].slice(2, idx);
+        const nickname = match[0].slice(idx + 1, -1);
+
+        // 将匹配到的@加入结果
+        result.push({
+          type: "at",
+          userID,
+          nickname, // 去除@
+        });
+      } else if (match[0].startsWith("@")) {
+        const userID = match[0].slice(1);
+        const nickname = atUsersInfo.find(
+          (item) => item.atUserID === userID
+        )?.groupNickname;
+        // 将匹配到的@加入结果
+        result.push({
+          type: "at",
+          userID,
+          nickname, // 去除@
+        });
+      } else {
+        const unicode = match[0].codePointAt(0)?.toString(16);
+        if (unicode) {
+          const char = unicodeToChar(unicode);
+          const emojiName = emoticons.find((item) => item === char);
+          if (emojiName) {
+            result.push({ type: "face", value: unicode.toLocaleUpperCase() });
+          }
+        }
+      }
+
+      lastIndex = regex.lastIndex;
+    }
+
+    // 将最后一个表情之后的文本加入结果
+    if (lastIndex < text.length) {
+      result.push({
+        type: "text",
+        text: text.substring(lastIndex),
+      });
+    }
+    return result;
+  };
+})();

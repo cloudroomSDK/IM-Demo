@@ -5,7 +5,8 @@
         @click="
           openUserInfo(
             item.userID!,
-            conversationStore.currentConversation?.groupID
+            groupStore.currentGroupInfo,
+            groupStore.isCurrentGroupAdmin
           )
         "
       >
@@ -20,7 +21,11 @@
   <template v-else>
     <span
       @click="
-        openUserInfo(userID!, conversationStore.currentConversation?.groupID)
+        openUserInfo(
+          userID!,
+          groupStore.currentGroupInfo,
+          groupStore.isCurrentGroupAdmin
+        )
       "
     >
       {{ showAt ? "@" : ""
@@ -29,10 +34,10 @@
   </template>
 </template>
 <script lang="ts" setup>
-import { useUserStore, useConversationStore } from "~/stores";
+import { useUserStore, useGroupStore } from "~/stores";
 import { openUserInfo } from "~/utils";
 const userStore = useUserStore();
-const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 type userInfo = { nickname?: string; userID?: string };
 defineProps<
   userInfo & {

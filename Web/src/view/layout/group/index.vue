@@ -7,6 +7,20 @@
       <li v-show="!searchText.trim()" @click="openCreateGroup">
         <Card name="创建群组" :imgSrc="createGroupImg" />
       </li>
+      <li
+        v-show="!searchText.trim()"
+        @click="$router.push({ name: 'newGroups' })"
+      >
+        <Card
+          name="入群申请"
+          :imgSrc="msgGroupImg"
+          :active="'_newGroups' === activeName"
+          :msgCount="groupStore.messageCount"
+        />
+      </li>
+      <li v-show="!searchText.trim()" @click="openJoinGroup">
+        <Card name="加入群聊" :imgSrc="joinGroupImg" />
+      </li>
       <li v-for="item in list" :key="item.id" @click="goGroupInfo(item)">
         <Card
           :active="item.id === activeName"
@@ -20,13 +34,15 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Card, MemberSelect, Layout } from "~/components";
+import { Search, Card, MemberSelect, Layout, AddGroup } from "~/components";
 
 import { useRouter, useRoute } from "vue-router";
 import { computed, ref } from "vue";
 import { useGroupStore, useAppStore } from "~/stores";
 import { IMSDK } from "~/utils/imsdk";
 import createGroupImg from "~/assets/icons/create_group.svg";
+import msgGroupImg from "~/assets/icons/msg_group.svg";
+import joinGroupImg from "~/assets/icons/join_group.svg";
 
 const $router = useRouter();
 const $route = useRoute();
@@ -44,6 +60,9 @@ interface listItem {
 const activeName = computed(() => {
   if ($route.name === "groupInfo") {
     return $route.params.groupID;
+  }
+  if ($route.name === "newGroups") {
+    return "_newGroups";
   }
   return "";
 });
@@ -110,6 +129,13 @@ const openCreateGroup = async () => {
   $router.push({
     name: "groupInfo",
     params: { groupID: groupItem.groupID },
+  });
+};
+const openJoinGroup = () => {
+  appStore.showDialog({
+    component: AddGroup,
+    title: "加入群聊",
+    width: 700,
   });
 };
 </script>

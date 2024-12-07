@@ -7,18 +7,20 @@
           <span class="name">{{ friendInfo.nickname }}</span>
         </div>
         <el-divider />
-        <template v-if="conversationInfo">
+        <template v-if="conversationStore.currentConversation">
           <div class="card">
             <InputItem
               type="btn"
               text="详细资料"
               showArrow
-              @click="openUserInfo(conversationInfo.userID)"
+              @click="
+                openUserInfo(conversationStore.currentConversation.userID)
+              "
             />
           </div>
           <MemberSetting
-            :key="conversationInfo"
-            :conversationInfo="conversationInfo"
+            :key="conversationStore.currentConversation.conversationID"
+            :conversationInfo="conversationStore.currentConversation"
           />
         </template>
       </div>
@@ -47,7 +49,7 @@ import { Avatar, MemberSetting, InputItem } from "~/components";
 import { useRoute, useRouter } from "vue-router";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
 import { openUserInfo } from "~/utils";
-import { ref, watch } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import { ElMessageBox } from "element-plus";
 import { useConversationStore, useFriendStore } from "~/stores";
 
@@ -57,7 +59,6 @@ const conversationStore = useConversationStore();
 const friendStore = useFriendStore();
 
 let friendInfo = ref();
-let conversationInfo = ref<IMTYPE.ConversationItem>();
 const userChange = async function (userID: string) {
   friendInfo.value = undefined;
   const userInfo = await friendStore.getFriendInfo(userID);
@@ -70,7 +71,7 @@ const userChange = async function (userID: string) {
     sourceID: userID,
     sessionType: 1,
   });
-  conversationInfo.value = conversationItem;
+  conversationStore.changeConversation(conversationItem);
 };
 userChange($route.params.userID as string);
 watch(() => $route.params.userID as string, userChange);
@@ -83,6 +84,18 @@ const del = async function () {
   });
   await IMSDK.deleteFriend($route.params.userID as string);
 };
+
+const OnFriendDeleted = ({ data }: { data: IMTYPE.FriendUserItem }) => {
+  if (data.userID === conversationStore.currentConversation?.userID) {
+    $router.replace({ name: "friend" });
+  }
+};
+
+IMSDK.on("OnFriendDeleted", OnFriendDeleted);
+
+onBeforeUnmount(() => {
+  IMSDK.off("OnFriendDeleted", OnFriendDeleted);
+});
 </script>
 
 <style lang="scss" scoped>

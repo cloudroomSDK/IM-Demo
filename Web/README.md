@@ -14,13 +14,6 @@ Web IM Demo是一个开源项目，项目展示了 IM Wasm SDK 接口的使用�
 git clone git@github.com:cloudroomSDK/IM-Demo.git
 ```
 
-### 创建账号
-
-1. 您需要在云屋[SDK官网](https://sdk.cloudroom.com/)注册账号并创建项目，具体流程参见[准备工作](https://docs.cloudroom.com/im/document/fastIntegration/build_example?platform=Web)
-1. 项目创建完成，获取到`AppId`和`AppSecret`，选择以下之一方式：
-    - 在`Web/src/config/index.ts`文件中修改对应的值
-    - 启动项目后，在设置界面中填入对应的值
-
 ### 运行
 ```bash
 cd Web

@@ -19,7 +19,7 @@
       <template #header>
         <div class="header" v-if="overflow">
           <div class="finished" v-if="canLoading">没有更多了</div>
-          <div class="spinner" v-else></div>
+          <div class="spinner" v-else />
         </div>
       </template>
     </VirtualList>
@@ -35,7 +35,8 @@ import { Empty } from "~/components";
 import { nextTick, onBeforeMount, onBeforeUnmount, ref } from "vue";
 //@ts-ignore
 import VirtualList from "vue3-virtual-scroll-list";
-import MessageItem from "./messageItem.vue";
+import { MessageItem } from "~/components";
+import { getSvrTime } from "~/api/login";
 
 const userStore = useUserStore();
 const conversationStore = useConversationStore();
@@ -58,6 +59,14 @@ const refershList = async () => {
 
 onBeforeMount(async () => {
   await refershList();
+  // @ts-ignore
+  if (conversationStore.currentConversation?.unreadCount > 0) {
+    // 清空当前绘画未读数
+    IMSDK.markConversationMsgAsRead(
+      conversationStore.currentConversation!.conversationID
+    );
+  }
+
   loading.value = false;
 });
 
@@ -135,6 +144,7 @@ const inCurrentConversation = (messageItem: IMTYPE.MessageItem): Boolean => {
 };
 
 const onRecvNewMsgs = async ({ data }: { data: IMTYPE.MessageItem[] }) => {
+  // 只接收当前聊天框的有效信息
   const validMsgList = data.filter(
     (messageItem) =>
       inCurrentConversation(messageItem) &&
@@ -142,12 +152,19 @@ const onRecvNewMsgs = async ({ data }: { data: IMTYPE.MessageItem[] }) => {
   );
 
   if (validMsgList.length) {
+    validMsgList.forEach(async (item) => {
+      item.isRead = true;
+      if (item.attachedInfoElem.isPrivateChat) {
+        item.attachedInfoElem.hasReadTime = await getSvrTime();
+      }
+    });
     // 清空当前绘画未读数
     conversationStore.currentConversation?.conversationID &&
       IMSDK.markConversationMsgAsRead(
         conversationStore.currentConversation.conversationID
       );
     conversationStore.pushMsg(validMsgList);
+
     // 计算滚动条是否在最底部
     const isBottom =
       vsl.value.getClientSize() + vsl.value.getOffset() ===
@@ -169,6 +186,22 @@ const onNewRecvMsgRevoked = ({ data }: { data: IMTYPE.RevokedInfo }) => {
 
   conversationStore.updateMsgList([messageItem as IMTYPE.MessageItem]);
 };
+
+const onRecv1v1ReadReceipt = ({ data }: { data: IMTYPE.ReceiptInfo[] }) => {
+  data.forEach((item) => {
+    return item.msgIDList.forEach((msgID) => {
+      conversationStore.msgList.some((msg) => {
+        if (msgID === msg.clientMsgID) {
+          if (msg.attachedInfoElem) {
+            msg.attachedInfoElem.hasReadTime = item.readTime;
+          }
+          msg.isRead = true;
+          return true;
+        }
+      });
+    });
+  });
+};
 const onListScroll = () => {
   if (
     newMsgCount.value &&
@@ -181,10 +214,12 @@ const onListScroll = () => {
 
 IMSDK.on("OnRecvNewMsgs", onRecvNewMsgs);
 IMSDK.on("OnNewRecvMsgRevoked", onNewRecvMsgRevoked);
+IMSDK.on("OnRecv1v1ReadReceipt", onRecv1v1ReadReceipt);
 
 onBeforeUnmount(() => {
   IMSDK.off("OnRecvNewMsgs", onRecvNewMsgs);
   IMSDK.off("OnNewRecvMsgRevoked", onNewRecvMsgRevoked);
+  IMSDK.off("OnRecv1v1ReadReceipt", onRecv1v1ReadReceipt);
 });
 </script>
 <style lang="scss" scoped>

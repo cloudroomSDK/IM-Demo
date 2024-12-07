@@ -3,7 +3,7 @@
     <div
       v-if="
         conversationStore.isCurrentGroupChat &&
-        conversationStore.currentGroupInfo?.status === 2
+        groupStore.currentGroupInfo?.status === 2
       "
       class="dissolveToast"
     >
@@ -12,8 +12,8 @@
     <div
       v-else-if="
         conversationStore.isCurrentGroupChat &&
-        !conversationStore.isCurrentGroupAdmin &&
-        conversationStore.currentGroupInfo?.status === 3
+        !groupStore.isCurrentGroupAdmin &&
+        groupStore.currentGroupInfo?.status === 3
       "
       class="dissolveToast"
     >
@@ -33,33 +33,47 @@
       </div>
       <div class="container" v-show="!conversationStore.multipleStatus">
         <div class="tool clearfix">
-          <el-tooltip content="功能未开发" placement="bottom">
-            <div class="icon">
-              <img :src="ExpressionSvg" alt="" />
+          <el-popover placement="top" :width="526" trigger="click">
+            <template #reference>
+              <div class="icon">
+                <img :src="ExpressionSvg" alt="" />
+              </div>
+            </template>
+            <FaceIcon
+              v-for="value in faceUniCodeList"
+              :value="value"
+              @click="insertFace(value)"
+              class="face-group-icon"
+            />
+          </el-popover>
+          <el-tooltip content="发送图片" placement="top" effect="light">
+            <div class="icon" @click="photoHandle()">
+              <img :src="PhotoSvg" alt="" />
             </div>
           </el-tooltip>
-          <div class="icon" @click="photoHandle">
-            <img :src="PhotoSvg" alt="" />
-          </div>
-          <div class="icon">
-            <img :src="VideoSvg" @click="videoHandle" alt="" />
-          </div>
-          <el-tooltip content="功能未开发" placement="bottom">
+          <el-tooltip content="发送视频" placement="top" effect="light">
             <div class="icon">
+              <img :src="VideoSvg" @click="videoHandle()" alt="" />
+            </div>
+          </el-tooltip>
+          <el-tooltip content="发送名片" placement="top" effect="light">
+            <div class="icon" @click="dialogVisible = true">
+              <img :src="BusinessCardSvg" alt="" />
+            </div>
+          </el-tooltip>
+          <el-tooltip content="发送文件" placement="top" effect="light">
+            <div class="icon" @click="fileHandle()">
               <img :src="FileSvg" alt="" />
             </div>
           </el-tooltip>
-          <div class="icon" @click="dialogVisible = true">
-            <img :src="BusinessCardSvg" alt="" />
-          </div>
         </div>
+
         <div class="context">
-          <el-input
-            v-model="textarea"
-            type="textarea"
-            class="textarea"
-            resize="none"
-            @keydown.prevent.enter="sendHandle"
+          <ChatEditor
+            :key="conversationStore.currentConversation?.conversationID"
+            v-model:editorRef="editorRef"
+            @enter="sendHandle"
+            @pasteFile="pasteFileHandle"
           />
         </div>
         <div class="bottom clearfix">
@@ -78,7 +92,17 @@
                   回复{{
                     conversationStore.currentQuoteMessage.senderNickname
                   }}:
-                  {{ toLastMessage(conversationStore.currentQuoteMessage) }}
+                  <TextMsgRender
+                    v-if="
+                      [106, 101, 114].indexOf(
+                        conversationStore.currentQuoteMessage.contentType
+                      ) > -1
+                    "
+                    :arr="chatTextSplit(conversationStore.currentQuoteMessage)"
+                  />
+                  <template v-else>
+                    {{ toLastMessage(conversationStore.currentQuoteMessage) }}
+                  </template>
                 </p>
               </div>
             </div>
@@ -108,7 +132,7 @@ import PhotoSvg from "~/assets/icons/tools-photo.svg";
 import VideoSvg from "~/assets/icons/tools-video.svg";
 import FileSvg from "~/assets/icons/tools-file.svg";
 import BusinessCardSvg from "~/assets/icons/tools-business-card.svg";
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { h, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 import {
   IMSDK,
   IMTYPE,
@@ -116,56 +140,128 @@ import {
   createImageMessage,
   setDraft,
 } from "~/utils/imsdk";
-import { useAppStore, useConversationStore, useUserStore } from "~/stores";
+import {
+  useAppStore,
+  useConversationStore,
+  useGroupStore,
+  useUserStore,
+} from "~/stores";
 import {
   clone,
   importFile,
   getVideoSnshotFile,
   toLastMessage,
   errorHandle,
+  chatTextSplit,
 } from "~/utils";
-import { MemberSelect, SendBusinessCard } from "~/components";
+import {
+  MemberSelect,
+  SendBusinessCard,
+  FaceIcon,
+  ChatEditor,
+  TextMsgRender,
+} from "~/components";
 import transmitImg from "~/assets/icons/transmit.svg";
 import { MsgItem } from "~/stores/type";
+import { v4 as uuidV4 } from "uuid";
+import { FaceElement } from "~/utils/wangeditor";
+import { getFaceUnicodeList, unicodeToChar } from "~/utils/face";
+import { IDomEditor } from "@wangeditor/editor";
+import { nextTick } from "vue";
+import { onMounted } from "vue";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 const dialogVisible = ref(false);
 
 const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 const appStore = useAppStore();
 const userStore = useUserStore();
+const editorRef = shallowRef<IDomEditor>();
 
-const textarea = ref("");
-const getDraft = () => {
-  if (conversationStore.currentConversation?.conversationID) {
-    textarea.value = conversationStore.currentConversation.draftText;
-  }
-};
+let lastText = "";
+const faceUniCodeList = getFaceUnicodeList();
+
 watch(
   () => conversationStore.currentConversation?.conversationID,
   (newVal, oldVal) => {
-    if (newVal) {
-      if (oldVal) {
-        setDraft(oldVal, textarea.value);
+    if (oldVal) {
+      const value = editorRef.value?.getText() || "";
+      if (lastText !== value) {
+        setDraft(oldVal, value);
       }
-      textarea.value = conversationStore.currentConversation!.draftText;
+
+      editorRef.value = undefined;
+    }
+
+    if (newVal) {
+      nextTick(() => {
+        lastText = conversationStore.currentConversation!.draftText;
+        const arr = chatTextSplit(lastText);
+
+        const html = arr
+          .map((item) => {
+            if (item.type === "text") return item.text;
+            if (item.type === "at")
+              return `<span data-w-e-type="mention" data-w-e-is-void data-w-e-is-inline data-value="${item.nickname}" data-info="${item.userID}">@${item.nickname}</span>`;
+            if (item.type === "face")
+              return `<img data-w-e-type="face" data-name="${item.value}" />`;
+          })
+          .join("");
+        // 这里加了一个P标签解决wangEditor内部的一些bug
+        editorRef.value?.setHtml(`<p>${html}</p>`);
+      });
     }
   }
 );
-getDraft();
+
 onMounted(() => {
-  if (conversationStore.currentConversation?.conversationID) {
-    textarea.value = conversationStore.currentConversation.draftText;
+  const conversationID = conversationStore.currentConversation?.conversationID;
+  if (conversationID) {
+    lastText = conversationStore.currentConversation!.draftText;
+    const arr = chatTextSplit(lastText);
+
+    const html = arr
+      .map((item) => {
+        if (item.type === "text") return item.text;
+        if (item.type === "at")
+          return `<span data-w-e-type="mention" data-w-e-is-void data-w-e-is-inline data-value="${
+            item.nickname
+          }" data-info="${encodeURIComponent(item.userID as string)}">@${
+            item.nickname
+          }</span>`;
+        if (item.type === "face")
+          return `<img data-w-e-type="face" data-name="${item.value}"/>`;
+      })
+      .join("");
+    editorRef.value?.setHtml(html);
   }
 });
 
 onBeforeUnmount(() => {
-  if (conversationStore.currentConversation?.conversationID) {
-    setDraft(
-      conversationStore.currentConversation.conversationID,
-      textarea.value
-    );
+  const conversationID = conversationStore.currentConversation?.conversationID;
+  const value = editorRef.value?.getText() || "";
+  if (conversationID && lastText !== value) {
+    console.log("set", conversationID, value);
+    setDraft(conversationID, value);
   }
 });
+
+const insertFace = (value: string) => {
+  const myResume: FaceElement = {
+    type: "face",
+    name: value,
+    // @ts-ignore
+    children: [{ text: unicodeToChar(value) }],
+  };
+  document.body.click(); //隐藏表情选择框
+  editorRef.value?.restoreSelection();
+  editorRef.value?.insertNode(myResume);
+  editorRef.value?.move(1);
+  setTimeout(() => {
+    editorRef.value?.focus();
+  });
+};
 
 const sendMsg = async (message: IMTYPE.MessageItem) => {
   try {
@@ -189,12 +285,34 @@ const sendMsg = async (message: IMTYPE.MessageItem) => {
   }
 };
 const sendHandle = async () => {
-  const text = textarea.value.trim();
+  let text = editorRef.value?.getText();
   if (!text) {
     return "";
   }
   let messageItem: IMTYPE.MessageItem;
-  if (conversationStore.currentQuoteMessage) {
+  if (/@\{\w+\|.+?\}/.test(text)) {
+    const atUserList: Record<string, string> = {};
+    // 包含@消息
+    text = text.replace(
+      /@\{(\w+)\|(.+?)\}/g,
+      (str: string, userID: string, nickname: string, idx: number) => {
+        console.log(str, userID, nickname, idx);
+        atUserList[userID] = nickname;
+        return `@${userID}`;
+      }
+    );
+    const { data } = await IMSDK.createTextAtMsg({
+      text,
+      atUserIDList: Object.keys(atUserList),
+      atUsersInfo: Object.keys(atUserList).map((userID) => ({
+        atUserID: userID,
+        groupNickname: atUserList[userID],
+      })),
+      message: conversationStore.currentQuoteMessage,
+    });
+
+    messageItem = data;
+  } else if (conversationStore.currentQuoteMessage) {
     const { data } = await IMSDK.createQuoteMsg({
       text,
       message: conversationStore.currentQuoteMessage,
@@ -206,13 +324,70 @@ const sendHandle = async () => {
     messageItem = data;
   }
   conversationStore.pushMsg([messageItem]);
-  textarea.value = "";
+  editorRef.value?.clear();
+  if (lastText) {
+    const conversationID =
+      conversationStore.currentConversation?.conversationID;
+    conversationID && setDraft(conversationID, "");
+  }
 
   await sendMsg(messageItem);
 };
 
-const photoHandle = async () => {
-  const files = await importFile({ accept: "image/*" });
+const pasteFileHandle = async (file: File) => {
+  console.log(file);
+  if (file.type.includes("image")) {
+    const reader = new FileReader();
+
+    reader.onload = async function (e) {
+      const src = e.target!.result;
+      await ElMessageBox({
+        title: "发送图片",
+        showCancelButton: true,
+        confirmButtonText: "发送",
+        cancelButtonText: "取消",
+        message: h("img", {
+          src: src,
+          style: "width:100%;border: 1px solid #ccc",
+        }),
+      });
+      photoHandle(file);
+    };
+
+    reader.readAsDataURL(file);
+  } else if (file.type.includes("video")) {
+    await ElMessageBox({
+      title: "发送视频",
+      showCancelButton: true,
+      confirmButtonText: "发送",
+      cancelButtonText: "取消",
+      message: `确定要发送视频"${file.name}"吗？`,
+    });
+    await videoHandle(file);
+  } else if (file.size !== 4096) {
+    //排除了文件夹
+
+    await ElMessageBox({
+      title: "发送文件",
+      showCancelButton: true,
+      confirmButtonText: "发送",
+      cancelButtonText: "取消",
+      message: `确定要发送文件"${file.name}"吗？`,
+    });
+    fileHandle(file);
+  }
+};
+
+const photoHandle = async (file?: File) => {
+  let files;
+  if (file) {
+    files = [file];
+  } else {
+    files = await importFile({ accept: "image/*" });
+  }
+  if (files.length > 3) {
+    return ElMessage.error("单次只允许发送3张图片");
+  }
   files.forEach(async (file: File) => {
     if (!file.type.includes("image")) return;
 
@@ -228,12 +403,47 @@ const photoHandle = async () => {
   });
 };
 
-const videoHandle = async () => {
-  const files = await importFile({ accept: "video/*" });
+const videoHandle = async (file?: File) => {
+  if (!file) {
+    const files = await importFile({ accept: "video/*", multiple: false });
+    file = files[0];
+  }
+  if (!file) return;
+
+  if (file.size > 52428800) {
+    return ElMessage.error("视频大小不能超过50M");
+  }
+  if (!file.type.includes("video")) return;
+  const snapShotFile = await getVideoSnshotFile(file);
+  const messageItem = await createVideoMessage(file, snapShotFile);
+  conversationStore.pushMsg([messageItem]);
+  await sendMsg(messageItem);
+};
+const fileHandle = async (file?: File) => {
+  let files;
+  if (file) {
+    files = [file];
+  } else {
+    files = await importFile({ accept: "*" });
+  }
+  if (files.length > 3) {
+    return ElMessage.error("单次只允许发送3个文件");
+  }
+
+  if (files.some((item) => item.size > 52428800)) {
+    return ElMessage.error("单个文件大小不能超过50M");
+  }
+
   files.forEach(async (file: File) => {
-    if (!file.type.includes("video")) return;
-    const snapShotFile = await getVideoSnshotFile(file);
-    const messageItem = await createVideoMessage(file, snapShotFile);
+    const { data: messageItem } = await IMSDK.createFileMsgByFile({
+      filePath: "",
+      fileName: file.name,
+      uuid: uuidV4(),
+      sourceUrl: "",
+      fileSize: file.size,
+      fileType: file.type,
+      file,
+    });
     conversationStore.pushMsg([messageItem]);
     await sendMsg(messageItem);
   });
@@ -274,21 +484,27 @@ const mergeTransmitHandle = async () => {
     ),
   });
 
-  data.forEach((item) => {
-    IMSDK.sendMsg({
+  conversationStore.multipleStatus = false;
+
+  data.forEach(async (item) => {
+    const isCurrentChat =
+      item.userID === conversationStore.currentConversation?.userID ||
+      item.groupID === conversationStore.currentConversation?.groupID;
+    if (isCurrentChat) {
+      conversationStore.pushMsg([message]);
+    }
+
+    await IMSDK.sendMsg({
       recvID: item.userID ?? "",
       groupID: item.groupID ?? "",
       message: message,
     });
-    if (
-      item.userID === conversationStore.currentConversation?.userID ||
-      item.groupID === conversationStore.currentConversation?.groupID
-    ) {
-      conversationStore.pushMsg([message]);
+
+    if (isCurrentChat) {
+      message.status = 2;
+      conversationStore.updateMsgList([message]);
     }
   });
-
-  conversationStore.multipleStatus = false;
 };
 const sendBusinessCard = async (friendUserItem: IMTYPE.FriendUserItem) => {
   console.log(friendUserItem);
@@ -313,45 +529,46 @@ const sendBusinessCard = async (friendUserItem: IMTYPE.FriendUserItem) => {
   color: #666;
   cursor: no-drop;
 }
+.transmit {
+  position: relative;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .icon {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+    font-size: 20px;
+  }
+  .btnItem {
+    .img {
+      cursor: pointer;
+      background-color: #ededed;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      align-items: center;
+      justify-content: center;
+      display: flex;
+      img {
+        width: 24px;
+      }
+    }
+    p {
+      font-size: 14px;
+      line-height: 14px;
+      margin-top: 16px;
+    }
+  }
+}
 .container {
   display: flex;
   flex-direction: column;
   height: 100%;
-  .transmit {
-    position: relative;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
 
-    .icon {
-      position: absolute;
-      right: 10px;
-      top: 10px;
-      cursor: pointer;
-      font-size: 20px;
-    }
-    .btnItem {
-      .img {
-        cursor: pointer;
-        background-color: #ededed;
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        align-items: center;
-        justify-content: center;
-        display: flex;
-        img {
-          width: 24px;
-        }
-      }
-      p {
-        font-size: 14px;
-        line-height: 14px;
-        margin-top: 16px;
-      }
-    }
-  }
   .tool {
     margin-top: 4px;
     .icon {
@@ -374,14 +591,8 @@ const sendBusinessCard = async (friendUserItem: IMTYPE.FriendUserItem) => {
   }
   .context {
     flex: 1;
-    .textarea {
-      height: 100%;
-      word-break: break-all;
-      :deep(textarea) {
-        height: 100%;
-        box-shadow: none;
-      }
-    }
+    height: 100%;
+    overflow: hidden;
   }
   .bottom {
     margin-bottom: 20px;

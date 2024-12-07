@@ -13,6 +13,7 @@ import AddFriends from "~/view/layout/friend/add.vue";
 import FriendInfo from "~/view/layout/friend/info.vue";
 import { Empty } from "~/components";
 import Group from "~/view/layout/group/index.vue";
+import NewGroups from "~/view/layout/group/new.vue";
 import GroupInfo from "~/view/layout/group/info.vue";
 
 // 2. 定义一些路由
@@ -78,6 +79,11 @@ const routes = [
             component: Empty,
           },
           {
+            path: "new",
+            name: "newGroups",
+            component: NewGroups,
+          },
+          {
             path: ":groupID",
             name: "groupInfo",
             component: GroupInfo,
@@ -103,13 +109,15 @@ router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
   const isWhile = whileList.has(to.name); //当前是白名单页面
 
-  if (!userStore.userInfo && userStore.lastLoginInfo) {
+  if (!userStore.userInfo && userStore.businessData) {
     try {
+      const { sdkSvr, sdkToken } = await userStore.businessLoginByToken();
       await userStore.sdkLogin({
-        ...userStore.lastLoginInfo,
+        sdkServer: sdkSvr,
+        token: sdkToken,
       });
     } catch (error) {
-      userStore.lastLoginInfo = undefined;
+      userStore.businessData = undefined;
     }
   }
 

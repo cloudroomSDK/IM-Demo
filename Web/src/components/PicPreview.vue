@@ -1,8 +1,10 @@
 <template>
   <div class="wrap">
     <img v-if="chat.contentType === 102" :src="src" />
-    <video v-if="chat.contentType === 104" :src="src" autoplay controls></video>
-    <el-button class="button" type="primary" @click="downloadUrl(src)">下载</el-button>
+    <video v-if="chat.contentType === 104" :src="src" autoplay controls />
+    <el-button class="button" type="primary" @click="downloadUrl(src)">
+      下载
+    </el-button>
   </div>
 </template>
 <script lang="ts" setup>

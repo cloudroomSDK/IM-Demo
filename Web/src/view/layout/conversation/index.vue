@@ -11,12 +11,16 @@
           conversationStore.gotoConversationChat({ conversationItem: item })
         "
       >
-        <Popover
-          :offset="-60"
-          placement="right-start"
-          :width="80"
-          :getData="getData"
-          :id="index"
+        <el-dropdown
+          ref="dropdownRef"
+          trigger="contextmenu"
+          style="width: 100%"
+          placement="right"
+          @command="handleCommand"
+          @visible-change="
+            // @ts-ignore
+            dropdownVisibleChange($event, $refs.dropdownRef[index])
+          "
         >
           <Card
             :active="item.conversationID === activeName"
@@ -25,7 +29,33 @@
             :conversationItem="item"
             :avatarType="item.groupID ? 'group' : 'user'"
           />
-        </Popover>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item
+                :command="{
+                  type: 'togglePinned',
+                  conversation: item,
+                }"
+              >
+                {{ item.isPinned ? "取消置顶" : "置顶" }}
+              </el-dropdown-item>
+              <el-dropdown-item
+                v-if="item.unreadCount"
+                :command="{ type: 'MsgAsRead', conversation: item }"
+              >
+                标记已读
+              </el-dropdown-item>
+              <el-dropdown-item
+                :command="{ type: 'hidden', conversation: item }"
+              >
+                隐藏
+              </el-dropdown-item>
+              <el-dropdown-item :command="{ type: 'del', conversation: item }">
+                移除会话
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
       </li>
       <Empty v-if="list.length === 0" text="暂无会话" />
     </template>
@@ -33,9 +63,9 @@
 </template>
 
 <script setup lang="ts">
-import { Search, Card, Layout, Empty, Popover } from "~/components";
+import { Search, Card, Layout, Empty } from "~/components";
 import { useRoute, useRouter } from "vue-router";
-import { computed, onUnmounted, ref } from "vue";
+import { computed, inject, onUnmounted, ref } from "vue";
 import { useConversationStore } from "~/stores";
 import { IMSDK } from "~/utils/imsdk";
 
@@ -43,6 +73,8 @@ const $route = useRoute();
 const $router = useRouter();
 const conversationStore = useConversationStore();
 const searchText = ref("");
+const dropdownVisibleChange = inject("dropdownVisibleChange");
+const dropdownRef = ref();
 conversationStore.getList();
 
 const activeName = computed(() => {
@@ -74,39 +106,39 @@ onUnmounted(() => {
   conversationStore.changeConversation(null);
 });
 
-const getData = (id: number) => {
-  if (!conversationStore?.conversationList) return;
-  const conversationItem = conversationStore.conversationList[id];
-  if (!conversationItem) return;
-  return [
-    {
-      text: conversationItem.isPinned ? "取消置顶" : "置顶",
-      click() {
-        IMSDK.pinConversation({
-          conversationID: conversationItem.conversationID,
-          isPinned: !conversationItem.isPinned,
-        });
-      },
-    },
-    {
-      text: "移除会话",
-      async click() {
-        await IMSDK.deleteConversationAndDeleteAllMsg(
-          conversationItem.conversationID
-        );
-        const idx = conversationStore.conversationList?.findIndex(
-          ({ conversationID }) =>
-            conversationItem.conversationID === conversationID
-        ) as number;
-        if (idx > -1) {
-          conversationStore.conversationList?.splice(idx, 1);
-          if (activeName.value === conversationItem.conversationID) {
-            conversationStore.changeConversation(null);
-            $router.push({ name: "chat" });
-          }
-        }
-      },
-    },
-  ];
+const handleCommand = async (command: any) => {
+  console.log(command);
+  const conversation = command.conversation;
+  if (command.type === "togglePinned") {
+    IMSDK.pinConversation({
+      conversationID: conversation.conversationID,
+      isPinned: !conversation.isPinned,
+    });
+  }
+  if (command.type === "MsgAsRead") {
+    await IMSDK.markConversationMsgAsRead(conversation.conversationID);
+  }
+  if (command.type === "hidden") {
+    await IMSDK.hideConversation(conversation.conversationID);
+    const idx = conversationStore.conversationList?.findIndex(
+      ({ conversationID }) => conversation.conversationID === conversationID
+    ) as number;
+    if (idx > -1) {
+      conversationStore.conversationList?.splice(idx, 1);
+    }
+  }
+  if (command.type === "del") {
+    await IMSDK.deleteConversationAndDeleteAllMsg(conversation.conversationID);
+    const idx = conversationStore.conversationList?.findIndex(
+      ({ conversationID }) => conversation.conversationID === conversationID
+    ) as number;
+    if (idx > -1) {
+      conversationStore.conversationList?.splice(idx, 1);
+      if (activeName.value === conversation.conversationID) {
+        conversationStore.changeConversation(null);
+        $router.push({ name: "chat" });
+      }
+    }
+  }
 };
 </script>

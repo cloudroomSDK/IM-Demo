@@ -9,16 +9,21 @@ export const useUserStore = defineStore("user", {
   state: (): UserStore => ({
     businessData: undefined,
     userInfo: undefined,
-    lastLoginInfo: undefined,
   }),
   getters: {
     getMyUserID: (state) => state.userInfo?.userID,
     getChatToken: (state) => state.businessData?.chatToken,
   },
   actions: {
-    // 业务登录
+    // 业务登录-使用账号密码或者手机号
     async businessLogin(businessInfo: API.Login.LoginParams) {
       this.businessData = await loginApi.login(businessInfo);
+      return this.businessData;
+    },
+    // 业务登录-使用chatToken
+    async businessLoginByToken() {
+      this.businessData = await loginApi.loginByToken();
+      return this.businessData;
     },
     // 登录SDK
     async sdkLogin(loginInfo: SDKLoginInfo) {
@@ -35,8 +40,6 @@ export const useUserStore = defineStore("user", {
       IMSDK.on("OnSelfInfoUpdated", this.updateUserInfo);
       IMSDK.on("OnSelfInfoUpdated", () => {});
       this.userInfo = selfUserInfo;
-
-      this.lastLoginInfo = loginInfo;
     },
     logout() {
       IMSDK.off("OnSelfInfoUpdated", this.updateUserInfo);
@@ -49,12 +52,11 @@ export const useUserStore = defineStore("user", {
     exit() {
       this.userInfo = undefined;
       this.businessData = undefined;
-      this.lastLoginInfo = undefined;
       router.push({ name: "login" });
     },
   },
   persist: {
     key: "LAST_LOGIN_INFO",
-    paths: ["lastLoginInfo", "businessData"],
+    paths: ["businessData"],
   },
 });

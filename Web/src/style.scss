@@ -79,3 +79,24 @@ a{
     clear: both;
     height: 0;
 }
+
+.face-group-icon {
+    width: 30px !important;
+    height: 30px !important;
+    margin: 10px;
+    cursor: pointer;
+    transition: all .2s;
+    &:hover {
+        transform: scale(1.2);
+    }
+  }
+
+.w-e-text-container [data-slate-editor] {
+    padding: 0 6px !important;
+    float: left;
+    width: 100%;
+    word-break: break-all;
+    p {
+        margin: 4px 0 !important;
+    }
+}

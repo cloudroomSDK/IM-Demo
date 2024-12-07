@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { ComponentOptions, markRaw } from "vue";
+import { Component, markRaw } from "vue";
 import { AppStore } from "./type";
 
 export const useAppStore = defineStore("app", {
@@ -15,7 +15,7 @@ export const useAppStore = defineStore("app", {
       width,
       confirm,
     }: {
-      component: ComponentOptions;
+      component: Component;
       title?: string;
       width?: number;
       data?: any;

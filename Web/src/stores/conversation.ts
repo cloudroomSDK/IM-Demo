@@ -2,13 +2,12 @@ import { defineStore } from "pinia";
 import { ConversationStore, MsgItem } from "./type";
 import { IMSDK, IMTYPE } from "~/utils/imsdk";
 import router from "~/router";
-import { useUserStore } from ".";
+import { useGroupStore } from ".";
+import { getSvrTime } from "~/api/login";
 
 export const useConversationStore = defineStore("conversation", {
   state: (): ConversationStore => ({
-    currentConversationIndex: undefined,
-    currentGroupInfo: undefined,
-    currentMemberInGroup: undefined,
+    currentConversation: undefined,
     conversationList: undefined,
     conversationListPromise: undefined,
     currentQuoteMessage: undefined,
@@ -57,20 +56,36 @@ export const useConversationStore = defineStore("conversation", {
             sourceID: userID,
             sessionType: 1,
           });
-          if (data.latestMsgSendTime === 0) {
-            data.latestMsgSendTime = new Date().getTime();
-          }
           conversationItem = data;
-          this.conversationList?.push(conversationItem);
-          this.conversationList = this.conversationListSort();
+        }
+      }
+      if (conversationID) {
+        const { data } = await IMSDK.getMultipleConversation([conversationID]);
+        if (data.length) {
+          conversationItem = data[0];
+        } else {
+          throw "conversation not found";
         }
       }
       if (conversationItem) {
         if (
+          router.currentRoute.value.name === "conversation" &&
           conversationItem?.conversationID ===
-          this.currentConversation?.conversationID
+            this.currentConversation?.conversationID
         ) {
           return;
+        }
+
+        const flag = this.conversationList?.find(
+          (item) => item.conversationID === conversationItem.conversationID
+        );
+        if (!flag) {
+          if (conversationItem.latestMsgSendTime === 0) {
+            conversationItem.latestMsgSendTime = await getSvrTime();
+          }
+
+          this.conversationList?.push(conversationItem);
+          this.conversationList = this.conversationListSort();
         }
 
         this.changeConversation(conversationItem);
@@ -88,84 +103,62 @@ export const useConversationStore = defineStore("conversation", {
     },
     onConversationChanged({ data }: { data: IMTYPE.ConversationItem[] }) {
       data.forEach((conversationItem) => {
-        if (!this.conversationList) return;
-        const idx = this.conversationList.findIndex(
-          (item) => item.conversationID === conversationItem.conversationID
-        );
+        if (
+          this.currentConversation?.conversationID ===
+          conversationItem.conversationID
+        ) {
+          this.currentConversation = conversationItem;
+        }
+        if (this.conversationList) {
+          const idx = this.conversationList.findIndex(
+            (item) => item.conversationID === conversationItem.conversationID
+          );
 
-        if (idx > -1) {
-          this.conversationList[idx] = conversationItem;
+          if (idx > -1) {
+            this.conversationList[idx] = conversationItem;
+          }
         }
       });
 
-      const curID = this.currentConversation?.conversationID;
-      const newList = this.conversationListSort();
-      if (curID) {
-        const idx = newList?.findIndex(
-          (item) => item.conversationID === curID
-        )!;
-        if (idx > -1) {
-          this.currentConversationIndex = idx;
-        }
-      }
-      this.conversationList = newList;
+      this.conversationList = this.conversationListSort();
     },
     onTotalUnreadMsgCountChanged({ data }: { data: number }) {
       this.unreadMsgCount = data;
     },
-    async changeConversation(conversation: IMTYPE.ConversationItem | null) {
+    async changeConversation(
+      conversationItem?: IMTYPE.ConversationItem | null
+    ) {
       this.resetConversation();
-      if (!conversation) {
+      if (!conversationItem) {
         return;
       }
-      const conversationList = await this.getList();
 
-      const idx = conversationList.findIndex(
-        (item) => item.conversationID === conversation!.conversationID
-      );
-      this.currentConversationIndex = idx;
-      if (idx === -1) {
-        if (conversation.latestMsgSendTime === 0) {
-          conversation.latestMsgSendTime = new Date().getTime();
-        }
-        this.conversationList?.push(conversation);
-        this.conversationList = this.conversationListSort();
-      }
+      this.currentConversation = conversationItem;
 
-      // @ts-ignore
-      if (this.currentConversation?.unreadCount > 0) {
-        // 清空当前绘画未读数
-        IMSDK.markConversationMsgAsRead(
-          this.currentConversation!.conversationID
-        );
-      }
+      // if (conversationID) {
+      //   const { data } = await IMSDK.getMultipleConversation([conversationID]);
+      //   if (data.length) {
+      //     this.currentConversation = data[0];
+      //   } else {
+      //     throw "conversation not found";
+      //   }
+      // }
 
       if (this.isCurrentGroupChat) {
-        {
-          const { data } = await IMSDK.getSpecifiedGrpsInfo([
-            this.currentConversation!.groupID,
-          ]);
-          this.currentGroupInfo = data[0];
-        }
-        {
-          const userStore = useUserStore();
-          const { data } = await IMSDK.getSpecifiedGrpMembersInfo({
-            groupID: this.currentConversation!.groupID,
-            userIDList: [userStore.userInfo!.userID],
-          });
-          this.currentMemberInGroup = data[0];
-        }
+        const groupStore = useGroupStore();
+        await groupStore.updateCurrentGroup(this.currentConversation!.groupID);
       }
     },
     resetConversation() {
-      this.currentConversationIndex = undefined;
-      this.currentGroupInfo = undefined;
-      this.currentMemberInGroup = undefined;
+      this.currentConversation = undefined;
       this.currentQuoteMessage = undefined;
       this.msgList = [];
       this.lastMinSeq = 0;
       this.multipleStatus = false;
       this.multipleSelect = [];
+
+      const groupStore = useGroupStore();
+      groupStore.updateCurrentGroup();
     },
     async refershMsgList(count: number): Promise<number> {
       const { data } = await IMSDK.getAdvancedHistoryMsgList({
@@ -175,13 +168,16 @@ export const useConversationStore = defineStore("conversation", {
         conversationID: this.currentConversation!.conversationID,
       });
       this.lastMinSeq = data.lastMinSeq;
-      const msgList = data.messageList.map((item, idx) => ({
+      let msgList = data.messageList;
+
+      msgList = msgList.map((item, idx) => ({
         ...item,
         isShowTime:
           idx === 0 ||
           item.sendTime - data.messageList[idx - 1]?.sendTime > 120000,
       })) as MsgItem[];
       this.msgList = msgList.concat(this.msgList);
+
       return data.messageList.length;
     },
     pushMsg(msg: IMTYPE.MessageItem[]) {
@@ -261,37 +257,11 @@ export const useConversationStore = defineStore("conversation", {
       });
       return filterArr;
     },
-    onGrpInfoChanged({ data }: { data: IMTYPE.GroupItem }) {
-      if (data.groupID === this.currentGroupInfo?.groupID) {
-        this.currentGroupInfo = data;
-      }
-    },
-    onGrpDismissed({ data }: { data: IMTYPE.GroupItem }) {
-      if (this.currentGroupInfo?.groupID === data.groupID) {
-        this.currentGroupInfo = {
-          ...data,
-          status: 2,
-        };
-      }
-    },
   },
   getters: {
-    currentConversation(): IMTYPE.ConversationItem | undefined {
-      if (this.currentConversationIndex === undefined) return undefined;
-      return (
-        this.conversationList &&
-        this.conversationList[this.currentConversationIndex]
-      );
-    },
     isCurrentGroupChat(): boolean {
       if (this.currentConversation?.groupID) return true;
       return false;
-    },
-    isCurrentGroupAdmin(): boolean {
-      return (
-        this.currentMemberInGroup?.roleLevel === 100 ||
-        this.currentMemberInGroup?.roleLevel === 60
-      );
     },
     getMsgListLength(): number {
       if (!this.msgList) return 0;

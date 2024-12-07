@@ -1,11 +1,12 @@
 {
     "name": "im_demo",
-    "version": "1.0.4",
+    "version": "1.1.5",
     "description": "云屋IM_SDK演示Demo",
     "type": "module",
     "author": "Siman <siman@cloudroom.com>",
     "license": "MIT",
     "scripts": {
+        "postinstall": "patch-package",
         "dev": "vite",
         "build": "vite build"
     },
@@ -14,25 +15,31 @@
         "@types/node": "^20.10.5",
         "@types/uuid": "^9.0.8",
         "@vitejs/plugin-vue": "^5.0.0",
-        "sass": "^1.69.5",
+        "patch-package": "^8.0.0",
+        "sass": "^1.79.5",
         "typescript": "^4.2.4",
         "unplugin-auto-import": "^0.17.3",
         "unplugin-element-plus": "^0.8.0",
         "unplugin-icons": "^0.18.2",
         "unplugin-vue-components": "^0.26.0",
-        "vite": "^5.0.0",
+        "vite": "^5.4.10",
         "vite-plugin-dts": "^3.8.1",
         "vite-plugin-vue-devtools": "^7.2.1"
     },
     "dependencies": {
-        "@cloudroom/im-wasm-sdk": "^2.5.1",
-        "axios": "^1.6.3",
+        "@amap/amap-jsapi-loader": "^1.0.1",
+        "@cloudroom/im-wasm-sdk": "^2.5.3",
+        "@wangeditor/editor": "^5.1.23",
+        "@wangeditor/editor-for-vue": "^5.1.12",
+        "@wangeditor/plugin-mention": "^1.0.0",
+        "axios": "^1.7.7",
         "crypto-js": "^4.2.0",
-        "element-plus": "^2.5.1",
-        "pinia": "^2.1.7",
+        "element-plus": "^2.8.5",
+        "pinia": "^2.2.4",
         "pinia-plugin-persistedstate": "^3.2.1",
-        "vue": "^3.3.13",
-        "vue-router": "^4.2.5",
+        "vue": "^3.5.12",
+        "vue-clipboard3": "^2.0.0",
+        "vue-router": "^4.4.5",
         "vue3-virtual-scroll-list": "^0.2.1"
     }
 }

@@ -5,7 +5,12 @@
         <div class="labelItem aic">
           <div class="labelName">群名称</div>
           <div class="context">
-            <el-input v-model="groupName" placeholder="请输入群名称" />
+            <el-input
+              v-model="groupName"
+              placeholder="请输入群名称"
+              :maxlength="64"
+              show-word-limit
+            />
           </div>
         </div>
         <div class="labelItem aic">
@@ -22,7 +27,7 @@
         </div>
       </template>
       <div class="labelItem select">
-        <div class="labelName" v-if="data.type !== 'kickout'">
+        <div class="labelName" v-if="data.type !== 'groupMember'">
           <p v-if="data.type === 'createGroup'">邀请</p>
           <template v-else>
             <p
@@ -30,7 +35,7 @@
               :class="[{ active: selectValue === 1 }, 'cupo']"
               @click="selectValue = 1"
             >
-              最近联系人
+              最近聊天
             </p>
             <p
               v-if="canSelectFriend"
@@ -52,24 +57,21 @@
           <div class="l">
             <el-checkbox-group v-model="checkList">
               <div
-                v-if="data.type === 'kickout'"
+                v-if="data.type === 'groupMember'"
                 class="infinite-list"
                 style="overflow: auto"
-                v-infinite-scroll="getGrpMemberList"
-                :infinite-scroll-disabled="!canLoading"
               >
                 <div v-for="item in allList" :key="item.userID">
                   <el-checkbox
                     :value="'f_' + item.userID"
-                    :disabled="item?.disabled"
+                    :disabled="item?.disabled || multipleDisabled"
                   >
                     <div class="item">
-                      <Avatar :size="30" :src="item.faceURL"></Avatar>
+                      <Avatar :size="30" :src="item.faceURL" />
                       <span class="name">{{ item.showName }}</span>
                     </div>
                   </el-checkbox>
                 </div>
-                <p v-if="canLoading">Loading...</p>
               </div>
               <el-scrollbar height="390px" v-else>
                 <div
@@ -81,9 +83,14 @@
                     :value="
                       item.groupID ? 'g_' + item.groupID : 'u_' + item.userID
                     "
+                    :disabled="multipleDisabled"
                   >
                     <div class="item">
-                      <Avatar :size="30" :src="item.faceURL"></Avatar>
+                      <Avatar
+                        :size="30"
+                        :src="item.faceURL"
+                        :type="item.groupID ? 'group' : 'user'"
+                      />
                       <span class="name">{{ item.showName }}</span>
                     </div>
                   </el-checkbox>
@@ -95,7 +102,7 @@
                 >
                   <el-checkbox
                     :value="'u_' + item.userID"
-                    :disabled="item?.disabled"
+                    :disabled="item?.disabled || multipleDisabled"
                   >
                     <div class="item">
                       <Avatar :size="30" :src="item.faceURL" />
@@ -110,9 +117,12 @@
                   v-for="item in groupStore.list"
                   :key="item.groupID"
                 >
-                  <el-checkbox :value="'g_' + item.groupID">
+                  <el-checkbox
+                    :value="'g_' + item.groupID"
+                    :disabled="multipleDisabled"
+                  >
                     <div class="item">
-                      <Avatar :size="30" :src="item.faceURL" />
+                      <Avatar :size="30" :src="item.faceURL" type="group" />
                       <span class="name">
                         {{ item.groupName }}
                       </span>
@@ -123,7 +133,7 @@
             </el-checkbox-group>
           </div>
           <div class="r">
-            <Empty v-show="!selectList.length"></Empty>
+            <Empty v-show="!selectList.length" />
             <div v-show="selectList.length">
               <p class="p">已选{{ selectList.length }}项</p>
               <el-scrollbar height="362px">
@@ -168,16 +178,23 @@ import {
   useUserStore,
   useGroupStore,
 } from "~/stores";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { IMTYPE } from "~/utils/imsdk";
 
 type SelectItem = IMTYPE.FriendUserItem & {
   disabled?: boolean;
 };
 
 interface Type {
-  type: "all" | "conversation" | "friend" | "group" | "kickout" | "createGroup";
+  type:
+    | "all"
+    | "conversation"
+    | "friend"
+    | "group"
+    | "groupMember"
+    | "createGroup";
   groupID?: string;
   selectList?: SelectItem[];
+  multiple?: boolean;
 }
 
 type Props = {
@@ -186,6 +203,7 @@ type Props = {
 const props = withDefaults(defineProps<Props>(), {
   data: () => ({
     type: "all",
+    multiple: true,
   }),
 });
 
@@ -201,8 +219,6 @@ let canSelectConversation: ComputedRef,
   selectList: ComputedRef,
   selectValue: Ref<number>,
   allList = ref<any[]>([]),
-  canLoading = ref(true),
-  getGrpMemberList: Function,
   checkList = ref<string[]>([]),
   groupName = ref(""),
   imageUrl = ref("");
@@ -249,29 +265,20 @@ selectList = computed(() => {
   });
 });
 
-let offset = 0;
+const multipleDisabled = computed(
+  () => props.data.multiple === false && checkList.value.length > 0
+);
 
 onBeforeMount(async () => {
-  if (props.data.type === "kickout") {
-    getGrpMemberList = async () => {
-      const { data } = await IMSDK.getGrpMemberList({
-        groupID: props.data.groupID!,
-        offset,
-        count: 10,
-        filter: 0,
-      });
-      allList.value = allList.value.concat(
-        data.map((item) => ({
-          userID: item.userID,
-          showName: item.nickname,
-          faceURL: item.faceURL,
-          disabled: userStore.userInfo?.userID === item.userID,
-        }))
-      );
-
-      offset += data.length;
-      canLoading.value = data.length >= 10;
-    };
+  if (props.data.type === "groupMember") {
+    allList.value = allList.value.concat(
+      groupStore.currentGroupMemberList?.map((item) => ({
+        userID: item.userID,
+        showName: item.nickname,
+        faceURL: item.faceURL,
+        disabled: userStore.userInfo?.userID === item.userID,
+      }))
+    );
   } else {
     canSelectConversation = computed(
       () => props.data.type === "all" || props.data.type === "conversation"

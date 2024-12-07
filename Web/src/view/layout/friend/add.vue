@@ -18,7 +18,7 @@
           <UserInfo class="userInfo" :userID="item.userID" />
         </div>
       </div>
-      <Empty v-else></Empty>
+      <Empty v-else />
     </div>
   </div>
 </template>

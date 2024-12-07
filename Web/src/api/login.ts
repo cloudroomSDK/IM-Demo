@@ -64,6 +64,13 @@ export default {
       }
     );
   },
+  loginByToken() {
+    return request.post<unknown, API.Login.LoginData>("/account/login2", null, {
+      headers: {
+        operationID: uuidv4(),
+      },
+    });
+  },
 };
 
 export const searchBusinessUserInfo = async (keyword: string) => {
@@ -113,6 +120,9 @@ interface UpdateBusinessUserInfoParams {
 export const updateBusinessUserInfo = async (
   params: Partial<UpdateBusinessUserInfoParams>
 ) => {
+  if (Object.keys(params).length === 0) {
+    return;
+  }
   return request.post<unknown>(
     "/user/update",
     {
@@ -126,3 +136,27 @@ export const updateBusinessUserInfo = async (
     }
   );
 };
+
+// 获取服务器时间
+export const getSvrTime: () => Promise<number> = (() => {
+  let diffTime = 0; // 服务器时间与本地时间差
+  let timePromise: Promise<void> | undefined;
+
+  return async () => {
+    if (!timePromise) {
+      timePromise = new Promise<void>(async (resolve) => {
+        try {
+          const { svrTime } = await request.get<unknown, { svrTime: number }>(
+            "/sys/time"
+          );
+          diffTime = Date.now() - svrTime;
+        } catch (error) {
+          timePromise = undefined;
+        }
+        resolve();
+      });
+    }
+    await timePromise;
+    return Date.now() - diffTime;
+  };
+})();

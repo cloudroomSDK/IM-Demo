@@ -119,7 +119,7 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import loginApi from "~/api/login";
 import { API } from "~/api/typings";
-import { base64Parms, md5, commonValidator } from "~/utils";
+import { md5 } from "~/utils";
 import { LoginSetting } from "~/components";
 
 const configStore = useConfigStore();
@@ -159,13 +159,23 @@ const validate = {
     callback();
   },
   code(rule: any, value: string, callback: Function) {
-    commonValidator(rule, value, (err: Error) => {
-      if (err) return callback(err);
-      if (!/^\d{4,6}$/.test(value)) {
-        return callback(new Error("验证码格式不正确"));
-      }
-      callback();
-    });
+    if (!value) {
+      return callback(new Error(`请输入验证码`));
+    }
+    if (!/^\d{4,6}$/.test(value)) {
+      return callback(new Error("验证码格式不正确"));
+    }
+    callback();
+  },
+  account(rule: any, value: string, callback: Function) {
+    if (!value) {
+      return callback(new Error("请输入账号"));
+    }
+    if (/\s/.test(value)) {
+      return callback(new Error("账号不能包含空格"));
+    }
+
+    callback();
   },
 };
 
@@ -175,22 +185,11 @@ const phoneRules = reactive<FormRules<typeof phoneForm>>({
 });
 
 const accountRules = reactive<FormRules<typeof accountForm>>({
-  account: [{ validator: commonValidator, trigger: "blur" }],
+  account: [{ validator: validate.account, trigger: "blur" }],
   pwd: [{ required: true, message: "请输入密码", trigger: "blur" }],
 });
 
 let timerId: NodeJS.Timeout;
-
-const getAppID = () => {
-  if (configStore.useToken) {
-    const t = configStore.token.split(".")[1];
-    const json = base64Parms(t);
-    const data = JSON.parse(json);
-    return data.appID;
-  } else {
-    return configStore.appId;
-  }
-};
 
 const getCodeBtn = () => {
   if (timeCount.value === -1 && phoneFormRef.value) {
@@ -200,7 +199,6 @@ const getCodeBtn = () => {
           phoneNumber: phoneForm.phoneNumber,
           areaCode: "+86",
           usedFor: API.Login.UsedFor.Login,
-          appID: getAppID(),
         });
         timeCount.value = 59;
         timerId = setInterval(() => {
@@ -221,11 +219,6 @@ const login = async () => {
       if (valid) {
         console.log({
           businessServer: configStore.businessServer,
-          sdkServer: configStore.sdkServer,
-          appId: configStore.appId,
-          appSecret: configStore.appSecret,
-          token: configStore.token,
-          useToken: configStore.useToken,
         });
         isLoading.value = true;
 
@@ -234,35 +227,22 @@ const login = async () => {
             ? {
                 account: accountForm.account,
                 password: md5(accountForm.pwd),
-                appID: getAppID(),
               }
             : {
                 verifyCode: phoneForm.code,
                 phoneNumber: phoneForm.phoneNumber,
                 areaCode: "+86",
-                appID: getAppID(),
               };
           console.log(obj);
           // 登录业务服务器
-          await userStore.businessLogin(obj);
+          const { sdkSvr, sdkToken } = await userStore.businessLogin(obj);
 
           try {
             //登录SDK
-            await userStore.sdkLogin(
-              Object.assign(
-                {
-                  sdkServer: configStore.sdkServer,
-                },
-                configStore.useToken
-                  ? {
-                      token: configStore.token,
-                    }
-                  : {
-                      appId: getAppID(),
-                      appSecret: md5(configStore.appSecret),
-                    }
-              )
-            );
+            await userStore.sdkLogin({
+              sdkServer: sdkSvr,
+              token: sdkToken,
+            });
 
             router.replace({ name: "home" });
           } catch (err: any) {

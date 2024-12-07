@@ -11,14 +11,14 @@
           @click="$router.push({ name: 'chat' })"
           :class="{ active: routeName === 'chat' }"
         >
-          <div v-if="conversationStore.unreadMsgCount" class="count">
+          <div v-if="conversationStore.unreadMsgCount > 0" class="count">
             {{
               conversationStore.unreadMsgCount > 99
                 ? 99
                 : conversationStore.unreadMsgCount
             }}
           </div>
-          <i class="icon icon-message"></i>
+          <i class="icon icon-message" />
           <p>消息</p>
         </li>
         <li
@@ -28,14 +28,17 @@
             hot: friendStore.newFriendCount > 0,
           }"
         >
-          <i class="icon icon-friend"></i>
+          <i class="icon icon-friend" />
           <p>好友</p>
         </li>
         <li
           @click="$router.push({ name: 'group' })"
-          :class="{ active: routeName === 'group' }"
+          :class="{
+            active: routeName === 'group',
+            hot: groupStore.messageCount > 0,
+          }"
         >
-          <i class="icon icon-group"></i>
+          <i class="icon icon-group" />
           <p>群组</p>
         </li>
       </ul>
@@ -46,9 +49,9 @@
           <el-icon :size="26"><i-ep-setting /></el-icon>
         </template>
         <ul class="popover-ul">
-          <!-- <li><div>个人设置</div></li>
-          <li><div>清空聊天记录</div></li> -->
+          <!-- <li><div>个人设置</div></li> -->
           <li><div @click="openBlackList">通讯录黑名单</div></li>
+          <li><div @click="deleteAllMsg">清空聊天记录</div></li>
           <li><div @click="openVersionInfo">版本信息</div></li>
           <li><div @click="userStore.logout">退出登录</div></li>
         </ul>
@@ -64,10 +67,14 @@ import {
   useFriendStore,
   useAppStore,
   useConversationStore,
+  useGroupStore,
 } from "~/stores";
 import { useRoute, useRouter } from "vue-router";
 import { computed } from "vue";
 import { openUserInfo } from "~/utils/index";
+import { ElMessageBox } from "element-plus";
+import { IMSDK } from "~/utils/imsdk";
+import router from "~/router";
 
 const $router = useRouter();
 const $route = useRoute();
@@ -75,6 +82,7 @@ const appStore = useAppStore();
 const userStore = useUserStore();
 const friendStore = useFriendStore();
 const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 
 const routeName = computed(() => $route.fullPath.split("/")[1]);
 
@@ -91,6 +99,21 @@ const openBlackList = () => {
     title: "通讯录黑名单",
     width: 500,
   });
+};
+const deleteAllMsg = async () => {
+  await ElMessageBox.confirm(
+    `将清除本地与服务端的所有聊天记录，此操作不可逆转，您确定要继续吗？`,
+    "清空聊天记录",
+    {
+      confirmButtonText: "确定",
+      cancelButtonText: "取消",
+      type: "warning",
+    }
+  );
+  await IMSDK.deleteAllMsgFromLocalAndSvr();
+  if (router.currentRoute.value.name === "conversation") {
+    conversationStore.changeConversation(conversationStore.currentConversation);
+  }
 };
 </script>
 

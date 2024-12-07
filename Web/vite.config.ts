@@ -20,6 +20,7 @@ export default defineConfig({
   css: {
     preprocessorOptions: {
       scss: {
+        silenceDeprecations: ['legacy-js-api'],
         additionalData: `@use "~/element.scss" as *;`,
       },
     },
@@ -29,7 +30,7 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    vueDevTools(),
+    // vueDevTools(),
     AutoImport({
       resolvers: [
         ElementPlusResolver(/* {

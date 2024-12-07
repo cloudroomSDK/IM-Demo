@@ -10,29 +10,47 @@
       <div class="title">
         <p>{{ conversationStore.currentConversation?.showName }}</p>
         <span v-if="conversationStore.isCurrentGroupChat">
-          <template v-if="conversationStore.currentGroupInfo?.memberCount">
-            {{ conversationStore.currentGroupInfo?.memberCount }}人
+          <template v-if="groupStore.currentGroupInfo?.memberCount">
+            {{ groupStore.currentGroupInfo?.memberCount }}人
           </template>
           &nbsp;
         </span>
       </div>
     </div>
     <div class="ctrl">
-      <div class="icon">
-        <img :src="searchImg" alt="" />
-      </div>
-      <div
-        class="icon"
-        v-if="conversationStore.currentConversation?.groupID"
-        @click="
-          inviteFriendInGroup(conversationStore.currentConversation.groupID)
+      <el-tooltip content="聊天记录" placement="bottom" effect="light">
+        <div class="icon" @click="openMsgSearch">
+          <img :src="searchImg" alt="" />
+        </div>
+      </el-tooltip>
+      <el-tooltip
+        v-if="
+          conversationStore.currentConversation?.groupID &&
+          groupStore.currentGroupInfo?.status !== 2
         "
+        content="邀请"
+        placement="bottom"
+        effect="light"
       >
-        <img :src="inviteImg" alt="" />
-      </div>
-      <div class="icon" @click="settingDrawer = true">
-        <img :src="settingImg" alt="" />
-      </div>
+        <div
+          class="icon"
+          @click="
+            inviteFriendInGroup(conversationStore.currentConversation.groupID)
+          "
+        >
+          <img :src="inviteImg" alt="" />
+        </div>
+      </el-tooltip>
+      <el-tooltip
+        content="设置"
+        placement="bottom"
+        effect="light"
+        v-if="groupStore.currentGroupInfo?.status !== 2"
+      >
+        <div class="icon" @click="settingDrawer = true">
+          <img :src="settingImg" alt="" />
+        </div>
+      </el-tooltip>
     </div>
     <el-drawer
       v-model="settingDrawer"
@@ -57,36 +75,26 @@
           <span v-else> 设置 </span>
         </div>
         <div class="body">
-          <SettingInChat
-            v-show="!showGroupMemberDetailList"
-            :userID="conversationStore.currentConversation?.userID"
-            :groupID="conversationStore.currentConversation?.groupID"
-            :groupInfo="conversationStore?.currentGroupInfo"
-            :conversationInfo="conversationStore.currentConversation"
-            :myMemberInfo="conversationStore?.currentMemberInGroup"
-          />
-
-          <GroupMemberDetailList
-            v-if="showGroupMemberDetailList"
-            :groupID="conversationStore.currentConversation?.groupID"
-            :myMemberInfo="conversationStore?.currentMemberInGroup"
-          />
+          <SettingInChat v-show="!showGroupMemberDetailList" />
+          <GroupMemberDetailList v-if="showGroupMemberDetailList" />
         </div>
       </div>
     </el-drawer>
   </div>
 </template>
 <script lang="ts" setup>
-import { Avatar } from "~/components";
-import { useConversationStore } from "~/stores";
+import { Avatar, MessageSearch } from "~/components";
+import { useConversationStore, useGroupStore } from "~/stores";
 import searchImg from "~/assets/icons/search.svg";
 import inviteImg from "~/assets/icons/invite.svg";
 import settingImg from "~/assets/icons/setting.svg";
 import { SettingInChat, GroupMemberDetailList } from "~/components";
-import { provide, ref, watch } from "vue";
+import { h, provide, ref, watch } from "vue";
 import { inviteFriendInGroup } from "~/utils/imsdk";
+import { ElMessageBox } from "element-plus";
 
 const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 
 const settingDrawer = ref(false);
 const showGroupMemberDetailList = ref(false);
@@ -98,7 +106,40 @@ watch(settingDrawer, () => {
 provide("showGroupMoreMemberList", () => {
   showGroupMemberDetailList.value = true;
 });
+
+const openMsgSearch = () => {
+  ElMessageBox({
+    title: "聊天记录",
+    showConfirmButton: false,
+    customClass: "histroy-message-box",
+    message: () => h(MessageSearch),
+  });
+};
 </script>
+<style lang="scss">
+.histroy-message-box {
+  width: 624px;
+  padding: 0;
+  .el-message-box__header {
+    padding: 0;
+    .el-message-box__title {
+      padding: 12px;
+    }
+    position: relative;
+    &::after {
+      content: "";
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      background-color: var(--el-border-color);
+      bottom: 0;
+    }
+  }
+  .el-message-box__message {
+    width: 100%;
+  }
+}
+</style>
 <style lang="scss" scoped>
 .header {
   position: relative;

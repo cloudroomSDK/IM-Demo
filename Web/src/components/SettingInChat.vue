@@ -1,40 +1,43 @@
 <template>
   <div class="body1">
     <el-scrollbar class="scrollbar">
-      <template v-if="groupID && groupInfo && conversationInfo && myMemberInfo">
-        <GroupMemberList :groupInfo="groupInfo" :myMemberInfo="myMemberInfo" />
-        <GroupSetting
-          :groupInfo="groupInfo"
-          :conversationInfo="conversationInfo"
-          :myMemberInfo="myMemberInfo"
-        />
+      <template v-if="conversationStore.isCurrentGroupChat">
+        <GroupMemberList />
+        <GroupSetting />
       </template>
-      <template v-if="userID && conversationInfo">
+      <template v-else-if="conversationStore.currentConversation">
         <div class="card">
           <InputItem
             type="btn"
-            :iconUrl="conversationInfo.faceURL"
-            :text="conversationInfo.showName"
+            :iconUrl="conversationStore.currentConversation.faceURL"
+            :text="conversationStore.currentConversation.showName"
             :height="56"
             showArrow
-            @click="openUserInfo(conversationInfo.userID)"
+            @click="openUserInfo(conversationStore.currentConversation.userID)"
           />
         </div>
-        <MemberSetting :conversationInfo="conversationInfo" />
+        <MemberSetting
+          :conversationInfo="conversationStore.currentConversation"
+        />
       </template>
     </el-scrollbar>
     <div class="btn-group">
-      <template v-if="groupID && myMemberInfo">
+      <template
+        v-if="
+          conversationStore.isCurrentGroupChat &&
+          groupStore.currentMemberInGroup
+        "
+      >
         <el-button
           type="danger"
           @click="dissolutionHandle"
-          v-if="myMemberInfo?.roleLevel === 100"
+          v-if="groupStore.currentMemberInGroup.roleLevel === 100"
         >
           解散群组
         </el-button>
         <el-button type="danger" @click="exitHandle" v-else>退出群组</el-button>
       </template>
-      <template v-if="userID">
+      <template v-if="!conversationStore.isCurrentGroupChat">
         <el-button type="danger" @click="del" v-if="isFriend">
           解除好友
         </el-button>
@@ -51,38 +54,32 @@ import {
   MemberSetting,
   InputItem,
 } from ".";
-import { useFriendStore } from "~/stores";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { useConversationStore, useFriendStore, useGroupStore } from "~/stores";
+import { IMSDK } from "~/utils/imsdk";
 import { ElMessageBox } from "element-plus";
-import { computed, ComputedRef, h, onBeforeMount } from "vue";
+import { computed, ComputedRef, h } from "vue";
 import { openUserInfo } from "~/utils";
-const props = defineProps<{
-  userID?: string;
-  groupID?: string;
-  conversationID?: string;
-  groupInfo?: IMTYPE.GroupItem;
-  conversationInfo?: IMTYPE.ConversationItem;
-  myMemberInfo?: IMTYPE.GroupMemberItem;
-}>();
+const conversationStore = useConversationStore();
+const groupStore = useGroupStore();
 
 let isFriend: ComputedRef<boolean>;
 const friendStore = useFriendStore();
 
-if (props.userID) {
+if (conversationStore.currentConversation?.userID) {
   friendStore.getList();
   isFriend = computed(() => {
     return (
       !!friendStore.list &&
-      friendStore.list.findIndex((item) => item.userID === props.userID) > -1
+      friendStore.list.findIndex(
+        (item) => item.userID === conversationStore.currentConversation?.userID
+      ) > -1
     );
   });
 }
 
-onBeforeMount(async () => {});
-
 const dissolutionHandle = async () => {
   await ElMessageBox.confirm(
-    `确认要解散群组"${props.conversationInfo!.showName}"吗?`,
+    `确认要解散群组"${conversationStore.currentConversation!.showName}"吗?`,
     "解散群组",
     {
       confirmButtonText: "确定",
@@ -91,11 +88,11 @@ const dissolutionHandle = async () => {
     }
   );
 
-  await IMSDK.dismissGrp(props.groupID!);
+  await IMSDK.dismissGrp(conversationStore.currentConversation!.groupID);
 };
 const exitHandle = async () => {
   await ElMessageBox.confirm(
-    `确认要退出群组"${props.conversationInfo!.showName}"吗?`,
+    `确认要退出群组"${conversationStore.currentConversation!.showName}"吗?`,
     "退出群组",
     {
       confirmButtonText: "确定",
@@ -104,7 +101,7 @@ const exitHandle = async () => {
     }
   );
 
-  await IMSDK.quitGrp(props.groupID!);
+  await IMSDK.quitGrp(conversationStore.currentConversation!.groupID);
 };
 
 const del = async function () {
@@ -113,7 +110,7 @@ const del = async function () {
     cancelButtonText: "取消",
     type: "warning",
   });
-  await IMSDK.deleteFriend(props.userID!);
+  await IMSDK.deleteFriend(conversationStore.currentConversation?.userID!);
 };
 
 const add = () => {
@@ -121,9 +118,9 @@ const add = () => {
   ElMessageBox({
     title: "好友验证",
     message: h(AddFriend, {
-      nickname: props.conversationInfo?.showName,
-      userID: props.userID,
-      imgSrc: props.conversationInfo?.faceURL,
+      nickname: conversationStore.currentConversation?.showName || "",
+      userID: conversationStore.currentConversation?.userID || "",
+      imgSrc: conversationStore.currentConversation?.faceURL || "",
       modelVale: str,
       onUpdateValue(newStr: string) {
         str = newStr;
@@ -137,7 +134,7 @@ const add = () => {
         instance.confirmButtonText = "Loading...";
         try {
           await IMSDK.addFriend({
-            toUserID: props.userID!,
+            toUserID: conversationStore.currentConversation?.userID!,
             reqMsg: str,
           });
         } catch (error) {}

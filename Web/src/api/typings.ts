@@ -6,7 +6,6 @@ export namespace API {
       Login = 3,
     }
     export type LoginParams = {
-      appID: string;
       verifyCode?: string;
       deviceID?: string;
       phoneNumber?: string;
@@ -19,13 +18,15 @@ export namespace API {
       imToken: string;
       userID: string;
       nickName: string;
+      sdkAppId: string;
+      sdkSvr: string;
+      sdkToken: string;
     };
     export type SendSmsParams = {
       phoneNumber: string;
       areaCode: string;
       deviceID?: string;
       usedFor: UsedFor;
-      appID: string;
       invitationCode?: string;
     };
   }

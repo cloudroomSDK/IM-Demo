@@ -7,7 +7,7 @@
       <router-view style="height: 100%" />
     </div>
     <div class="logging" v-if="showLoading">
-      <div v-loading="true" class="loading"></div>
+      <div v-loading="true" class="loading" />
       正在连接
     </div>
   </el-container>
@@ -30,7 +30,7 @@
 
 <script setup lang="ts">
 import { ElMessage } from "element-plus";
-import { onUnmounted, ref } from "vue";
+import { onUnmounted, provide, ref } from "vue";
 import {
   useAppStore,
   useUserStore,
@@ -46,6 +46,22 @@ const userStore = useUserStore();
 const friendStore = useFriendStore();
 const conversationStore = useConversationStore();
 const groupStore = useGroupStore();
+
+const dropdownRefArr: any[] = [];
+provide("dropdownVisibleChange", (visible: boolean, ref: any) => {
+  if (visible) {
+    let dropdownRef;
+    while ((dropdownRef = dropdownRefArr.pop())) {
+      dropdownRef.handleClose();
+    }
+    dropdownRefArr.push(ref);
+  } else {
+    const idx = dropdownRefArr.findIndex((item) => item === ref);
+    if (idx > -1) {
+      dropdownRefArr.splice(idx, 1);
+    }
+  }
+});
 
 const showLoading = ref(false);
 
@@ -80,8 +96,6 @@ IMSDK.on(
   "OnTotalUnreadMsgCountChanged",
   conversationStore.onTotalUnreadMsgCountChanged
 );
-IMSDK.on("OnGrpInfoChanged", conversationStore.onGrpInfoChanged);
-IMSDK.on("OnGrpDismissed", conversationStore.onGrpDismissed);
 IMSDK.on("OnFriendAdded", friendStore.onFriendAdded);
 IMSDK.on("OnFriendDeleted", friendStore.onFriendDeleted);
 IMSDK.on("OnFriendInfoChanged", friendStore.onFriendInfoChanged);
@@ -91,7 +105,11 @@ IMSDK.on("OnBlackDeleted", friendStore.onBlackDeleted);
 IMSDK.on("OnJoinedGrpAdded", groupStore.onJoinedGrpAdded);
 IMSDK.on("OnJoinedGrpDeleted", groupStore.onJoinedGrpDeleted);
 IMSDK.on("OnGrpInfoChanged", groupStore.onGrpInfoChanged);
+IMSDK.on("OnGrpDismissed", groupStore.onGrpDismissed);
+IMSDK.on("OnGrpReqAdded", groupStore.onGrpReqAdded);
+IMSDK.on("OnGrpMemberAdded", groupStore.onGrpMemberAdded);
 IMSDK.on("OnGrpMemberDeleted", groupStore.onGrpMemberDeleted);
+IMSDK.on("OnGrpMemberInfoChanged", groupStore.onGrpMemberInfoChanged);
 
 friendStore.init();
 conversationStore.init();
@@ -107,8 +125,6 @@ onUnmounted(() => {
     "OnTotalUnreadMsgCountChanged",
     conversationStore.onTotalUnreadMsgCountChanged
   );
-  IMSDK.off("OnGrpInfoChanged", conversationStore.onGrpInfoChanged);
-  IMSDK.off("OnGrpDismissed", conversationStore.onGrpDismissed);
   IMSDK.off("OnFriendAdded", friendStore.onFriendAdded);
   IMSDK.off("OnFriendDeleted", friendStore.onFriendDeleted);
   IMSDK.off("OnFriendInfoChanged", friendStore.onFriendInfoChanged);
@@ -118,7 +134,11 @@ onUnmounted(() => {
   IMSDK.off("OnJoinedGrpAdded", groupStore.onJoinedGrpAdded);
   IMSDK.off("OnJoinedGrpDeleted", groupStore.onJoinedGrpDeleted);
   IMSDK.off("OnGrpInfoChanged", groupStore.onGrpInfoChanged);
+  IMSDK.off("OnGrpDismissed", groupStore.onGrpDismissed);
+  IMSDK.off("OnGrpReqAdded", groupStore.onGrpReqAdded);
+  IMSDK.off("OnGrpMemberAdded", groupStore.onGrpMemberAdded);
   IMSDK.off("OnGrpMemberDeleted", groupStore.onGrpMemberDeleted);
+  IMSDK.off("OnGrpMemberInfoChanged", groupStore.onGrpMemberInfoChanged);
 
   conversationStore.$reset();
   friendStore.$reset();
