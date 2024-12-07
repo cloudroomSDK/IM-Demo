@@ -16,7 +16,8 @@
 ---|---|---|---
 [/Android](./Android)|Android|Java|[云屋IM Android SDK](https://docs.cloudroom.com/im/document/intro/introduce?platform=Android)
 [/iOS](./iOS)|iOS|Objective-C|[云屋IM iOS SDK](https://docs.cloudroom.com/im/document/intro/introduce?platform=iOS)
-[/Web](./Web)|Web|JS|[云屋IM Web SDK](https://sdk.cloudroom.com/sdkdoc/H5/)
+[/Web](./Web)|Web|JS|[云屋IM Web SDK](https://docs.cloudroom.com/im/document/intro/introduce?platform=Web)
+[/uni-app](./uni-app)|Mobile|JS|[云屋IM uni-app SDK](https://docs.cloudroom.com/im/document/intro/introduce?platform=uniapp)
 
 ## 联系我们
 - 更多示例见 [官方SDK示例](https://github.com/cloudroomSDK)
