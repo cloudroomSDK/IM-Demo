@@ -13,7 +13,6 @@ import Toast_Swift
 class MainTabViewController: UITabBarController {
     private let _disposeBag = DisposeBag()
     private var _contactNav: UINavigationController?
-    private var isKickLineOff = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -77,13 +76,13 @@ class MainTabViewController: UITabBarController {
         self.tabBar.backgroundImage = UIImage.init()
         self.tabBar.shadowImage = UIImage.init()
         
-        if let uid = UserDefaults.standard.object(forKey: AccountViewModel.IMUidKey) as? String,
-           let token = UserDefaults.standard.object(forKey: AccountViewModel.IMTokenKey) as? String,
-           let chatToken = UserDefaults.standard.object(forKey: AccountViewModel.bussinessTokenKey) as? String {
-            ProgressHUD.show()
-            AccountViewModel.loginIM(uid: uid, imToken: token, chatToken: chatToken) {[weak self] (errCode, errMsg) in
+        
+        if let phone = UserDefaults.standard.object(forKey: AccountViewModel.IMPreLoginAccountKey) as? String,
+           let bussinessToken = UserDefaults.standard.object(forKey: AccountViewModel.bussinessTokenKey) as? String {
+            ProgressHUD.animate()
+            AccountViewModel.loginDemoNext(phone: phone, areaCode: "") {[weak self] errCode, errMsg in
                 if errMsg != nil {
-                    ProgressHUD.showError(errMsg)
+                    ProgressHUD.error(errMsg)
                     self?.presentLoginController()
                 } else {
                     ProgressHUD.dismiss()
@@ -100,8 +99,17 @@ class MainTabViewController: UITabBarController {
     }
     
     @objc private func kickLineOffAccount() {
-        isKickLineOff = true
-        presentLoginController()
+        let alertController = SPAlertController.alertController(withTitle: "提示".innerLocalized(), message: "账号已在其他地方登录，当前设备被踢下线!".innerLocalized(), preferredStyle: .alert)
+        alertController.messageColor = DemoUI.color_353535
+        alertController.tapBackgroundViewDismiss = false
+        let action2 = SPAlertAction.action(withTitle: "确定".innerLocalized(), style: .default) { [weak self] (action) in
+            guard let `self` else { return }
+            
+            self.presentLoginController()
+        }
+        action2.titleColor = DemoUI.color_0584FE
+        alertController.addAction(action: action2)
+        present(alertController, animated: true, completion: nil)
     }
     
     @objc private func presentLoginController() {
@@ -111,34 +119,8 @@ class MainTabViewController: UITabBarController {
         vc.loginBtn.rx.tap.subscribe(onNext: { [weak vc, weak self] in
             guard let controller = vc else { return }
             
-            let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil
-            ? false : UserDefaults.standard.bool(forKey: useTokenKey)
-            
-            var appID = ""
-            var appSecret = ""
-            var token = ""
-            
-            if enableToken {
-                token = UserDefaults.standard.string(forKey: sdkTokenKey) ?? defaultToken
-                guard !token.isEmpty else {
-                    ProgressHUD.showError("请配置token")
-                    controller.showConfigViewController()
-                    return
-                }
-            } else {
-                appID = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? defaultAppID
-                appSecret = UserDefaults.standard.string(forKey: sdkAPPSecretKey) ?? defaultAppSecret
-                guard !appID.isEmpty, !appSecret.isEmpty else {
-                    ProgressHUD.showError("请配置appID/appSecret")
-                    controller.showConfigViewController()
-                    return
-                }
-                
-                appSecret = appSecret.md5()
-            }
-            
             guard let phone = controller.phone, !phone.isEmpty, controller.validatePhoneNumber(phone) else {
-                ProgressHUD.showError("填写正确的手机号码".localized())
+                ProgressHUD.error("填写正确的手机号码".localized())
                 return
             }
             
@@ -146,12 +128,12 @@ class MainTabViewController: UITabBarController {
             let code = controller.verificationCode
             
             guard code?.isEmpty == false else {
-                ProgressHUD.showError("填写正确的验证码".localized())
+                ProgressHUD.error("填写正确的验证码".localized())
                 return
             }
             var account: String?
 
-            ProgressHUD.show()
+            ProgressHUD.animate()
             AccountViewModel.loginDemo(phone: phone,
                                        account: account,
                                        psw: code != nil ? nil : psw,
@@ -160,13 +142,13 @@ class MainTabViewController: UITabBarController {
                 if errMsg != nil {
                     switch errCode {
                     case 1005:
-                        ProgressHUD.showError("用户已注册".localized())
+                        ProgressHUD.error("用户已注册".localized())
                     case 20006, 20007:
-                        ProgressHUD.showError("验证码已过期".localized())
+                        ProgressHUD.error("验证码已过期".localized())
                     case 20012:
-                        ProgressHUD.showError("该账号已注销".localized())
+                        ProgressHUD.error("该账号已注销".localized())
                     default:
-                        ProgressHUD.showError(errMsg)
+                        ProgressHUD.error(errMsg)
                     }
                     self?.presentLoginController()
                 } else {
@@ -181,11 +163,6 @@ class MainTabViewController: UITabBarController {
         nav.modalPresentationStyle = .fullScreen
         
         self.present(nav, animated: false)
-        
-        if isKickLineOff {
-            nav.view.makeToast("账号已在其他地方登录，当前设备被踢下线!".innerLocalized(), duration: 3.0, position: .bottom)
-        }
-        isKickLineOff = false
     }
     
 }

@@ -425,7 +425,7 @@ extension ChatHistoryViewController: ChatControllerDelegate {
                 vc.selectedContact() { [weak self] r in
                     guard let self else { return }
                     
-                    self.presentForwardConfirmAlert(contacts: r, abstruct: messageInfo?.getAbstruct() ?? "") { [weak self] in
+                    self.presentForwardConfirmAlert(contacts: r, abstruct: messageInfo?.getAbstruct() ?? "") { [weak self] _ in
                         guard let self else { return }
                         self.navigationController?.popViewController(animated: true)
                         self.chatController.defaultSelecteMessage(with: id)
@@ -448,7 +448,7 @@ extension ChatHistoryViewController: ChatControllerDelegate {
                     content = nil
                 }
                 UIPasteboard.general.string = content
-                ProgressHUD.showSuccess("复制成功".innerLocalized())
+                ProgressHUD.success("复制成功".innerLocalized())
             default:
                 break
             }

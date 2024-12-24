@@ -124,6 +124,10 @@ public class SendConfirmationAlertView: UIView {
         collectionView.reloadData()
     }
     
+    public func getLeaveMessage() -> String? {
+        return textField.text
+    }
+    
     class SelectedImageVerCollectionViewCell: UICollectionViewCell {
         
         let avatarView = AvatarView()

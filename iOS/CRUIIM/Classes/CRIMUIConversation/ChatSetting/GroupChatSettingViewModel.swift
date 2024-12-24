@@ -17,6 +17,7 @@ class GroupChatSettingViewModel {
     let mutedAllRelay: BehaviorRelay<Bool> = .init(value: false)
     let canViewProfileRelay: BehaviorRelay<Bool> = .init(value: false)
     let canAddFriendRelay: BehaviorRelay<Bool> = .init(value: false)
+    let setPrivateChatRelay: BehaviorRelay<Bool> = .init(value: false)
     
     private(set) var allMembers: [String] = []
 
@@ -33,6 +34,7 @@ class GroupChatSettingViewModel {
                 self?.conversation = chat
                 self?.noDisturbRelay.accept(sself.conversation.recvMsgOpt != .receive)
                 self?.setTopContactRelay.accept(sself.conversation.isPinned)
+                self?.setPrivateChatRelay.accept(sself.conversation.isPrivateChat)
             }
         }
 
@@ -129,6 +131,19 @@ class GroupChatSettingViewModel {
             guard let sself = self else { return }
             sself.setTopContactRelay.accept(!sself.setTopContactRelay.value)
         })
+    }
+    
+    func toggleBurnDuration() {
+        let isPrivateChat = !setPrivateChatRelay.value
+        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat) { [weak self] _ in
+            guard let sself = self else { return }
+            self?.setPrivateChatRelay.accept(!sself.setPrivateChatRelay.value)
+            
+            let burnDuration = sself.setPrivateChatRelay.value == true ? 15 : 0
+            IMController.shared.setBurnDuration(conversationID: sself.conversation.conversationID, burnDuration: burnDuration) { [weak self] _ in
+                
+            }
+        }
     }
     
     func toggleMuteAll() {

@@ -8,5 +8,5 @@
 
 // Configuration settings file format documentation can be found at:
 // https://help.apple.com/xcode/#/dev745c5c974
-CRIM_APP_BUILD_VERSION=2.8.1
-CRIM_APP_BUILD_NUMBER=15
+CRIM_APP_BUILD_VERSION=2.8.3
+CRIM_APP_BUILD_NUMBER=20

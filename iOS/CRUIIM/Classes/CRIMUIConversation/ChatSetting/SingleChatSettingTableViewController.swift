@@ -31,7 +31,7 @@ class SingleChatSettingTableViewController: UITableViewController {
     
     private var sectionItems: [[RowType]] = [
         [.members],
-        [.pinConversation, .messageRecvOpt],
+        [.pinConversation, .messageRecvOpt, .burnConversation],
         [.clearRecord],
     ]
     
@@ -73,6 +73,7 @@ class SingleChatSettingTableViewController: UITableViewController {
         case members
         case pinConversation
         case messageRecvOpt
+        case burnConversation
         case clearRecord
         
         var title: String {
@@ -83,6 +84,8 @@ class SingleChatSettingTableViewController: UITableViewController {
                 return "置顶聊天".innerLocalized()
             case .messageRecvOpt:
                 return "消息免打扰".innerLocalized()
+            case .burnConversation:
+                return "阅后即焚".innerLocalized()
             case .clearRecord:
                 return "清空聊天记录".innerLocalized()
             }
@@ -188,6 +191,19 @@ class SingleChatSettingTableViewController: UITableViewController {
             
             return cell
             
+        case .burnConversation:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            _viewModel.setPrivateChatRelay.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                self?._viewModel.toggleBurnDuration()
+            }).disposed(by: cell.disposeBag)
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.switcher.isHidden = false
+            cell.accessoryType = .none
+            
+            return cell
+            
         case .clearRecord:
             let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
             cell.titleLabel.text = rowType.title
@@ -203,7 +219,7 @@ class SingleChatSettingTableViewController: UITableViewController {
         case .clearRecord:
             presentAlert(title: "确认清空所有聊天记录吗？".innerLocalized()) {
                 self._viewModel.clearRecord(completion: { [weak self] _ in
-                    ProgressHUD.showSuccess("清空成功".innerLocalized())
+                    ProgressHUD.success("清空成功".innerLocalized())
                     guard let handler = self?.clearRecordComplete else { return }
                     handler()
                 })

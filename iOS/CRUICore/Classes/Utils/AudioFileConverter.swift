@@ -32,7 +32,6 @@ public class AudioFileConverter {
             channelLayout.mChannelLayoutTag = kAudioChannelLayoutTag_Stereo
 
             let outputSettings: [String: Any] = [
-                AVChannelLayoutKey: NSData(bytes: &channelLayout, length: MemoryLayout.size(ofValue: AudioChannelLayout.self)),
                 AVFormatIDKey: kAudioFormatMPEG4AAC,
                 AVSampleRateKey: 44100,
                 AVNumberOfChannelsKey: 2,

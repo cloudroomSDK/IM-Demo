@@ -32,7 +32,7 @@ class GroupMemberDetailViewController: UIViewController {
         
         tap.rx.event.subscribe(onNext: { [weak self] _ in
             UIPasteboard.general.string = self?._viewModel.userId
-            ProgressHUD.showSuccess("ID已复制".innerLocalized())
+            ProgressHUD.success("ID已复制".innerLocalized())
         }).disposed(by: _disposeBag)
         
         return v

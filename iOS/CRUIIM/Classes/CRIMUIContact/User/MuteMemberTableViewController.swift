@@ -131,10 +131,21 @@ class MuteMemberTableViewController: UITableViewController {
             }
             action1.titleColor = .c353535
             action2.titleColor = .c0584FE
-            alertController.addTextFieldWithConfigurationHandler { textField in
+            alertController.addTextFieldWithConfigurationHandler { [weak self] textField in
+                guard let `self` else {
+                    return
+                }
+                
                 textField.placeholder = "请输入禁言天数".innerLocalized()
                 textField.keyboardType = .numberPad
                 textField.addTarget(self, action: #selector(self.textFieldDidChanged(textField:)), for: .editingChanged)
+                
+                let maxTextLength = 4
+                // 监听UITextView的文本变化
+                textField.rx.text.orEmpty
+                    .map { String($0.prefix(maxTextLength)) } // 限制输入文本的长度
+                    .bind(to: textField.rx.text) // 将限制后的文本绑定回UITextView
+                    .disposed(by: _disposeBag)
             }
             alertController.addAction(action: action1)
             alertController.addAction(action: action2)

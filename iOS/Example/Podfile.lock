@@ -1,16 +1,27 @@
 PODS:
   - Alamofire (4.9.1)
   - Bugly (2.5.93)
-  - ChatLayout (1.3.4):
-    - ChatLayout/Ultimate (= 1.3.4)
-  - ChatLayout/Core (1.3.4)
-  - ChatLayout/Extras (1.3.4):
+  - ChatLayout (2.0.10):
+    - ChatLayout/Ultimate (= 2.0.10)
+  - ChatLayout/Core (2.0.10)
+  - ChatLayout/Extras (2.0.10):
     - ChatLayout/Core
-  - ChatLayout/Ultimate (1.3.4):
+  - ChatLayout/Ultimate (2.0.10):
     - ChatLayout/Core
     - ChatLayout/Extras
+  - cloudroomvideo_ios_library (0.0.4)
   - CRIMSDK (1.0.3):
     - MJExtension
+  - CRUICalling (0.0.1):
+    - cloudroomvideo_ios_library
+    - CRIMSDK
+    - CRUICore
+    - Kingfisher
+    - lottie-ios
+    - ProgressHUD
+    - RxCocoa
+    - RxSwift
+    - SnapKit
   - CRUICore (0.0.1):
     - Alamofire (= 4.9.1)
     - CRIMSDK
@@ -18,7 +29,7 @@ PODS:
     - Kingfisher (= 7.7.0)
     - Localize-Swift (~> 3.2)
     - lottie-ios (~> 3.0)
-    - ProgressHUD
+    - ProgressHUD (= 14.1.0)
     - RxCocoa (~> 6.0)
     - RxDataSources
     - RxKeyboard (~> 2.0)
@@ -32,6 +43,7 @@ PODS:
     - Lantern
   - CRUIIM (0.0.1):
     - ChatLayout
+    - CRUICalling
     - CRUICore
     - CRUICoreView
     - DifferenceKit
@@ -69,7 +81,7 @@ PODS:
   - MJExtension (3.4.1)
   - MJRefresh (3.7.5)
   - MMBAlertsPickers (1.1.93)
-  - ProgressHUD (13.7.2)
+  - ProgressHUD (14.1.0)
   - RxCocoa (6.5.0):
     - RxRelay (= 6.5.0)
     - RxSwift (= 6.5.0)
@@ -97,6 +109,7 @@ PODS:
 DEPENDENCIES:
   - Bugly (= 2.5.93)
   - CRIMSDK (from `../`)
+  - CRUICalling (from `../`)
   - CRUICore (from `../`)
   - CRUICoreView (from `../`)
   - CRUIIM (from `../`)
@@ -112,6 +125,7 @@ SPEC REPOS:
     - Alamofire
     - Bugly
     - ChatLayout
+    - cloudroomvideo_ios_library
     - DifferenceKit
     - Differentiator
     - FDFullscreenPopGesture
@@ -142,6 +156,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   CRIMSDK:
     :path: "../"
+  CRUICalling:
+    :path: "../"
   CRUICore:
     :path: "../"
   CRUICoreView:
@@ -152,11 +168,13 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
   Bugly: b8715e6ec4004b7f7fbffab0643ba80545aee3da
-  ChatLayout: e07c2fd8ac2ba7a78684e5a8aa32291eb746cab1
+  ChatLayout: 004369aa1d00f6490660980c1af48a546388ea2e
+  cloudroomvideo_ios_library: 03ee87e9ee487b79f998470224103fb78d62125f
   CRIMSDK: 800897397ed963c420485bfab7ff226175a82630
-  CRUICore: a49b6333a5cb8666fc3734a5d4d4afc22226d38b
+  CRUICalling: 7ebc2d5548f4800c7d1ddd4ea4709135becb2589
+  CRUICore: dc818c50cb60e99996639dd1556b468c568c596d
   CRUICoreView: 84d8d4dc4ae79021bf9ebab8f5b2e4890ec6513f
-  CRUIIM: e1ce1d93a555ee2a1b3a9e6bf558542a62c7b5ac
+  CRUIIM: 3ecfda315968fe6a178bc3667859d06b7287a6eb
   DifferenceKit: ab185c4d7f9cef8af3fcf593e5b387fb81e999ca
   Differentiator: e8497ceab83c1b10ca233716d547b9af21b9344d
   FDFullscreenPopGesture: a8a620179e3d9c40e8e00256dcee1c1a27c6d0f0
@@ -171,7 +189,7 @@ SPEC CHECKSUMS:
   MJExtension: 21c5f6f8c4d5d8844b7ae8fbae08fed0b501f961
   MJRefresh: fdf5e979eb406a0341468932d1dfc8b7f9fce961
   MMBAlertsPickers: d52d288114c7dad4e4f1282fb2b1f1189ccc117a
-  ProgressHUD: 093d24ca970f191744017bee2649e37d0cd1c5b9
+  ProgressHUD: c4a55f108815c46a6bf082407d2f806840b7a869
   RxCocoa: 94f817b71c07517321eb4f9ad299112ca8af743b
   RxDataSources: aa47cc1ed6c500fa0dfecac5c979b723542d79cf
   RxGesture: f3efb47ed2d26a8082f7b660d4a59970e275a7f8
@@ -184,6 +202,6 @@ SPEC CHECKSUMS:
   ZLPhotoBrowser: 7c5c3ea5e42428d26dc74a52fe821aa2a9274fa3
   ZXSDK-Noidfa: 475cd9d5ad96b1762cb97efd4738bc3f55e68cde
 
-PODFILE CHECKSUM: 71a9449bb78afabe66cde71f7384579c8f980bfa
+PODFILE CHECKSUM: aee3e18dd97ac30b948436eaaf8d024b20fc5b49
 
-COCOAPODS: 1.14.3
+COCOAPODS: 1.16.2

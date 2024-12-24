@@ -250,6 +250,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
     
     private var conversation: ConversationInfo!
     private weak var parentView: UIView!
+    private var atMembers: [ContactInfo] = []
             
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -547,6 +548,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         configBottomButtons(show)
         
         audioButton.isSelected = false
+        emojiButton.isSelected = false
         voiceInputBtn.isHidden = true
     }
     
@@ -563,6 +565,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
         configBottomButtons(false)
         
         voiceInputBtn.isHidden = !show
+        emojiButton.isSelected = false
         moreButton.isSelected = false
     }
     
@@ -766,7 +769,6 @@ extension CoustomInputBarAccessoryView: ChatEmojiViewDelegate {
     func emojiViewDidSelect(emojiStr: String) {
         let selectedRange = inputTextView.selectedRange
         let emojiAttrString = NSMutableAttributedString(string: emojiStr)
-        EmojiHelper.shared.markReplaceableRange(inAttributedString: emojiAttrString, withString: emojiStr)
 
         let attrText = NSMutableAttributedString(attributedString: inputTextView.attributedText)
         attrText.replaceCharacters(in: selectedRange, with: emojiAttrString)
@@ -790,13 +792,13 @@ extension CoustomInputBarAccessoryView: ChatEmojiViewDelegate {
         }
 
         let selectedRange = inputTextView.selectedRange
-        let plainText = EmojiHelper.shared.getPlainTextIn(attributedString: inputTextView.attributedText, atRange: NSRange(location: 0, length: inputTextView.attributedText.length))
+        let plainText = inputTextView.attributedText.string
 
         let attr: [NSAttributedString.Key: Any] = [
             NSAttributedString.Key.font: UIFont.preferredFont(forTextStyle: .body),
             NSAttributedString.Key.foregroundColor: StandardUI.color_333333,
         ]
-        let attributedContent = EmojiHelper.shared.replaceTextWithEmojiIn(attributedString: NSAttributedString(string: plainText as String, attributes: attr))
+        let attributedContent = NSMutableAttributedString(string: plainText, attributes: attr)
 
         let offset = inputTextView.attributedText.length - attributedContent.length
         inputTextView.attributedText = attributedContent
@@ -807,7 +809,56 @@ extension CoustomInputBarAccessoryView: ChatEmojiViewDelegate {
 // MARK: - UITextViewDelegate
 
 extension CoustomInputBarAccessoryView: UITextViewDelegate {
-    func textView(_: UITextView, shouldChangeTextIn _: NSRange, replacementText text: String) -> Bool {
+    
+//    func replaceMentionsInTextView() -> NSAttributedString {
+//        let mutableAttributedText = NSMutableAttributedString(attributedString: inputTextView.attributedText)
+//        let fullRange = NSRange(location: 0, length: mutableAttributedText.length)
+//        mutableAttributedText.enumerateAttribute(NSAttributedString.Key(rawValue: "ReplaceableStringKey"), in: fullRange, options: []) { [weak self] (value, range, stop) in
+//            guard let `self` else { return }
+//            if let mention = value as? String {
+//                if let member = atMembers.filter{ mention == ($0.name ?? "") }.first {
+//                    let replacementString = "@\(member.ID ?? "")"
+//                    mutableAttributedText.replaceCharacters(in: range, with: replacementString)
+//                }
+//            }
+//        }
+//        atMembers.removeAll()
+//        
+//        return mutableAttributedText
+//    }
+    func createMentionAttributedString(mention: String) -> NSAttributedString {
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: UIFont.preferredFont(forTextStyle: .body)
+        ]
+        let mentionString = NSMutableAttributedString(string: "@\(mention)", attributes: attributes)
+        mentionString.addAttribute(NSAttributedString.Key(rawValue: "ReplaceableStringKey"), value: "@\(mention)", range: NSRange(location: 0, length: mentionString.length))
+        let spaceString = NSAttributedString(string: " ", attributes: nil)
+        mentionString.append(spaceString)
+        return mentionString
+    }
+    
+    func insertMention(attributedText: NSAttributedString, textView: UITextView) {
+        let mutableAttributedText = NSMutableAttributedString(attributedString: textView.attributedText)
+        let selectedRange = NSRange(location: textView.selectedRange.location - 1, length: textView.selectedRange.length + 1)
+        mutableAttributedText.replaceCharacters(in: selectedRange, with: attributedText)
+        textView.attributedText = mutableAttributedText
+        let newCursorLocation = selectedRange.location + attributedText.length
+        textView.selectedRange = NSRange(location: newCursorLocation, length: 0)
+    }
+    
+    func appendAtMember(_ member: ContactInfo) {
+        atMembers.append(member)
+        
+        let mentionAttributedString = createMentionAttributedString(mention: member.name!)
+        insertMention(attributedText: mentionAttributedString, textView: inputTextView)
+        
+//        let currentText = inputTextView.text ?? ""
+//        let textToAdd = "\(member.name!) "
+//        let newText = currentText + textToAdd
+//        inputTextView.text = newText
+    }
+    
+    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
 
         var needUpdateText = false
         if conversation.conversationType == .group {
@@ -819,6 +870,17 @@ extension CoustomInputBarAccessoryView: UITextViewDelegate {
 
             if text.isEmpty {
                 print("执行删除@联系人的逻辑")
+                let rangeBeforeCursor = NSRange(location: range.location - 1, length: 1)
+                if range.location > 0 {
+                    let attributes = textView.attributedText.attributes(at: rangeBeforeCursor.location, effectiveRange: nil)
+                    if let mention = attributes[NSAttributedString.Key(rawValue: "ReplaceableStringKey")] as? String {
+                        let mutableAttributedText = NSMutableAttributedString(attributedString: textView.attributedText)
+                        mutableAttributedText.deleteCharacters(in: NSRange(location: range.location - mention.count - 1, length: mention.count + 2))
+                        textView.attributedText = mutableAttributedText
+                        textView.selectedRange = NSRange(location: range.location - mention.count - 1, length: 0)
+                        return false
+                    }
+                }
             }
         }
         return true

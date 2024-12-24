@@ -66,7 +66,7 @@ class ApplyViewController: UIViewController {
         let rightButton = UIBarButtonItem(title: "发送".innerLocalized(), image: UIImage()) { [weak self] in
             guard let self else { return }
             self.viewModel.apply(grouID: self.groupID, reqMsg: inputTextView.text.trimmingCharacters(in: .whitespacesAndNewlines), onSuccess: { [weak self] r in
-                ProgressHUD.showSucceed("加群申请已发送".innerLocalized())
+                ProgressHUD.succeed("加群申请已发送".innerLocalized())
                 self?.navigationController?.popViewController(animated: true)
             })
         }

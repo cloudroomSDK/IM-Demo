@@ -10,8 +10,10 @@ protocol ChatController {
     func sendForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
     func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
     func sendCardMsg(_ contact: ContactInfo, completion: @escaping ([Section]) -> Void)
-    func sendLocationMsg(_ latitude: Double, _ longitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void)
+    func sendLocationMsg(_ longitude: Double, _ latitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void)
+    func sendLeaveMessage(text: String, _ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void)
 
+    func defaultSelecteUsers(with usersID: [String])
     func defaultSelecteMessage(with id: String?)
     func clearSelectedStatus()
     func deleteMsgs()

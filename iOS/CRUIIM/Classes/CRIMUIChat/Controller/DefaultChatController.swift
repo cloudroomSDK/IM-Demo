@@ -40,6 +40,8 @@ final class DefaultChatController: ChatController {
     private var selecteMessages: [MessageInfo] = [] // 选中的消息id， 可转发、删除、引用消息
 
     private var selectedUsers: [String] = [] // 选中的成员, 可做为@成员
+    
+    private var svrDiffTime: Int = 0
         
     init(dataProvider: DataProvider, senderID: String, receiverId: String, conversationType: ConversationType, conversation: ConversationInfo) {
         self.dataProvider = dataProvider
@@ -59,13 +61,23 @@ final class DefaultChatController: ChatController {
         case .notification:
             break
         }
-        markMessageAsReaded()
+        //markMessageAsReaded()
         getUnReadTotalCount()
+        
+        if let handler = CRIMApi.querySvrDiffTimeHandler {
+            handler { [weak self] result in
+                guard let `self` else {
+                    return
+                }
+                
+                self.svrDiffTime = result
+            }
+        }
     }
     
     deinit {
         print("controller - deinit")
-        markMessageAsReaded()
+        //markMessageAsReaded()
     }
     
     // MARK: 协议相关
@@ -74,7 +86,7 @@ final class DefaultChatController: ChatController {
         // getBasicInfo { [weak self] in
         self.dataProvider.loadInitialMessages { [weak self] messages in
             self?.appendConvertingToMessages(messages)
-            self?.markAllMessagesAsReceived { [weak self] in
+            self?.markAllMessagesAsReceived(messages) { [weak self] in
                 self?.markAllMessagesAsRead { [weak self] in
                     self?.propagateLatestMessages { sections in
                         completion(sections)
@@ -88,7 +100,7 @@ final class DefaultChatController: ChatController {
     func loadPreviousMessages(completion: @escaping ([Section]) -> Void) {
         dataProvider.loadPreviousMessages(completion: { [weak self] messages in
             self?.appendConvertingToMessages(messages)
-            self?.markAllMessagesAsReceived { [weak self] in
+            self?.markAllMessagesAsReceived(messages) { [weak self] in
                 self?.markAllMessagesAsRead { [weak self] in
                     self?.propagateLatestMessages { [weak self]  sections in
                         completion(sections)
@@ -262,10 +274,16 @@ final class DefaultChatController: ChatController {
         }
     }
     
-    func markMessageAsReaded(messageID: String? = nil, completion: (() -> Void)? = nil) {
-        IMController.shared.markConversationMsg(byConID: conversation.conversationID, msgIDList: messageID == nil ? [] : [messageID!]) { [weak self] r in
-            if messageID != nil {
-                self?.messages.first(where: { $0.clientMsgID == messageID })?.hasReadTime = Date().timeIntervalSince1970 * 1000
+    func markMessageAsReaded(messageIDs: [String], completion: (() -> Void)? = nil) {
+        IMController.shared.markMsgAsRead(byConID: conversation.conversationID, msgIDList: messageIDs) { [weak self] r in
+            if !messageIDs.isEmpty {
+                for (index, msgID) in messageIDs.enumerated() {
+                    let msg = self?.messages.first(where: { $0.clientMsgID == msgID })
+                    let hasReadTime = Date().timeIntervalSince1970 * 1000 + Double(self?.svrDiffTime ?? 0)
+                    msg?.hasReadTime = hasReadTime
+                    msg?.isRead = true
+                    msg?.attachedInfoElem?.hasReadTime = hasReadTime
+                }
                 self?.repopulateMessages(requiresIsolatedProcess: true)
             }
             completion?()
@@ -276,6 +294,11 @@ final class DefaultChatController: ChatController {
         var changed = false
         for (index, item) in messages.enumerated() {
             if item.clientMsgID == messageId {
+                if !item.isOutgoing && !item.isRead {
+                    // 设置语音已读
+                    markMessageAsReaded(messageIDs: [item.clientMsgID])
+                }
+                
                 if item.isPlaying != isPlaying {
                     item.isPlaying = isPlaying
                     changed = true
@@ -290,7 +313,7 @@ final class DefaultChatController: ChatController {
     }
     
     func call() {
-        IMController.shared.signalingInvite(inviterUserID: receiverId)
+        //IMController.shared.signalingInvite(inviterUserID: receiverId)
     }
     
     // MARK: 发送消息
@@ -318,6 +341,26 @@ final class DefaultChatController: ChatController {
             }
         }
         selecteMessages.removeAll()
+    }
+    
+    func sendLeaveMessage(text: String, _ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            
+            contacts.forEach { contact in
+                if let recvID = contact.ID {
+                    IMController.shared.sendTextMsg(text: text,
+                                                    to: recvID,
+                                                    groupName: nil,
+                                                    conversationType: .c1v1) { [weak self] msg in
+                        
+                    } onComplete: { [weak self] msg in
+                        if recvID == self?.conversation.userID {
+                            self?.appendMessage(msg, completion: completion)
+                        }
+                    }
+                }
+            }
+        }
     }
     
     func sendMergeForwardMsg(_ contacts: [ContactInfo], completion: @escaping ([Section]) -> Void) {
@@ -352,9 +395,9 @@ final class DefaultChatController: ChatController {
         }
     }
     
-    func sendLocationMsg(_ latitude: Double, _ longitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void) {
-        IMController.shared.sendLocation(latitude: latitude, 
-                                         longitude: longitude,
+    func sendLocationMsg(_ longitude: Double, _ latitude: Double, _ desc: String, completion: @escaping ([Section]) -> Void) {
+        IMController.shared.sendLocation(longitude: longitude,
+                                         latitude: latitude,
                                          desc: desc,
                                          to: receiverId,
                                          groupName: groupInfo?.groupName,
@@ -394,12 +437,51 @@ final class DefaultChatController: ChatController {
     }
     
     private func sendText(text: String, to: String? = nil, conversationType: ConversationType? = nil, quoteMessage: MessageInfo? = nil, completion: (([Section]) -> Void)?) {
+        var atInfos: [AtInfo] = []
+        if selectedUsers.count > 0 {
+            let words = text.components(separatedBy: " ")
+            let atMembers = groupMembers?.filter{ selectedUsers.contains($0.userID!) }
+            for word in words {
+                if word.contains("@") {
+                    // 构建AtInfo list
+                    if let result = atMembers?.filter{ word == "@" + ($0.nickname ?? "") }, let member = result.first {
+                        let atInfo = AtInfo(atUserID: member.userID!, groupNickname: member.nickname ?? "")
+                        atInfos.append(atInfo)
+                    }
+                }
+            }
+        }
+        
+        if atInfos.count > 0 {
+            // @groupNickname to @userID
+            var temp = text
+            atInfos.forEach({ info in
+                temp = temp.replacingOccurrences(of: "@\(info.groupNickname!)",
+                                                 with: "@\(info.atUserID ?? "")")
+            })
+            
+            IMController.shared.sendAtTextMsg(text: temp,
+                                              atUsers: atInfos,
+                                              quoteMessage: quoteMessage,
+                                              to: to ?? receiverId,
+                                              groupName: groupInfo?.groupName,
+                                              conversationType: conversationType ?? self.conversationType) { [weak self] msg in
+                //  self?.appendMessage(msg, completion: completion) // 刷新太快，界面不好看
+            } onComplete: { [weak self] msg in
+                guard let completion else { return }
+                self?.appendMessage(msg, completion: completion)
+                self?.selecteMessages.removeAll() // 移除选中的引用消息
+                self?.selectedUsers.removeAll()
+            }
+            return
+        }
+        
         IMController.shared.sendTextMsg(text: text,
                                         quoteMessage: quoteMessage,
                                         to: to ?? receiverId,
                                         groupName: groupInfo?.groupName,
                                         conversationType: conversationType ?? self.conversationType) { [weak self] msg in
-//            self?.appendMessage(msg, completion: completion) // 刷新太快，界面不好看
+            //  self?.appendMessage(msg, completion: completion) // 刷新太快，界面不好看
         } onComplete: { [weak self] msg in
             guard let completion else { return }
             self?.appendMessage(msg, completion: completion)
@@ -654,10 +736,32 @@ final class DefaultChatController: ChatController {
     
     private func convertMessage(_ msg: MessageInfo) -> Message {
         
+        var messageType: MessageType = msg.isOutgoing ? .outgoing : .incoming
+        var owner = User(id: msg.sendID, name: msg.senderNickname ?? "", faceURL: msg.senderFaceUrl)
         var contentType = msg.contentType.rawValue > MessageContentType.face.rawValue ? MessageRawType.system : MessageRawType.normal
         if msg.contentType == .custom {
             if msg.customElem?.type == .blockedByFriend || msg.customElem?.type == .mutedInGroup {
                 contentType = MessageRawType.system
+            }
+            
+            // 处理呼叫消息出入显示
+            if msg.customElem?.type == .invite ||
+                msg.customElem?.type == .cancel ||
+                msg.customElem?.type == .accept ||
+                msg.customElem?.type == .reject ||
+                msg.customElem?.type == .hungUp {
+                if let value = msg.customElem?.value(), let inviterUserID = value["inviterUserID"] as? String {
+                    messageType = inviterUserID == IMController.shared.userID ? .outgoing : .incoming
+                    // 将发送者换成对方
+                    if messageType == .incoming && msg.sendID != inviterUserID {
+                        owner = User(id: receiverId, name: otherInfo?.showName ?? "", faceURL: otherInfo?.faceURL)
+                    }
+                    // 将发送者换成自己
+                    if messageType == .outgoing && msg.sendID != senderID {
+                        let selfInfo = getSelfInfo()
+                        owner = User(id: senderID, name: selfInfo?.nickname ?? "", faceURL: selfInfo?.faceURL)
+                    }
+                }
             }
         }
         
@@ -675,16 +779,25 @@ final class DefaultChatController: ChatController {
             status = msg.isRead ? .read : .received
         }
         
+        var burnDuration = 0
+        if let attachedInfoElem = msg.attachedInfoElem, attachedInfoElem.isPrivateChat, attachedInfoElem.hasReadTime > 0 {
+            let current = Int(Date().timeIntervalSince1970)
+            let duration = Int(attachedInfoElem.burnDuration) - (current + svrDiffTime - Int(attachedInfoElem.hasReadTime/1000))
+            burnDuration = duration > 0 ? duration : -1
+            //print("left burnDuration:\(burnDuration)")
+        }
+        
         return Message(id: msg.clientMsgID,
                        date: Date(timeIntervalSince1970: msg.sendTime / 1000),
                        contentType: contentType,
                        data: convert(msg),
-                       owner: User(id: msg.sendID, name: msg.senderNickname ?? "", faceURL: msg.senderFaceUrl),
-                       type: msg.isOutgoing ? .outgoing : .incoming,
+                       owner: owner,
+                       type: messageType,
                        status: status!,
                        isSelected: msg.isSelected,
                        isAnchor: msg.isAnchor,
-                       sessionType: msg.sessionType)
+                       sessionType: msg.sessionType,
+                       burnDuration: burnDuration)
     }
     
     private func convert(_ msg: MessageInfo) -> Message.Data {
@@ -696,6 +809,13 @@ final class DefaultChatController: ChatController {
             let textElem = msg.textElem!
             
             let source = TextMessageSource(text: textElem.content)
+            
+            return .text(source)
+            
+        case .at:
+            let textElem = msg.atTextElem!
+            
+            let source = TextMessageSource(text: textElem.atText)
             
             return .text(source)
             
@@ -804,7 +924,7 @@ final class DefaultChatController: ChatController {
         default:
             let value = MessageHelper.getSystemNotificationOf(message: msg, isSingleChat: msg.sessionType == .c1v1)
             
-            return .attributeText(value!)
+            return .attributeText(value ?? NSAttributedString())
         }
     }
         
@@ -863,7 +983,7 @@ extension DefaultChatController: DataProviderDelegate {
         if (conversation.conversationType == .c1v1 && message.sessionType == conversation.conversationType && conversation.userID == message.sendID) ||
             (conversation.conversationType == .group && message.sessionType == conversation.conversationType && conversation.groupID == message.groupID) {
             appendConvertingToMessages([message])
-            markAllMessagesAsReceived { [weak self] in
+            markAllMessagesAsReceived([message]) { [weak self] in
                 self?.markAllMessagesAsRead { [weak self] in
                     self?.repopulateMessages()
                 }
@@ -881,6 +1001,29 @@ extension DefaultChatController: DataProviderDelegate {
             msg.content = JsonTool.toJson(fromObject: info)
             repopulateMessages()
         }
+        
+        let quoteMsgs =  messages.filter { $0.contentType == .quote }
+        if quoteMsgs.isEmpty == false {
+            var findMsgs: [MessageInfo] = []
+            quoteMsgs.forEach { quoteMsg in
+                if quoteMsg.quoteElem?.quoteMessage?.clientMsgID == info.clientMsgID {
+                    quoteMsg.quoteElem?.quoteMessage?.contentType = .revoke
+                    quoteMsg.quoteElem?.quoteMessage?.content = JsonTool.toJson(fromObject: info)
+                    findMsgs.append(quoteMsg)
+                }
+            }
+            
+            if !findMsgs.isEmpty {
+                repopulateMessages()
+            }
+        }
+    }
+    
+    func groupInfoChanged(groupInfo: GroupInfo?) {
+        if groupInfo?.groupID == self.groupInfo?.groupID {
+            self.groupInfo = groupInfo
+            delegate?.updateGroupInfo()
+        }
     }
     
     func typingStateChanged(to state: TypingState) {
@@ -896,20 +1039,21 @@ extension DefaultChatController: DataProviderDelegate {
         }
     }
     
-    func lastReceivedIdChanged(to id: String) {
-        lastReceivedString = id
-        markAllMessagesAsReceived { [weak self] in
+    func lastReceivedIdChanged(to message: MessageInfo) {
+        //lastReceivedString = id
+        markAllMessagesAsReceived([message]) { [weak self] in
             self?.repopulateMessages()
         }
     }
     
-    func markAllMessagesAsReceived(completion: @escaping () -> Void) {
-        guard let lastReceivedString else {
+    func markAllMessagesAsReceived(_ rawMsgIDs: [MessageInfo], completion: @escaping () -> Void) {
+        let msgIDs = rawMsgIDs.filter { $0.isOutgoing == false && $0.isRead == false && $0.contentType != .audio }.map { $0.clientMsgID }
+        guard !msgIDs.isEmpty else {
             completion()
             return
         }
         
-        markMessageAsReaded(messageID: lastReceivedString, completion: completion)
+        markMessageAsReaded(messageIDs: msgIDs, completion: completion)
     }
     
     func markAllMessagesAsRead(completion: @escaping () -> Void) {
@@ -924,6 +1068,9 @@ extension DefaultChatController: DataProviderDelegate {
             for id in lastReadIDs {
                 if let index = self.messages.firstIndex(where: { $0.clientMsgID == id}) {
                     self.messages[index].isRead = true
+                    let hasReadTime = Date().timeIntervalSince1970 * 1000 + Double(self.svrDiffTime)
+                    self.messages[index].hasReadTime = hasReadTime
+                    self.messages[index].attachedInfoElem?.hasReadTime = hasReadTime
                 }
             }
             DispatchQueue.main.async {
@@ -969,6 +1116,26 @@ extension DefaultChatController: ReloadDelegate {
     
     func reeditMessage(with id: String) {
         delegate?.reeditMessage(with: id)
+    }
+    
+    func resendMessage(with id: String) {
+        guard let message = getMessageInfo(ids: [id]).first(where: { $0.clientMsgID == id }) else {
+            return
+        }
+        
+        IMController.shared.resendMsg(msg: message,
+                                           to: receiverId,
+                                           groupName: groupInfo?.groupName,
+                                           conversationType: conversationType) { [weak self] msg in
+            // 刷新UI去掉失败提示
+            self?.appendMessage(msg, completion: { [weak self] sections in
+                self?.delegate?.update(with: sections, requiresIsolatedProcess: false)
+            })
+        } onComplete: { [weak self] msg in
+            self?.appendMessage(msg, completion: { [weak self] sections in
+                self?.delegate?.update(with: sections, requiresIsolatedProcess: false)
+            })
+        }
     }
 }
 

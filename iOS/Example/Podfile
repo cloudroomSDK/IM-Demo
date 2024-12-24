@@ -5,10 +5,11 @@ use_modular_headers!
 inhibit_all_warnings!
 
 target 'CRIMSDKUIKit_Example' do
-  pod 'CRIMSDK', :path => '../'
   pod 'CRUICore', :path => '../'
   pod 'CRUICoreView', :path => '../'
   pod 'CRUIIM', :path => '../'
+  pod 'CRIMSDK', :path => '../'
+  pod 'CRUICalling', :path => '../'
   
   pod 'Localize-Swift', '~> 3.2'
   pod 'RxGesture', '~> 4.0.4'

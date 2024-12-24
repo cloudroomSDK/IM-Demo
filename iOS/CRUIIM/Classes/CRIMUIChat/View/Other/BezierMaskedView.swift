@@ -123,7 +123,7 @@ private func generateIncomingTailedBezierPath(offset: CGFloat, size: CGSize) -> 
 //    bezierPath.apply(CGAffineTransform(translationX: offset, y: 0))
     
 //    return bezierPath
-    let bezierPath = UIBezierPath(roundedRect: CGRect(x: offset, y: 0, width: size.width - offset, height: size.height), cornerRadius: 7)
+    let bezierPath = UIBezierPath(roundedRect: CGRect(x: offset, y: 0, width: size.width - offset, height: size.height), cornerRadius: 12)
     return bezierPath
 }
 
@@ -135,7 +135,7 @@ private func generateOutgoingTailedBezierPath(offset: CGFloat, size: CGSize) -> 
 }
 
 private func generateIncomingNormalBezierPath(offset: CGFloat, size: CGSize) -> UIBezierPath {
-    let bezierPath = UIBezierPath(roundedRect: CGRect(x: offset, y: 0, width: size.width - offset, height: size.height), cornerRadius: 7)
+    let bezierPath = UIBezierPath(roundedRect: CGRect(x: offset, y: 0, width: size.width - offset, height: size.height), cornerRadius: 12)
     return bezierPath
 }
 

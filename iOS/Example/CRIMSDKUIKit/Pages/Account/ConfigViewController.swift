@@ -5,6 +5,7 @@ import RxSwift
 import SnapKit
 import CRUICore
 import ProgressHUD
+import CRUICalling
 
 let kAppIDDefaultShow = "默认appID"
 
@@ -68,14 +69,8 @@ class ConfigCell: UITableViewCell, UITextFieldDelegate {
 }
 
 let severAddressKey = "com.crimuikit.adr"
-let adminSeverAddrKey = "com.criuikit.admin.adr"
 let bussinessSeverAddrKey = "com.crimuikit.bussiness.api.adr"
-let sdkAPIAddrKey = "com.crimuikit.sdk.api.adr"
-let sdkAPPIDKey = "com.crimuikit.sdk.appId"
-let sdkAPPSecretKey = "com.crimuikit.sdk.appSecret"
-let sdkTokenKey = "com.crimuikit.sdk.token"
-let sdkObjectStorageKey = "com.crimuikit.sdk.os"
-let useTokenKey = "com.crimuikit.use.Token"
+let adminSeverAddrKey = "com.criuikit.admin.adr"
 let protocolKey = "com.crimuikit.use.protocol"
 
 class ConfigViewController: UIViewController {
@@ -83,25 +78,12 @@ class ConfigViewController: UIViewController {
     let disposeBag = DisposeBag()
     
     let rowHeight = 54
-    let authenTypeAppID = "帐号密码鉴权"
-    let authenTypeToken = "动态Token鉴权"
     
     var currentProtocol = UserDefaults.standard.integer(forKey: protocolKey)
     let protocolTypes = ["http", "https(CA证书)", "https(自签名SSL证书)"]
     
-    // 读取鉴权方式
-    let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil ? false : UserDefaults.standard.bool(forKey: useTokenKey)
-    lazy var currentAuthen = enableToken ? authenTypeToken : authenTypeAppID
-
-    //let scheme = [bussinessSeverAddrKey: "http", sdkAPIAddrKey: "http"]
-
     private var severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultDomain
     private var bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? "http://\(defaultIP)\(bussinessPort)"
-    private var sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
-    private var token = UserDefaults.standard.string(forKey: sdkTokenKey) ?? defaultToken
-    private var appID = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? defaultAppID
-    private var appSecret = UserDefaults.standard.string(forKey: sdkAPPSecretKey) ?? defaultAppSecret
-    private var sdkObjectStorage = UserDefaults.standard.string(forKey: sdkObjectStorageKey) ?? "minio"
 
     let list: UITableView = {
         let t = UITableView.init()
@@ -126,88 +108,6 @@ class ConfigViewController: UIViewController {
             make.bottom.right.equalToSuperview()
             make.height.equalTo(1)
         }
-        return v
-    }()
-    
-    private lazy var sdkServerCell: ConfigCell = {
-        let v = getConfigCell()
-        let value = ConfigCellType.sdkServer
-        v.titleLabel.text = value.title
-        v.titleLabel.textColor = DemoUI.color_666666
-        v.inputTextFiled.text = sdkAPIAddr
-        return v
-    }()
-    
-    private lazy var authenTypeCell: OptionTableViewCell = {
-        let v = getOptionTableViewCell()
-        let value = ConfigCellType.authenType
-        v.titleLabel.text = value.title
-        v.titleLabel.textColor = DemoUI.color_666666
-        v.subtitleLabel.text = currentAuthen
-        
-        let line = UIView()
-        line.backgroundColor = DemoUI.color_E0E0E0
-        v.addSubview(line)
-        line.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(15)
-            make.bottom.right.equalToSuperview()
-            make.height.equalTo(1)
-        }
-        
-        let tap = UITapGestureRecognizer()
-        tap.rx.event.subscribe(onNext: { [weak self] _ in
-            guard let sself = self else { return }
-            
-            ConfigPickerView.show(onWindowOf: sself.view, alertTitle: "鉴权方式", currentItem: sself.currentAuthen, options: [sself.authenTypeAppID, sself.authenTypeToken], confirmTitle: "确定") { index, title in
-                sself.currentAuthen = title
-                sself.authenTypeCell.subtitleLabel.text = sself.currentAuthen
-                sself.reloadRelatedRows()
-            }
-        }).disposed(by: disposeBag)
-        v.addGestureRecognizer(tap)
-        return v
-    }()
-    
-    private lazy var appIDCell: ConfigCell = {
-        let v = getConfigCell()
-        let value = ConfigCellType.appID
-        v.titleLabel.text = value.title
-        v.titleLabel.textColor = DemoUI.color_666666
-        
-        let line = UIView()
-        line.backgroundColor = DemoUI.color_E0E0E0
-        v.contentView.addSubview(line)
-        line.snp.makeConstraints { make in
-            make.left.equalToSuperview().offset(15)
-            make.bottom.right.equalToSuperview()
-            make.height.equalTo(1)
-        }
-        
-        let appIDCache = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? ""
-        if appIDCache.isEmpty == true, KDefaultAppID.isEmpty == false, appID == KDefaultAppID {
-            v.inputTextFiled.text = kAppIDDefaultShow
-        } else {
-            v.inputTextFiled.text = appID
-        }
-        return v
-    }()
-    
-    private lazy var appSecretCell: ConfigCell = {
-        let v = getConfigCell()
-        v.inputTextFiled.isSecureTextEntry = true
-        let value = ConfigCellType.appSecret
-        v.titleLabel.text = value.title
-        v.titleLabel.textColor = DemoUI.color_666666
-        v.inputTextFiled.text = appSecret
-        return v
-    }()
-    
-    private lazy var tokenCell: ConfigCell = {
-        let v = getConfigCell()
-        let value = ConfigCellType.token
-        v.titleLabel.text = value.title
-        v.titleLabel.textColor = DemoUI.color_666666
-        v.inputTextFiled.text = token
         return v
     }()
     
@@ -265,7 +165,7 @@ class ConfigViewController: UIViewController {
             sself.clearCacheConfig()
             sself.reloadRelatedRows()
             sself.saveAddress()
-            ProgressHUD.showSucceed()
+            ProgressHUD.succeed()
         }).disposed(by: disposeBag)
         return t
     }()
@@ -325,15 +225,8 @@ class ConfigViewController: UIViewController {
         let spacer = UIView()
         spacer.backgroundColor = .viewBackgroundColor
         
-        let spacer2 = UIView()
-        spacer2.backgroundColor = .viewBackgroundColor
-        
-        var arrangedViews = [UIView]()
-        if currentAuthen == authenTypeToken {
-            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, tokenCell, spacer2, protocolTypeCell]
-        } else {
-            arrangedViews = [bussinessServerCell, sdkServerCell, spacer, authenTypeCell, appIDCell, appSecretCell, spacer2, protocolTypeCell]
-        }
+        let arrangedViews = [bussinessServerCell, spacer, protocolTypeCell]
+       
         for value in arrangedViews {
             vStack.addArrangedSubview(value)
         }
@@ -341,29 +234,14 @@ class ConfigViewController: UIViewController {
         bussinessServerCell.snp.remakeConstraints { make in
             make.height.equalTo(rowHeight)
         }
-        sdkServerCell.snp.remakeConstraints { make in
-            make.height.equalTo(rowHeight)
-        }
         spacer.snp.remakeConstraints { make in
-            make.height.equalTo(16)
-        }
-        authenTypeCell.snp.remakeConstraints { make in
-            make.height.equalTo(rowHeight)
-        }
-        appIDCell.snp.remakeConstraints { make in
-            make.height.equalTo(rowHeight)
-        }
-        appSecretCell.snp.remakeConstraints { make in
-            make.height.equalTo(rowHeight)
-        }
-        spacer2.snp.remakeConstraints { make in
             make.height.equalTo(16)
         }
         protocolTypeCell.snp.remakeConstraints { make in
             make.height.equalTo(rowHeight)
         }
         
-        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * (arrangedViews.count - 2) + 16*2)
+        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * (arrangedViews.count - 1) + 16)
         list.tableHeaderView = vStack
     }
     
@@ -373,34 +251,11 @@ class ConfigViewController: UIViewController {
         let ud = UserDefaults.standard
         ud.removeObject(forKey: severAddressKey)
         ud.removeObject(forKey: bussinessSeverAddrKey)
-        ud.removeObject(forKey: sdkAPIAddrKey)
-        ud.removeObject(forKey: sdkObjectStorageKey)
-        ud.removeObject(forKey: useTokenKey)
-        ud.removeObject(forKey: sdkTokenKey)
-        ud.removeObject(forKey: sdkAPPIDKey)
-        ud.removeObject(forKey: sdkAPPSecretKey)
-        
-        currentAuthen = authenTypeAppID
-        
+                
         severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultDomain
         bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? "http://\(defaultIP)\(bussinessPort)"
-        sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
-        token = UserDefaults.standard.string(forKey: sdkTokenKey) ?? defaultToken
-        appID = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? defaultAppID
-        appSecret = UserDefaults.standard.string(forKey: sdkAPPSecretKey) ?? defaultAppSecret
-        sdkObjectStorage = UserDefaults.standard.string(forKey: sdkObjectStorageKey) ?? "minio"
                 
         bussinessServerCell.inputTextFiled.text = severAddress
-        sdkServerCell.inputTextFiled.text = sdkAPIAddr
-        authenTypeCell.subtitleLabel.text = currentAuthen
-        let appIDCache = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? ""
-        if appIDCache.isEmpty == true, KDefaultAppID.isEmpty == false, appID == KDefaultAppID {
-            appIDCell.inputTextFiled.text = kAppIDDefaultShow
-        } else {
-            appIDCell.inputTextFiled.text = appID
-        }
-        appSecretCell.inputTextFiled.text = appSecret
-        tokenCell.inputTextFiled.text = token
 
     }
 
@@ -410,46 +265,17 @@ class ConfigViewController: UIViewController {
         
         severAddress = bussinessServerCell.inputTextFiled.text ?? defaultHost
         bussinessSeverAddr = (currentProtocol == 0 ? "http" : "https") + "://" + severAddress + (currentProtocol == 0 ? bussinessPort : httpsBussinessPort)
-        sdkAPIAddr = sdkServerCell.inputTextFiled.text ?? defaultSDKApi
-        let newSdkAPIAddr = (currentProtocol == 0 ? "http" : "https") + "://" + sdkAPIAddr
-        
-        token = tokenCell.inputTextFiled.text ?? defaultToken
-        appID = appIDCell.inputTextFiled.text ?? defaultAppID
-        appSecret = appSecretCell.inputTextFiled.text ?? defaultAppSecret
 
         let ud = UserDefaults.standard
         ud.set(severAddress, forKey: severAddressKey)
         ud.set(bussinessSeverAddr, forKey: bussinessSeverAddrKey)
-        ud.set(sdkAPIAddr, forKey: sdkAPIAddrKey)
-        ud.set(sdkObjectStorage, forKey: sdkObjectStorageKey)
-        ud.set(currentAuthen == authenTypeToken, forKey: useTokenKey)
-        ud.set(token, forKey: sdkTokenKey)
-        ud.set(appSecret, forKey: sdkAPPSecretKey)
         ud.setValue(currentProtocol, forKey: protocolKey)
         
         // 更新业务地址
         AccountViewModel.API_BASE_URL = bussinessSeverAddr
         
-        // 不存储默认appID信息
-        if appID.isEmpty == false, appID != defaultAppID, appID != kAppIDDefaultShow {
-            ud.set(appID, forKey: sdkAPPIDKey)
-        } else {
-            ud.set(nil, forKey: sdkAPPIDKey)
-        }
-        
         ud.synchronize()
-        AccountViewModel.saveUser(uid: AccountViewModel.userID , imToken: nil, chatToken: nil)
-        
-        // 反初始化SDK
-        IMController.shared.unInitSDK()
-        // 初始化SDK
-        IMController.shared.setup(sdkAPIAdrr: newSdkAPIAddr,
-                                  skipVerifyCert: currentProtocol == 3,
-                                  sdkOS: sdkObjectStorage) {
-            IMController.shared.currentUserRelay.accept(nil)
-            AccountViewModel.saveUser(uid: nil, imToken: nil, chatToken: nil)
-            NotificationCenter.default.post(name: .init("logout"), object: nil)
-        }
+        AccountViewModel.saveUser(uid: AccountViewModel.userID, imToken: nil, chatToken: nil)
         
         CRIMSessionManagerWrapper.shared.updateCertificateValidation()
     }
@@ -482,7 +308,7 @@ class ConfigViewController: UIViewController {
         var title: String {
             switch self {
             case .bussinessSever:
-                return "业务服务器:".innerLocalized()
+                return "服务器:".innerLocalized()
             case .sdkServer:
                 return "SDK服务器:".innerLocalized()
             case .authenType:

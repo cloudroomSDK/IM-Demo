@@ -160,13 +160,13 @@ class ApplicationViewController: UIViewController {
     }
     
     func refuse() {
-        ProgressHUD.show()
+        ProgressHUD.animate()
         viewModel.refuse { [weak self] r in
             if r == nil {
                 ProgressHUD.dismiss()
                 self?.navigationController?.popViewController(animated: true)
             } else {
-                ProgressHUD.showError(r)
+                ProgressHUD.error(r)
             }
         }
     }

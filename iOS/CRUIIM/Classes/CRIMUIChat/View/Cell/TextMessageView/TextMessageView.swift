@@ -71,15 +71,13 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
         }
         let font = controller.isQuoted ? UIFont.preferredFont(forTextStyle: .footnote) : UIFont.preferredFont(forTextStyle: .body)
         if controller.text != nil {
-//            textView.font = font
-//            textView.text = controller.text
             var str = NSAttributedString(string: controller.text!, attributes: [.font: font])
 
-            textView.attributedText = EmojiHelper.shared.replaceTextWithEmojiIn(attributedString: str)
+            textView.attributedText = str
         } else {
             var str = NSAttributedString(string: controller.attributedString!.string, attributes: [.font: font])
 
-            textView.attributedText = EmojiHelper.shared.replaceTextWithEmojiIn(attributedString: str)
+            textView.attributedText = str
         }
         if controller.isQuoted {
             textView.textContainer.maximumNumberOfLines = 2
@@ -121,7 +119,7 @@ final class TextMessageView: UIView, ContainerCollectionViewCellDelegate {
         textView.backgroundColor = .clear
         textView.textContainerInset = .zero
         textView.textContainer.lineFragmentPadding = 0
-        textView.dataDetectorTypes = .all
+        textView.dataDetectorTypes = .link
         textView.font = .preferredFont(forTextStyle: .body)
         textView.scrollsToTop = false
         textView.bounces = false

@@ -726,6 +726,7 @@ final class ChatHistoryCollectionDataSource: NSObject, ChatCollectionDataSource 
         cellView.leadingCountdownLabel.isHiddenSafe = alignment.isIncoming
         cellView.trailingCountdownLabel.isHiddenSafe = !alignment.isIncoming
         cellView.trailingAudioRedLabel.isHiddenSafe = true// !alignment.isIncoming || (!isAudioMsg || status == .read)
+        cellView.sendFailureImgView.isHiddenSafe = true
         cellView.trailingDateLabel.isHiddenSafe = false
         cellView.trailingDateLabel.text = ChatHistoryDateFormatter.shared.string(from: date)
         cellView.containerView.customView.statusLabel.isHiddenSafe = true

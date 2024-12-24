@@ -42,9 +42,10 @@ public struct MessageHelper {
             // TODO:
             if let atElem = message.atTextElem {
                 if atElem.isAtSelf {
+                    let textColor = message.isRead ? UIColor.c8E9AB0 : UIColor.c0089FF
                     tmpAttr = NSAttributedString(string: "[有人@我]", attributes: [
                         NSAttributedString.Key.font: UIFont.f14,
-                        NSAttributedString.Key.foregroundColor: UIColor.c0089FF,
+                        NSAttributedString.Key.foregroundColor: textColor,
                     ])
                 } else {
                     let names = atElem.atUsersInfo?.compactMap { $0.groupNickname } ?? []
@@ -442,9 +443,25 @@ public struct MessageHelper {
             NSAttributedString.Key.foregroundColor: UIColor.c8E9AB0,
         ]
         
+        let isVideo = value["isVideo"] as? Bool ?? false
+        let duration = value["duration"] as? Int ?? 0
+        let linkDuration = FormatUtil.getCallingFormat(of: duration)
+        let opUser = message.sendID == IMController.shared.getLoginUserID() ? "" : "对方"
+        
         var str = NSMutableAttributedString()
         
         switch type {
+        case .invite, .accept:
+            break
+        case .reject:
+            str.append(NSAttributedString(string: opUser + "已拒绝".innerLocalized(), attributes: contentAttributes))
+            break
+        case .cancel:
+            str.append(NSAttributedString(string: opUser + "已取消".innerLocalized(), attributes: contentAttributes))
+            break
+        case .hungUp:
+            str.append(NSAttributedString(string: "通话时长".innerLocalized() + linkDuration, attributes: contentAttributes))
+            break
         case .call:
             break
         case .blockedByFriend, .deletedByFriend, .mutedInGroup:
@@ -462,6 +479,8 @@ public struct MessageHelper {
         }
         
         switch type {
+        case .invite, .accept, .reject, .cancel, .hungUp:
+            return "[" + "音视频".innerLocalized() + "]"
         case .call:
             return "[" + "音视频".innerLocalized() + "]"
         case .customEmoji:

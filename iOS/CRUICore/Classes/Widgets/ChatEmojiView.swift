@@ -13,56 +13,46 @@ public class ChatEmojiView: UIView {
     public weak var delegate: ChatEmojiViewDelegate?
 
     private let emojis: [String] = [
-        "[天使]",
-        "[生气]",
-        "[中毒-1]",
-        "[中毒]",
-        "[迷茫]",
-        "[酷-1]",
-        "[酷]",
-        "[哭-1]",
-        "[哭]",
-        "[魔鬼]",
-        "[头晕]",
-        "[面无表情]",
-        "[懵逼]",
-        "[开心-2]",
-        "[开心-1]",
-        "[开心]",
-        "[热恋]",
-        "[受伤]",
-        "[哭哭]",
-        "[亲吻-1]",
-        "[亲吻-2]",
-        "[亲吻]",
-        "[口罩]",
-        "[静音]",
-        "[面无表情-1]",
-        "[难过-1]",
-        "[难过]",
-        "[害怕-1]",
-        "[害怕]",
-        "[闭嘴]",
-        "[震惊-1]",
-        "[生病]",
-        "[睡觉]",
-        "[笑-1]",
-        "[笑]",
-        "[微笑-1]",
-        "[眼红]",
-        "[奸笑]",
-        "[震惊]",
-        "[流汗]",
-        "[思考]",
-        "[疲惫]",
-        "[吐舌-2]",
-        "[吐舌-1]",
-        "[吐舌]",
-        "[斜眼]",
-        "[呕吐-1]",
-        "[暴怒]",
-        "[眨眼]",
-        "[僵尸]",
+        "1F31B",
+        "1F494",
+        "1F604",
+        "1F60D",
+        "1F62D",
+        "1F644",
+        "1F929",
+        "1F97A",
+        "1F44B",
+        "1F496",
+        "1F606",
+        "1F60E",
+        "1F62F",
+        "1F910",
+        "1F970",
+        "1f61c",
+        "1F44D",
+        "1F4A4",
+        "1F608",
+        "1F621",
+        "1F631",
+        "1F914",
+        "1F971",
+        "02639",
+        "1F44E",
+        "1F601",
+        "1F609",
+        "1F624",
+        "1F633",
+        "1F91D",
+        "1F973",
+        "0263A",
+        "1F44F",
+        "1F602",
+        "1F60C",
+        "1F629",
+        "1F634",
+        "1F923",
+        "1F974",
+        "0270C"
     ]
 
     public override var backgroundColor: UIColor? {
@@ -124,11 +114,17 @@ public class ChatEmojiView: UIView {
             let v = UIImageView()
             return v
         }()
+        
+        let contentLabel: UILabel = {
+            let v = UILabel()
+            v.font = UIFont.preferredFont(forTextStyle: .title1)
+            return v
+        }()
 
         override init(frame: CGRect) {
             super.init(frame: frame)
-            contentView.addSubview(imageView)
-            imageView.snp.makeConstraints { make in
+            contentView.addSubview(contentLabel)
+            contentLabel.snp.makeConstraints { make in
                 make.center.equalToSuperview()
             }
         }
@@ -152,14 +148,33 @@ extension ChatEmojiView: UICollectionViewDataSource, UICollectionViewDelegate {
     public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: EmojiCell.className, for: indexPath) as! EmojiCell
         let key = emojis[indexPath.row]
-        if let emojiName = EmojiHelper.emojiMap[key] {
-            cell.imageView.image = UIImage(nameInEmoji: emojiName)
+        if let emojiName = characterStringFrom(hexString: key) {
+//            cell.imageView.image = UIImage(nameInEmoji: emojiName)
+            cell.contentLabel.text = emojiName
         }
         return cell
     }
 
     public func collectionView(_: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let emojiName = emojis[indexPath.row]
-        delegate?.emojiViewDidSelect(emojiStr: emojiName)
+        if let emojiName = characterStringFrom(hexString: emojiName) {
+//            cell.imageView.image = UIImage(nameInEmoji: emojiName)
+//            cell.contentLabel.text = emojiName
+            delegate?.emojiViewDidSelect(emojiStr: emojiName)
+        }
+    }
+}
+
+extension ChatEmojiView {
+    public func characterStringFrom(hexString: String) -> String? {
+        // 将16进制字符串转换为整数
+        if let unicodeValue = UInt32(hexString, radix: 16) {
+            // 使用UnicodeScalar来创建字符
+            let character = Character(UnicodeScalar(unicodeValue)!)
+            let characterString = String(character)
+            
+            return characterString
+        }
+        return nil
     }
 }

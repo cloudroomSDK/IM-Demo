@@ -164,15 +164,30 @@ final class DefaultDataProvider: DataProvider {
         
         IMController.shared.newMsgReceivedSubject.subscribe(onNext: { [weak self] (message: MessageInfo) in
             guard let self else { return }
-            // 输入状态
-            if case .typing = message.contentType {
-                if (self.conversation.userID == message.sendID ||
-                    self.conversation.groupID == message.groupID) {
-                    self.typingState = message.isTyping() ? .typing : .idle
-                    self.delegate?.typingStateChanged(to: self.typingState)
+            
+            var skip = false
+            
+            if message.contentType == .custom {
+                let data = message.customElem!.value()
+                let customType = message.customElem?.type
+                
+                if (customType == CustomMessageType.invite ||
+                    customType == CustomMessageType.accept) {
+                    skip = true
                 }
-            } else {
-                self.receivedNewMessages(message: message)
+            }
+            
+            if !skip {
+                // 输入状态
+                if case .typing = message.contentType {
+                    if (self.conversation.userID == message.sendID ||
+                        self.conversation.groupID == message.groupID) {
+                        self.typingState = message.isTyping() ? .typing : .idle
+                        self.delegate?.typingStateChanged(to: self.typingState)
+                    }
+                } else {
+                    self.receivedNewMessages(message: message)
+                }
             }
         }).disposed(by: _disposeBag)
         
@@ -181,7 +196,7 @@ final class DefaultDataProvider: DataProvider {
             self.appendSentMessage(message: message)
         }).disposed(by: _disposeBag)
 
-        IMController.shared.c2cReadReceiptReceived.subscribe(onNext: { [weak self] (receiptInfos: [ReceiptInfo]) in
+        IMController.shared.c1v1ReadReceiptReceived.subscribe(onNext: { [weak self] (receiptInfos: [ReceiptInfo]) in
             let msgIDs = receiptInfos.flatMap { $0.msgIDList ?? [] }
             self?.delegate?.lastReadIdsChanged(to: msgIDs, readUserID: nil)
         }).disposed(by: _disposeBag)
@@ -244,7 +259,8 @@ final class DefaultDataProvider: DataProvider {
         }.disposed(by: _disposeBag)
         
         IMController.shared.groupInfoChangedSubject.subscribe { [weak self] (groupInfo: GroupInfo?) in
-    
+            guard let `self` else { return }
+            self.delegate?.groupInfoChanged(groupInfo: groupInfo)
         }.disposed(by: _disposeBag)
     }
     
@@ -254,7 +270,7 @@ final class DefaultDataProvider: DataProvider {
         }
 
         delegate?.received(message: message)
-        delegate?.lastReceivedIdChanged(to: message.clientMsgID)
+        delegate?.lastReceivedIdChanged(to: message)
     }
     
     private func appendSentMessage(message: MessageInfo) {

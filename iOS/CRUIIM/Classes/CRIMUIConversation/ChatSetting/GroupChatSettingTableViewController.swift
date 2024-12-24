@@ -26,18 +26,18 @@ class GroupChatSettingTableViewController: UITableViewController {
         v.setConfigToPickAvatar()
         v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
             guard var first = images.first else { return }
-            ProgressHUD.show()
+            ProgressHUD.animate()
             first = first.compress(to: 42)
             let result = FileHelper.shared.saveImage(image: first)
                         
             if result.isSuccess {
                 self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
                     guard progress > 0  else { return }
-                    ProgressHUD.showProgress(progress)
+                    ProgressHUD.progress(progress)
                 }, onComplete: {
-                    ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                    ProgressHUD.success("头像上传成功".innerLocalized())
                 }, onFailure: {
-                    ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                    ProgressHUD.success("头像上传失败".innerLocalized())
                 })
             } else {
                 ProgressHUD.dismiss()
@@ -50,11 +50,11 @@ class GroupChatSettingTableViewController: UITableViewController {
                 let result = FileHelper.shared.saveImage(image: photo)
                 if result.isSuccess {
                     self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
-                        ProgressHUD.showProgress(progress)
+                        ProgressHUD.progress(progress)
                     }, onComplete: {
-                        ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                        ProgressHUD.success("头像上传成功".innerLocalized())
                     }, onFailure: {
-                        ProgressHUD.showSuccess("头像上传失败".innerLocalized())
+                        ProgressHUD.success("头像上传失败".innerLocalized())
                     })
                 }
             }
@@ -180,12 +180,12 @@ class GroupChatSettingTableViewController: UITableViewController {
                 vc.nameTextField.text = self?._viewModel.groupInfoRelay.value?.groupName
                 vc.completeBtn.rx.tap.subscribe(onNext: { [weak self, weak vc] in
                     guard let text = vc?.nameTextField.text, !text.isEmpty else { return }
-                    ProgressHUD.show()
+                    ProgressHUD.animate()
                     self?._viewModel.updateGroupName(text, onSuccess: { _ in
-                        ProgressHUD.showSuccess()
+                        ProgressHUD.success()
                         vc?.navigationController?.popViewController(animated: true)
                     }, onFailure: {
-                        ProgressHUD.showError("修改群名称失败".innerLocalized())
+                        ProgressHUD.error("修改群名称失败".innerLocalized())
                     })
                 }).disposed(by: vc.disposeBag)
                 self?.navigationController?.pushViewController(vc, animated: true)
@@ -359,6 +359,20 @@ class GroupChatSettingTableViewController: UITableViewController {
             cell.accessoryType = .none
             
             return cell
+            
+        case .burnAfterReading:
+            let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
+            _viewModel.setPrivateChatRelay.bind(to: cell.switcher.rx.isOn).disposed(by: cell.disposeBag)
+            cell.switcher.rx.controlEvent(.valueChanged).subscribe(onNext: { [weak self] in
+                self?._viewModel.toggleBurnDuration()
+            }).disposed(by: cell.disposeBag)
+            cell.titleLabel.text = rowType.title
+            cell.titleLabel.textColor = .c3D3D3D
+            cell.switcher.isHidden = false
+            cell.accessoryType = .none
+            
+            return cell
+            
         case .clearRecord:
             let cell = tableView.dequeueReusableCell(withIdentifier: OptionTableViewCell.className) as! OptionTableViewCell
             cell.titleLabel.text = rowType.title
@@ -388,7 +402,7 @@ class GroupChatSettingTableViewController: UITableViewController {
             let groupInfo = _viewModel.groupInfoRelay.value
             guard let groupId = groupInfo?.groupID, !groupId.isEmpty else { return }
             UIPasteboard.general.string = groupId
-            ProgressHUD.showSuccess("群聊ID已复制".innerLocalized())
+            ProgressHUD.success("群聊ID已复制".innerLocalized())
         case .qrCode:
             let vc = QRCodeViewController(idString: IMController.joinGrpPrefix.append(string: _viewModel.conversation.groupID))
             vc.avatarView.setAvatar(url: _viewModel.conversation.faceURL, text: nil, placeHolder: "contact_group_setting_icon")
@@ -412,7 +426,7 @@ class GroupChatSettingTableViewController: UITableViewController {
         case .clearRecord:
             presentAlert(title: "确认清空所有聊天记录吗？".innerLocalized()) {
                 self._viewModel.clearRecord(completion: { [weak self] _ in
-                    ProgressHUD.showSuccess("清空成功".innerLocalized())
+                    ProgressHUD.success("清空成功".innerLocalized())
                     guard let handler = self?.clearRecordComplete else { return }
                     handler()
                 })
@@ -434,6 +448,7 @@ class GroupChatSettingTableViewController: UITableViewController {
         case mute
         case messageRecvOpt
         case pinConversation
+        case burnAfterReading
         case clearRecord
         
         var title: String {
@@ -460,6 +475,8 @@ class GroupChatSettingTableViewController: UITableViewController {
                 return "消息免打扰".innerLocalized()
             case .pinConversation:
                 return "置顶聊天".innerLocalized()
+            case .burnAfterReading:
+                return "阅后即焚".innerLocalized()
             case .clearRecord:
                 return "清空聊天记录".innerLocalized()
             }

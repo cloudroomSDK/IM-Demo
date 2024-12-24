@@ -2,6 +2,20 @@
 import Foundation
 
 public struct FormatUtil {
+    public static func getCallingFormat(of duration: Int) -> String {
+        let m = duration / 60
+        let s = duration % 60
+        
+        var timeline = ""
+        
+        if m > 99 {
+            timeline = String(format: "%d:%02d", m, s)
+        } else {
+            timeline = String(format: "%02d:%02d", m, s)
+        }
+        return timeline
+    }
+    
     public static func getMediaFormat(of seconds: Int) -> String {
         if seconds / 3600 > 24 {
             return "时长超过了24小时，请检查输入值"

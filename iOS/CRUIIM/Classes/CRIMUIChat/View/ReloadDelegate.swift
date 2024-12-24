@@ -9,6 +9,7 @@ protocol ReloadDelegate: AnyObject {
     func didLongPressContent(with id: String, bubbleView: UIView,  data: Message.Data)
     func removeMessage(messageID: String)
     func reeditMessage(with id: String)
+    func resendMessage(with id: String)
 }
 
 // view 的点击代理，经过controler 传递到 view controller
@@ -18,4 +19,5 @@ extension ReloadDelegate {
     func didLongPressContent(with _: String, _: UIView,  _: Message.Data) {}
     func removeMessage(_: String) {}
     func reeditMessage(with _: String) {}
+    func resendMessage(with _: String) {}
 }

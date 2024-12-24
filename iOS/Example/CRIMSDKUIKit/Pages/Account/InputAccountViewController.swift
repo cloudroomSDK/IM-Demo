@@ -262,7 +262,7 @@ public class InputAccountViewController: UIViewController {
         view.endEditing(true)
         
         if let phone = phoneTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines), phone.isEmpty  {
-            ProgressHUD.showError("请输入正确的手机号码")
+            ProgressHUD.error("请输入正确的手机号码")
             return
         }
         
@@ -273,7 +273,7 @@ public class InputAccountViewController: UIViewController {
             guard let sself = self else { return }
             
             if errCode != 0 {
-                ProgressHUD.showError(errMsg)
+                ProgressHUD.error(errMsg)
                 
                 if errCode == 20002 {
                     let vc = InputCodeViewController(usedFor: sself.usedFor)
@@ -284,7 +284,7 @@ public class InputAccountViewController: UIViewController {
                 }
             } else {
                 
-                ProgressHUD.showSuccess("验证码发送成功".localized())
+                ProgressHUD.success("验证码发送成功".localized())
                 let vc = InputCodeViewController(usedFor: sself.usedFor)
                 vc.basicInfo = ["phone": sself.phone!,
                                 "areaCode": sself.areaCode,

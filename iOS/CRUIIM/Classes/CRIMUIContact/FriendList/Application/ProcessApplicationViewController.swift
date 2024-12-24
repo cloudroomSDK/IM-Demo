@@ -104,7 +104,7 @@ class ProcessApplicationViewController: UIViewController {
     }
     
     func sendFriendReq() {
-        ProgressHUD.show()
+        ProgressHUD.animate()
         _viewModel.accept { [weak self] r in
             if r == nil {
                 ProgressHUD.dismiss()
@@ -116,7 +116,7 @@ class ProcessApplicationViewController: UIViewController {
                 }
                 self?.navigationController?.popToRootViewController(animated: true)
             } else {
-                ProgressHUD.showError(r)
+                ProgressHUD.error(r)
             }
         }
     }

@@ -142,7 +142,7 @@ class GroupAnnounceViewController: UIViewController {
                 AlertView.show(onWindowOf: self.view, alertTitle: "该公告会通知全部群成员，是否发布？".innerLocalized(), confirmTitle: "发布".innerLocalized()) {
                     self.groupInfo.notification = self.contentTextView.text.trimmingCharacters(in: .whitespacesAndNewlines)
                     IMController.shared.setGrpInfo(group: self.groupInfo) { _ in
-                        ProgressHUD.showSuccess()
+                        ProgressHUD.success()
                         self.navigationController?.popViewController(animated: true)
                     } onFailure: { errCode, errMsg in
                         ProgressHUD.dismiss()

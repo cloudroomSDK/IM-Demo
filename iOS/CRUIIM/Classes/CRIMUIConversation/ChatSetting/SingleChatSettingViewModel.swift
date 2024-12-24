@@ -9,6 +9,7 @@ class SingleChatSettingViewModel {
     let membesRelay: BehaviorRelay<[UserInfo]> = .init(value: [])
     let noDisturbRelay: BehaviorRelay<Bool> = .init(value: false)
     let setTopContactRelay: BehaviorRelay<Bool> = .init(value: false)
+    let setPrivateChatRelay: BehaviorRelay<Bool> = .init(value: false)
     
     private let _disposeBag = DisposeBag()
     init(conversation: ConversationInfo) {
@@ -43,6 +44,7 @@ class SingleChatSettingViewModel {
     private func publishConversationInfo() {
         noDisturbRelay.accept(conversation.recvMsgOpt == .notNotify)
         setTopContactRelay.accept(conversation.isPinned)
+        setPrivateChatRelay.accept(conversation.isPrivateChat)
     }
 
     func getConversationInfo() {
@@ -95,6 +97,19 @@ class SingleChatSettingViewModel {
             guard let sself = self else { return }
             self?.noDisturbRelay.accept(!sself.noDisturbRelay.value)
         })
+    }
+    
+    func toggleBurnDuration() {
+        let isPrivateChat = !setPrivateChatRelay.value
+        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat) { [weak self] _ in
+            guard let sself = self else { return }
+            self?.setPrivateChatRelay.accept(!sself.setPrivateChatRelay.value)
+            
+            let burnDuration = sself.setPrivateChatRelay.value == true ? 15 : 0
+            IMController.shared.setBurnDuration(conversationID: sself.conversation.conversationID, burnDuration: burnDuration) { [weak self] _ in
+                
+            }
+        }
     }
 }
 

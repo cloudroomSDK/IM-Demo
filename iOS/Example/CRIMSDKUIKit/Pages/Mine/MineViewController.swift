@@ -282,7 +282,7 @@ extension MineViewController {
         
         func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
             UIPasteboard.general.string = textField.text
-            ProgressHUD.show("复制成功".innerLocalized())
+            ProgressHUD.animate("复制成功".innerLocalized())
             DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: {
                 ProgressHUD.dismiss()
             })

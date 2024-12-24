@@ -27,5 +27,6 @@ Pod::Spec.new do |s|
   s.dependency 'ChatLayout'
   s.dependency 'InputBarAccessoryView'
   s.dependency 'FDFullscreenPopGesture'
+  s.dependency 'CRUICalling'
 
 end

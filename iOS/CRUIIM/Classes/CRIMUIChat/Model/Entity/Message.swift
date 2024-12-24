@@ -249,6 +249,8 @@ struct Message: Hashable {
     var isAnchor: Bool = false
     
     var sessionType: ConversationType = .c1v1
+    
+    var burnDuration: Int = 0
 }
 
 extension Message {

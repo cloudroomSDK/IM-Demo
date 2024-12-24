@@ -4,6 +4,7 @@ import Alamofire
 public typealias CompletionHandler<T: Any> = (T) -> Void
 public typealias QueryInfoHandler = ((_ keywords: [String], _ completion: @escaping (([UserInfo]) -> Void)) -> Void)
 public typealias QueryDataHandler<T: Any> = ((_ completion: @escaping CompletionHandler<T>) -> Void)
+public typealias QuerySererDiffTimeHandler = ((_ completion: @escaping (Int) -> Void) -> Void)
 
 public class CRIMApi {
     
@@ -104,6 +105,7 @@ public class CRIMApi {
     public static var queryFriendsWithCompletionHandler: QueryInfoHandler?
     public static var queryUsersInfoWithCompletionHandler: QueryInfoHandler?
     public static var queryConfigHandler: QueryDataHandler<[String: Any]>?
+    public static var querySvrDiffTimeHandler: QuerySererDiffTimeHandler?
 }
 
 extension CRIMApi {

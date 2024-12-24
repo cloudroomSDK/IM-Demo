@@ -17,19 +17,19 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
         v.setConfigToPickAvatar()
         v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
             guard var first = images.first else { return }
-            ProgressHUD.show()
+            ProgressHUD.animate()
             first = first.compress(to: 42)
             let result = FileHelper.shared.saveImage(image: first)
                         
             if result.isSuccess {
                 self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
                     guard progress > 0  else { return }
-                    ProgressHUD.showProgress(progress)
+                    ProgressHUD.progress(progress)
                 }, onComplete: {
-                    ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                    ProgressHUD.success("头像上传成功".innerLocalized())
                     self?.getUserOrMemberInfo()
                 }, onFailure: {
-                    ProgressHUD.showError("头像上传失败".innerLocalized())
+                    ProgressHUD.error("头像上传失败".innerLocalized())
                 })
             } else {
                 ProgressHUD.dismiss()
@@ -42,12 +42,12 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
                 let result = FileHelper.shared.saveImage(image: photo)
                 if result.isSuccess {
                     self?._viewModel.uploadFile(fullPath: result.fullPath, onProgress: { [weak self] progress in
-                        ProgressHUD.showProgress(progress)
+                        ProgressHUD.progress(progress)
                     }, onComplete: {
-                        ProgressHUD.showSuccess("头像上传成功".innerLocalized())
+                        ProgressHUD.success("头像上传成功".innerLocalized())
                         self?.getUserOrMemberInfo()
                     }, onFailure: {
-                        ProgressHUD.showError("头像上传失败".innerLocalized())
+                        ProgressHUD.error("头像上传失败".innerLocalized())
                     })
                 }
             }
@@ -152,7 +152,7 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
                 guard let text = vc?.nameTextField.text?.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines),
                       !text.isEmpty else { return }
                 UIPasteboard.general.string = text
-                ProgressHUD.showSuccess("ID复制成功")
+                ProgressHUD.success("ID复制成功")
             }).disposed(by: vc.disposeBag)
             navigationController?.pushViewController(vc, animated: true)
         }

@@ -328,7 +328,7 @@ class UserDetailTableViewController: UIViewController {
     }
     
     @objc func deleteFriend() {
-        ProgressHUD.show()
+        ProgressHUD.animate()
         _viewModel.deleteFriend {[weak self] r in
             ProgressHUD.dismiss()
             
@@ -407,7 +407,7 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
             cell.copyButtonTappedHandler = { [weak self, weak cell] in
                 guard let userID = cell?.subtitleLabel.text else { return }
                 UIPasteboard.general.string = userID
-                ProgressHUD.showSuccess("ID复制成功")
+                ProgressHUD.success("ID复制成功")
             }
             
             return cell

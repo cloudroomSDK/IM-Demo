@@ -90,7 +90,7 @@ open class AddTableViewController: UITableViewController {
                     self?.navigationController?.pushViewController(vc, animated: true)
                     self?.dismiss(animated: true)
                 } else {
-                    ProgressHUD.showError(result)
+                    ProgressHUD.error(result)
                 }
             }
             vc.modalPresentationStyle = .fullScreen

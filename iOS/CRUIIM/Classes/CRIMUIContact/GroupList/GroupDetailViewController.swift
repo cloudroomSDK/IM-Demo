@@ -129,6 +129,10 @@ class GroupDetailViewController: UIViewController {
         if _viewModel.groupInfoRelay.value?.needVerification == .directly {
             _viewModel.joinCurrentGroup { [weak self] r in
                 self?.enterChat()
+            } onFailure: { errCode, errMsg in
+                if errCode == 1204 {
+                    ProgressHUD.error("该群已解散".innerLocalized())
+                }
             }
         } else {
             let vc = ApplyViewController(groupID: _viewModel.groupInfoRelay.value!.groupID)
@@ -286,7 +290,7 @@ extension GroupDetailViewController: UITableViewDelegate, UITableViewDataSource 
             navigationController?.pushViewController(vc, animated: true)
         case .identifier:
             UIPasteboard.general.string = _viewModel.groupId
-            ProgressHUD.showSuccess("群聊ID已复制".innerLocalized())
+            ProgressHUD.success("群聊ID已复制".innerLocalized())
             
         default:
             break

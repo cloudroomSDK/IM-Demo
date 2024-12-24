@@ -2,6 +2,7 @@
 import Foundation
 
 public class EventLoginSucceed: Event {}
+public class EventLogoutSucceed: Event {}
 
 public class EventRecordClear: Event {
     public let conversationId: String

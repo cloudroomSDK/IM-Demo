@@ -101,6 +101,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
                                 attributedString: NSAttributedString? = nil,
                                 anchor: Bool = false,
                                 date: Date,
+                                burnDuration: Int = 0,
                                 alignment: ChatItemAlignment,
                                 user: User,
                                 bubbleType: Cell.BubbleType,
@@ -110,7 +111,7 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TextMessageCollectionCell.reuseIdentifier, for: indexPath) as! TextMessageCollectionCell
         
         setupMessageContainerView(cell.customView, messageId: messageId, isSelected: isSelected, alignment: alignment)
-        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isReplyMessage: isReplyMessage)
+        setupMainMessageView(cell.customView.customView, user: user, messageID: messageId, alignment: alignment, bubble: bubbleType, status: status, isPrivateChat: isPrivateChat, isReplyMessage: isReplyMessage, burnDuration: burnDuration)
         setupSwipeHandlingAccessory(cell.customView.customView, date: date, accessoryConnectingView: cell.customView)
         
         let bubbleView = cell.customView.customView.customView
@@ -786,7 +787,8 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
                                       isPrivateChat: Bool = false,
                                       isReplyMessage: Bool = false,
                                       isQuoted: Bool = false,
-                                      isAudioMsg: Bool = false) {
+                                      isAudioMsg: Bool = false,
+                                      burnDuration: Int = 0) {
         cellView.containerView.alignment = .top
         cellView.containerView.leadingView?.isHiddenSafe = !alignment.isIncoming
         cellView.containerView.leadingView?.alpha = alignment.isIncoming ? 1 : 0
@@ -794,13 +796,23 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
         cellView.containerView.trailingView?.alpha = 0
         cellView.leadingCountdownLabel.isHiddenSafe = alignment.isIncoming
         cellView.trailingCountdownLabel.isHiddenSafe = !alignment.isIncoming
-        cellView.trailingAudioRedLabel.isHiddenSafe = true// !alignment.isIncoming || (!isAudioMsg || status == .read)
+        cellView.trailingAudioRedLabel.isHiddenSafe = !alignment.isIncoming || (!isAudioMsg || status == .read)
+        cellView.sendFailureImgView.isHiddenSafe = alignment.isIncoming || (!alignment.isIncoming && status != .sendFailure)
         cellView.containerView.customView.statusLabel.isHiddenSafe = alignment.isIncoming || isReplyMessage || status == .sending || status == .sendFailure || !isPrivateChat
         cellView.containerView.customView.statusLabel.alpha = (alignment.isIncoming || !isPrivateChat || (isQuoted && alignment.isIncoming)) ? 0 : 1
         cellView.containerView.customView.setup(with: status)
         let nicknameLabel = cellView.containerView.customView.nicknameLabel
         nicknameLabel.isHiddenSafe = !alignment.isIncoming || isQuoted || isPrivateChat
         nicknameLabel.text = nicknameLabel.isHiddenSafe ? nil : user.name
+        if status == .read {
+            cellView.didFinishedCountdown = { [weak self] in
+                guard let `self` else { return }
+                print("阅后即焚结束")
+                self.reloadDelegate.removeMessage(messageID: messageID)
+            }
+            
+            cellView.burnDuration = burnDuration
+        }
         
         if let avatarView = cellView.containerView.leadingView {
             avatarView.customView.isHiddenSafe = isQuoted
@@ -822,6 +834,15 @@ final class DefaultChatCollectionDataSource: NSObject, ChatCollectionDataSource 
                 avatarViewController.view = avatarView
             }
         }
+        
+        if alignment.isIncoming == false && status == .sendFailure {
+            cellView.didTapSendFailure = { [weak self] in
+                guard let `self` else { return }
+                
+                self.reloadDelegate.resendMessage(with: messageID)
+            }
+        }
+        
     }
     /*
      private func setupSwipeHandlingAccessory(_ cellView: MainContainerView<ChatAvatarView, some Any, StatusView>,
@@ -902,7 +923,7 @@ extension DefaultChatCollectionDataSource: UICollectionViewDataSource {
             
             switch message.data {
             case let .text(source):
-                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
+                let cell = createTextCell(collectionView: collectionView, messageId: message.id, isSelected: message.isSelected, isPrivateChat: privateChat, indexPath: indexPath, text: source.text, anchor: message.isAnchor, date: message.date, burnDuration: message.burnDuration, alignment: cell.alignment, user: message.owner, bubbleType: bubbleType, status: message.status, messageType: message.type)
                 
                 return cell
                 

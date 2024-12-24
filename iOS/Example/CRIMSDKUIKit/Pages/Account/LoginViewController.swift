@@ -168,15 +168,19 @@ class LoginViewController: UIViewController {
                   let phone = sself.phoneTextField.text?.trimmingCharacters(in: .whitespacesAndNewlines) else { return }
             
             guard sself.validatePhoneNumber(phone) else {
-                ProgressHUD.showError("填写正确的手机号码".localized())
+                ProgressHUD.error("填写正确的手机号码".localized())
+                return
+            }
+            
+            guard sself.checkSDKAppIDAndToken() else {
                 return
             }
             
             AccountViewModel.requestCode(phone: phone, areaCode: sself.areaCode, useFor: .login) { (errCode, errMsg) in
                 if errMsg != nil {
-                    ProgressHUD.showError(errMsg)
+                    ProgressHUD.error(errMsg)
                 } else {
-                    ProgressHUD.showSuccess("验证码发送成功".localized())
+                    ProgressHUD.success("验证码发送成功".localized())
                 }
             }
         }
@@ -309,8 +313,8 @@ class LoginViewController: UIViewController {
             return
         }
         
-        let sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
-        if sdkAPIAddr.isEmpty == false, sdkAPIAddr != "sdk.cloudroom.com" {
+        let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
+        if severAddress.isEmpty == false, severAddress != defaultHost {
             captchaPromptLabel.isHidden = false
         } else {
             captchaPromptLabel.isHidden = true
@@ -331,6 +335,11 @@ class LoginViewController: UIViewController {
         let phoneRegex = #"^1[3456789]\d{9}$"#
         let phonePredicate = NSPredicate(format: "SELF MATCHES %@", phoneRegex)
         return phonePredicate.evaluate(with: phoneNumber)
+    }
+    
+    func checkSDKAppIDAndToken() -> Bool {
+        
+        return true
     }
 }
 

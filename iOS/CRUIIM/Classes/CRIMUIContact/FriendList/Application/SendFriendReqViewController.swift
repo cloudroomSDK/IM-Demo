@@ -123,21 +123,21 @@ class SendFriendReqViewController: UIViewController {
     }
     
     func sendFriendReq() {
-        ProgressHUD.show()
+        ProgressHUD.animate()
         
         let reqMsg = descTextView.text ?? ""
         _viewModel.addFriend(reqMsg:reqMsg, onSuccess: { [weak self] res in
-            ProgressHUD.showSuccess("添加好友请求已发送".innerLocalized())
+            ProgressHUD.success("添加好友请求已发送".innerLocalized())
             self?.navigationController?.popViewController(animated: true)
         }, onFailure: { (errCode, errMsg) in
             if errCode == SDKError.refuseToAddFriends.rawValue {
-                ProgressHUD.showError("该用户已设置不可添加！".innerLocalized())
+                ProgressHUD.error("该用户已设置不可添加！".innerLocalized())
             } else if errCode == SDKError.differentAppID.rawValue {
-                ProgressHUD.showError("不同项目下不可添加！".innerLocalized())
+                ProgressHUD.error("不同项目下不可添加！".innerLocalized())
             } else if errCode == SDKError.relationshipAlready.rawValue {
-                ProgressHUD.showError("已经是好友关系或拉黑中！".innerLocalized())
+                ProgressHUD.error("已经是好友关系或拉黑中！".innerLocalized())
             } else {
-                ProgressHUD.showError(errMsg)
+                ProgressHUD.error(errMsg)
             }
         })
     }

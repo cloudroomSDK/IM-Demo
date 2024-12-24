@@ -38,7 +38,7 @@ class GroupDetailViewModel {
         }
     }
 
-    func joinCurrentGroup(onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
-        IMController.shared.joinGrp(id: groupId, reqMsg: nil, joinSource: joinSource, onSuccess: onSuccess)
+    func joinCurrentGroup(onSuccess: @escaping CallBack.StringOptionalReturnVoid, onFailure: @escaping CallBack.ErrorOptionalReturnVoid) {
+        IMController.shared.joinGrp(id: groupId, reqMsg: nil, joinSource: joinSource, onSuccess: onSuccess, onFailure: onFailure)
     }
 }

@@ -2,6 +2,7 @@
 import CRUICore
 import RxRelay
 import RxSwift
+import CRUICalling
 
 class ChatListViewModel {
     var conversationsRelay: BehaviorRelay<[ConversationInfo]> = .init(value: [])
@@ -36,7 +37,7 @@ class ChatListViewModel {
     }
     
     func markReaded(id: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
-        IMController.shared.markConversationMsg(byConID: id, msgIDList: []) { [weak self] msg in
+        IMController.shared.markConversationMsgAsRead(byConID: id) { [weak self] msg in
             self?.getAllConversations()
             onSuccess(msg)
         }
@@ -88,7 +89,14 @@ class ChatListViewModel {
             self?.getAllConversations()
             self?.getSelfInfo(onSuccess: { (userInfo: UserInfo?) in
                 self?.loginUserPublish.onNext(userInfo)
+                if let nickname = userInfo?.nickname {
+                    CRUICalling.CallingManager.manager.start(nickname: nickname)
+                }
             })
+        }.disposed(by: _disposeBag)
+        
+        JNNotificationCenter.shared.observeEvent { (_: EventLoginSucceed) in
+            CRUICalling.CallingManager.manager.end()
         }.disposed(by: _disposeBag)
 
         JNNotificationCenter.shared.observeEvent { [weak self] (_: EventRecordClear) in

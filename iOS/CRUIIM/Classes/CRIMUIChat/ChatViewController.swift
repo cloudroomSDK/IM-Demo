@@ -10,6 +10,7 @@ import ProgressHUD
 import FDFullscreenPopGesture
 import Photos
 import RxSwift
+import CRUICalling
 
 final class ChatViewController: UIViewController {
     
@@ -94,7 +95,8 @@ final class ChatViewController: UIViewController {
     
     @objc
     private func callButtonAction() {
-        chatController.call()
+//        chatController.call()
+        showMediaLinkSheet()
     }
     
     @objc
@@ -303,11 +305,11 @@ final class ChatViewController: UIViewController {
     
     private func setRightButtons(show: Bool) {
         if show {
-#if DEBUG
-            navigationItem.rightBarButtonItems = [settingButton, callButton]
-#else
-            navigationItem.rightBarButtonItems = [settingButton]
-#endif
+            var items = [settingButton]
+            if chatController.getConversation().conversationType == .c1v1 {
+                items.append(callButton)
+            }
+            navigationItem.rightBarButtonItems = items
         } else {
             navigationItem.rightBarButtonItems = nil
         }
@@ -361,6 +363,43 @@ final class ChatViewController: UIViewController {
                 self?.reloadInputViews()
             }
         }
+    }
+    
+    private func showMediaLinkSheet() {
+        guard callButton.isEnabled, chatController.getConversation().conversationType == .c1v1 else { return }
+
+        inputBarView.inputTextView.resignFirstResponder()
+
+        let alertController = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        let action1 = UIAlertAction(title: "callVoice".innerLocalized(), style: .default) { [self] _ in
+            self.startMedia(isVideo: false)
+        }
+        
+        alertController.addAction(action1)
+        
+        let action2 = UIAlertAction(title: "callVideo".innerLocalized(), style: .default) { [self] _ in
+            self.startMedia(isVideo: true)
+        }
+        
+        alertController.addAction(action2)
+        
+        let cancelAction = UIAlertAction(title: "cancel".innerLocalized(), style: .cancel)
+        
+        alertController.addAction(cancelAction)
+        
+        present(alertController, animated: true)
+    }
+    
+    private func startMedia(isVideo: Bool) {
+        let conversation = chatController.getConversation()
+
+        let user = CallingUserInfo(userID: conversation.userID!, nickname: conversation.showName, faceURL: conversation.faceURL)
+        let me = chatController.getSelfInfo()
+        let inviter = CallingUserInfo(userID: me?.userID, nickname: me?.nickname, faceURL: me?.faceURL)
+        
+        CallingManager.manager.startLiveChat(inviter: inviter,
+                                                 others: [user],
+                                                 isVideo: isVideo)
     }
 }
 
@@ -613,11 +652,11 @@ extension ChatViewController: ChatControllerDelegate {
             case .call:
                 break
             case .deletedByFriend:
-                ProgressHUD.show()
+                ProgressHUD.animate()
                 chatController.addFriend { r in
-                    ProgressHUD.showSucceed("添加好友请求已发送".innerLocalized())
+                    ProgressHUD.succeed("添加好友请求已发送".innerLocalized())
                 } onFailure: { errCode, errMsg in
-                    ProgressHUD.showError("该用户已设置不可添加！".innerLocalized())
+                    ProgressHUD.error("该用户已设置不可添加！".innerLocalized())
                 }
             default:
                 break
@@ -746,13 +785,17 @@ extension ChatViewController: ChatControllerDelegate {
                 vc.selectedContact() { [weak self] r in
                     guard let self else { return }
                     
-                    self.presentForwardConfirmAlert(contacts: r, abstruct: messageInfo?.getAbstruct() ?? "") { [weak self] in
+                    self.presentForwardConfirmAlert(contacts: r, abstruct: messageInfo?.getAbstruct() ?? "") { [weak self] leaveMsg in
                         guard let self else { return }
                         self.navigationController?.popViewController(animated: true)
                         self.cancelEdit()
                         self.chatController.defaultSelecteMessage(with: id)
                         self.scrollToBottom(completion: {
                             self.chatController.sendForwardMsg(r, completion: completion)
+                            if let leaveMsg, leaveMsg.isEmpty == false {
+                                self.chatController.sendLeaveMessage(text: leaveMsg.trimmingCharacters(in: .whitespacesAndNewlines), r, completion: completion)
+
+                            }
                         })
                     }
                 }
@@ -771,7 +814,7 @@ extension ChatViewController: ChatControllerDelegate {
                     content = nil
                 }
                 UIPasteboard.general.string = content
-                ProgressHUD.showSuccess("复制成功".innerLocalized())
+                ProgressHUD.success("复制成功".innerLocalized())
             case .muiltSelection:
                 self.inputBarView.hideBottomButtons()
                 self.setEditNotEdit(forceEnd: false)
@@ -794,6 +837,10 @@ extension ChatViewController: ChatControllerDelegate {
     
     func update(with sections: [Section], requiresIsolatedProcess: Bool) {
         processUpdates(with: sections, animated: true, requiresIsolatedProcess: requiresIsolatedProcess)
+    }
+    
+    func updateGroupInfo() {
+        setupTitle()
     }
     
     private func processUpdates(with sections: [Section], animated: Bool = true, requiresIsolatedProcess: Bool, completion: (() -> Void)? = nil) {
@@ -1064,18 +1111,25 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                 if chatController.getConversation().conversationType == .group {
                     guard let groupInfo = chatController.getGroupInfo() else { return }
                     let contact = ContactInfo(ID: groupInfo.groupID, name: groupInfo.groupName, faceURL: groupInfo.faceURL)
-                    presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] in
+                    presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] leaveMsg in
                         guard let `self` = self else { return }
                         
                         sendCardMsg(contacts: r)
+                        if let leaveMsg, leaveMsg.isEmpty == false {
+                            self.chatController.sendLeaveMessage(text: leaveMsg.trimmingCharacters(in: .whitespacesAndNewlines), [contact], completion: completion)
+                        }
                     }
                 } else {
                     chatController.getOtherInfo { [weak self] otherUserInfo in
                         let contact = ContactInfo(ID: otherUserInfo.userID, name: otherUserInfo.friendInfo?.nickname, faceURL: otherUserInfo.faceURL)
-                        self?.presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] in
+                        self?.presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] leaveMsg in
                             guard let `self` = self else { return }
                             
                             sendCardMsg(contacts: r)
+                            if let leaveMsg, leaveMsg.isEmpty == false {
+                                self.chatController.sendLeaveMessage(text: leaveMsg.trimmingCharacters(in: .whitespacesAndNewlines), [contact], completion: completion)
+
+                            }
                         }
                     }
                 }
@@ -1099,7 +1153,7 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                     
                     self.scrollToBottom(completion: {
                         inputBar.sendButton.startAnimating()
-                        self.chatController.sendLocationMsg(latitude, longitude, desc, completion: completion)
+                        self.chatController.sendLocationMsg(longitude, latitude, desc, completion: completion)
                     })
                 }
             }
@@ -1139,7 +1193,7 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                 vc.selectedContact() { [weak self] r in
                     guard let self else { return }
                     
-                    self.presentForwardConfirmAlert(contacts: r, abstruct: "[聊天记录]".innerLocalized()) { [weak self] in
+                    self.presentForwardConfirmAlert(contacts: r, abstruct: "[聊天记录]".innerLocalized()) { [weak self] leaveMsg in
                         guard let self else { return }
                         self.navigationController?.popViewController(animated: true)
                         if merger {
@@ -1150,6 +1204,10 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                             self.scrollToBottom {
                                 self.chatController.sendForwardMsg(r, completion: completion)
                             }
+                        }
+                        if let leaveMsg, leaveMsg.isEmpty == false {
+                            self.chatController.sendLeaveMessage(text: leaveMsg.trimmingCharacters(in: .whitespacesAndNewlines), r, completion: completion)
+
                         }
                         self.cancelEdit()
                     }
@@ -1181,11 +1239,12 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
             guard let groupID = chatController.getGroupInfo()?.groupID else { return }
             
             let vc = SelectContactsViewController(types: [.members], multiple: false, sourceID: groupID)
-            vc.selectedContact() { [weak self] r in
-                guard let self, r.count > 0 else { return }
+            vc.selectedContact(blocked: [IMController.shared.userID]) { [weak self] r in
+                guard let self, r.count > 0, let member = r.first else { return }
                 
+                self.chatController.defaultSelecteUsers(with: [member.ID!])
                 self.navigationController?.popViewController(animated: true)
-
+                self.inputBarView.appendAtMember(member)
             }
             vc.hidesBottomBarWhenPushed = true
             navigationController?.pushViewController(vc, animated: true)

@@ -4,6 +4,7 @@ import RxRelay
 import RxSwift
 import CRUICore
 import GTSDK
+import CRUICalling
 
 class MineViewModel {
     var currentUserRelay: BehaviorRelay<QueryUserInfo?> = .init(value: nil)
@@ -54,23 +55,7 @@ class MineViewModel {
             
             // 反初始化SDK
             IMController.shared.unInitSDK()
-            // 设置sdk接口地址
-            let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
-            let httpScheme = protocolType == 0 ? "http://" : "https://"
-            var sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
-            sdkAPIAddr = httpScheme + sdkAPIAddr
-            // 设置对象存储
-            let sdkObjectStorage = UserDefaults.standard.string(forKey: sdkObjectStorageKey) ?? "minio"
-            
-            
-            // 初始化SDK
-            IMController.shared.setup(sdkAPIAdrr: sdkAPIAddr,
-                                      skipVerifyCert: protocolType == 3,
-                                      sdkOS: sdkObjectStorage) {
-                IMController.shared.currentUserRelay.accept(nil)
-                AccountViewModel.saveUser(uid: nil, imToken: nil, chatToken: nil)
-                NotificationCenter.default.post(name: .init("logout"), object: nil)
-            }
+            CRUICalling.CallingManager.manager.unInitVideoSDK()
         })
     }
 

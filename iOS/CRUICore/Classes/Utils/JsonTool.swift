@@ -10,10 +10,10 @@ public struct JsonTool {
        } catch DecodingError.dataCorrupted(_) {
            print("dataCorrupted")
          return nil
-       } catch DecodingError.keyNotFound(_, _) {
+       } catch let DecodingError.keyNotFound(key, context) {
            print("keyNotFound")
          return nil
-       } catch DecodingError.typeMismatch(_, _) {
+       } catch let DecodingError.typeMismatch(type, context) {
            print("typeMismatch")
          return nil
        } catch DecodingError.valueNotFound(_, _) {

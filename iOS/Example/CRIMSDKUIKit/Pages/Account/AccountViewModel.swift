@@ -12,6 +12,11 @@ public enum UsedFor: Int {
     case login = 3
 }
 
+public enum SDKAuthType: String {
+    case secret = "0"
+    case token = "1"
+}
+
 typealias CompletionHandler = (_ errCode: Int, _ errMsg: String?) -> Void
 
 class CustomSessionManagerWrapper {
@@ -47,6 +52,7 @@ open class AccountViewModel {
     static let bussinessTokenKey = "bussinessTokenKey"
     
     private static let LoginAPI = "/account/login"
+    private static let LoginNextAPI = "/account/login2"
     private static let RegisterAPI = "/account/register"
     private static let CodeAPI = "/account/code/send"
     private static let VerifyCodeAPI = "/account/code/verify"
@@ -56,6 +62,7 @@ open class AccountViewModel {
     private static let QueryUserInfoAPI = "/user/find/full"
     private static let SearchUserFullInfoAPI = "/user/search/full"
     private static let GetClientConfigAPI = "/client_config/get"
+    private static let GetSvrTimeAPI = "/sys/time"
     private static let BlockAddAPI = "/block/add"
     
     private static let sessionManagerWrapper = CustomSessionManagerWrapper()
@@ -109,6 +116,12 @@ open class AccountViewModel {
         }
     }
     
+    static func ifQuerySvrtime() {
+        CRIMApi.querySvrDiffTimeHandler = { (completion: @escaping (Int) -> Void) in
+            completion(AccountViewModel.svrDiffTime)
+        }
+    }
+    
     static func loginDemo(phone: String? = nil, account: String? = nil, psw: String? = nil, verificationCode: String? = nil, areaCode: String, completionHandler: @escaping CompletionHandler) {
         let body = JsonTool.toJson(fromObject: Request(phoneNumber: phone,
                                                        account: account,
@@ -129,7 +142,45 @@ open class AccountViewModel {
                     if res.errCode == 0 {
                         // 登录IM
                         savePreLoginAccount(phone)
-                        loginIM(uid: res.data!.userID, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
+                        loginIM(uid: res.data!.userID, sdkServer: res.data!.sdkSvr, sdkAuthType:res.data!.sdkAuthType, sdkToken: res.data!.sdkToken, sdkAppId: res.data!.sdkAppId, sdkSecret: res.data!.sdkSecret, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
+                    } else {
+                        IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
+                        completionHandler(res.errCode, res.errMsg)
+                    }
+                } else {
+                    let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
+                    completionHandler(err?.errCode ?? -1, err?.errMsg)
+                }
+            case .failure(let err):
+                IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
+                completionHandler(-1, err.localizedDescription)
+            }
+        }
+    }
+    
+    static func loginDemoNext(phone: String? = nil, account: String? = nil, psw: String? = nil, verificationCode: String? = nil, areaCode: String, completionHandler: @escaping CompletionHandler) {
+        let body = JsonTool.toJson(fromObject: Request(phoneNumber: phone,
+                                                       account: account,
+                                                       psw: psw,
+                                                       verificationCode: verificationCode,
+                                                       areaCode: areaCode)).data(using: .utf8)
+        
+        var req = try! URLRequest(url: API_BASE_URL + LoginNextAPI, method: .post)
+        req.httpBody = body
+        req.addValue(UserDefaults.standard.string(forKey: bussinessTokenKey)!, forHTTPHeaderField: "token")
+        req.addValue(UUID().uuidString, forHTTPHeaderField: "operationID")
+
+        print("输入地址：\(req)")
+        IMController.writeLog(content: "输入地址：\(req)")
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+            switch response.result {
+            case .success(let result):
+                if let res = JsonTool.fromJson(result, toClass: Response<UserEntity>.self) {
+                    if res.errCode == 0 {
+                        // 登录IM
+                        savePreLoginAccount(phone)
+                        loginIM(uid: res.data!.userID, sdkServer: res.data!.sdkSvr, sdkAuthType: res.data!.sdkAuthType, sdkToken: res.data!.sdkToken, sdkAppId: res.data!.sdkAppId, sdkSecret: res.data!.sdkSecret, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
                     } else {
                         IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
                         completionHandler(res.errCode, res.errMsg)
@@ -512,37 +563,53 @@ open class AccountViewModel {
         }
     }
     
-    static func loginIM(uid: String, imToken: String, chatToken: String, completionHandler: @escaping CompletionHandler) {
+    static func loginIM(uid: String, sdkServer: String, sdkAuthType: String, sdkToken: String?, sdkAppId: String?, sdkSecret: String?, imToken: String, chatToken: String, completionHandler: @escaping CompletionHandler) {
+        AppDelegate.setupIMSDK(sdkSvr: sdkServer)
         
-        let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil
-        ? false : UserDefaults.standard.bool(forKey: useTokenKey)
-        
-        var appID = ""
-        var appSecret = ""
-        var token = ""
-        
-        if enableToken {
-            token = UserDefaults.standard.string(forKey: sdkTokenKey) ?? defaultToken
-        } else {
-            appID = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? defaultAppID
-            appSecret = UserDefaults.standard.string(forKey: sdkAPPSecretKey) ?? defaultAppSecret
-            appSecret = appSecret.md5()
+        if sdkAuthType == SDKAuthType.token.rawValue, let sdkToken {
+            AppDelegate.setupVideoSDK(sdkSvr: sdkServer, sdkToken: sdkToken)
+
+            IMController.shared.login(uid: uid, token: sdkToken) { resp in
+                print("login onSuccess \(String(describing: resp))")
+                getSvrTime()
+                ifQueryFriends()
+                ifQueryUserInfo()
+                ifQeuryConfig()
+                ifQuerySvrtime()
+                saveUser(uid: uid, imToken: imToken, chatToken: chatToken)
+                GeTuiSdk.bindAlias(uid, andSequenceNum: "crim") // 绑定别名
+                completionHandler(0, nil)
+            } onFail: { (code: Int, msg: String?) in
+                let reason = "IMSDK login onFail: code \(code), reason \(String(describing: msg))"
+                print(reason)
+                completionHandler(code, reason)
+                saveUser(uid: nil, imToken: nil, chatToken: nil)
+            }
+            return
         }
         
-        IMController.shared.login(uid: uid, token: token, appId: appID, appSecret: appSecret) { resp in
-            print("login onSuccess \(String(describing: resp))")
-            ifQueryFriends()
-            ifQueryUserInfo()
-            ifQeuryConfig()
-            saveUser(uid: uid, imToken: imToken, chatToken: chatToken)
-            GeTuiSdk.bindAlias(uid, andSequenceNum: "crim") // 绑定别名
-            completionHandler(0, nil)
-        } onFail: { (code: Int, msg: String?) in
-            let reason = "login onFail: code \(code), reason \(String(describing: msg))"
-            print(reason)
-            completionHandler(code, reason)
-            saveUser(uid: nil, imToken: nil, chatToken: nil)
+        let secret = sdkSecret?.decodeBase64().md5()
+        if sdkAuthType == SDKAuthType.secret.rawValue, let sdkAppId, let secret {
+            AppDelegate.setupVideoSDK(sdkSvr: sdkServer, sdkAppId: sdkAppId, sdkSecret: secret)
+            
+            IMController.shared.login(uid: uid, appId: sdkAppId, appSecret: secret) { resp in
+                print("login onSuccess \(String(describing: resp))")
+                getSvrTime()
+                ifQueryFriends()
+                ifQueryUserInfo()
+                ifQeuryConfig()
+                ifQuerySvrtime()
+                saveUser(uid: uid, imToken: imToken, chatToken: chatToken)
+                GeTuiSdk.bindAlias(uid, andSequenceNum: "crim") // 绑定别名
+                completionHandler(0, nil)
+            } onFail: { (code: Int, msg: String?) in
+                let reason = "IMSDK login onFail: code \(code), reason \(String(describing: msg))"
+                print(reason)
+                completionHandler(code, reason)
+                saveUser(uid: nil, imToken: nil, chatToken: nil)
+            }
         }
+        
     }
     
     static func saveUser(uid: String?, imToken: String?, chatToken: String?) {
@@ -573,7 +640,35 @@ open class AccountViewModel {
         return UserEntity(userID: UserDefaults.standard.string(forKey: IMUidKey) ?? "",
                           imToken: UserDefaults.standard.string(forKey: IMTokenKey) ?? "",
                           chatToken: UserDefaults.standard.string(forKey: bussinessTokenKey) ?? "",
-                          expiredTime: nil)
+                          sdkToken: "",
+                          sdkSvr: "",
+                          expiredTime: nil,
+                          sdkAuthType: "0",
+                          sdkAppId: "",
+                          sdkSecret: "")
+    }
+    
+    static func getSvrTime() {
+        let req = try! URLRequest(url: API_BASE_URL + GetSvrTimeAPI, method: .get)
+        
+        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
+            switch response.result {
+            case .success(let result):
+                if let res = JsonTool.fromJson(result, toClass: Response<SvrTimeData>.self) {
+                    if res.errCode == 0 {
+                        let svrTimeData = res.data
+                        let current = Int(Date().timeIntervalSince1970)
+                        let svrTime = svrTimeData?.svrTime ?? current*1000
+                        svrDiffTime = svrTime/1000 - current
+                        print("svrDiffTime:\(svrDiffTime)")
+                        
+                    } else {
+                    }
+                } else {}
+            case .failure(_):
+                break
+            }
+        }
     }
     
     // 获取配置
@@ -600,12 +695,12 @@ open class AccountViewModel {
     }
     // 配置
     static var clientConfig: ClientConfigData?
+    static var svrDiffTime: Int = 0
 }
 
 
 class Request: Encodable {
     private let areaCode: String?
-    private let appID: String?
     private let phoneNumber: String?
     private let password: String
     private let verifyCode: String?
@@ -617,44 +712,6 @@ class Request: Encodable {
         self.password = psw?.md5() ?? ""
         self.areaCode = areaCode
         self.verifyCode = verificationCode
-        
-        // 解析appID
-        let enableToken = UserDefaults.standard.object(forKey: useTokenKey) == nil
-        ? false : UserDefaults.standard.bool(forKey: useTokenKey)
-        var appID = ""
-        if enableToken {
-            var token = UserDefaults.standard.string(forKey: sdkTokenKey) ?? defaultToken
-            let tokenArr = token.components(separatedBy: ".")
-            if tokenArr.count > 2 {
-                var base64String = tokenArr[1]
-                let padding = base64String.count % 4
-                if padding > 0 {
-                    base64String = base64String.padding(toLength: base64String.count + 4 - padding, withPad: "=", startingAt: 0)
-                }
-                if let data = Data(base64Encoded: base64String),
-                   let decodedString = String(data: data, encoding: .utf8) {
-                    
-                    if let jsonData = decodedString.data(using: .utf8) {
-                        do {
-                            if let json = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
-                                if let appId = json["appID"] as? String {
-                                    appID = appId
-                                    print("appId: \(appId)")
-                                }
-                            }
-                        } catch {
-                            print("JSON解析错误: \(error)")
-                        }
-                    }
-                }
-                
-            }
-            
-        } else {
-            appID = UserDefaults.standard.string(forKey: sdkAPPIDKey) ?? defaultAppID
-        }
-        appID = appID.trimmingCharacters(in: .whitespaces)
-        self.appID = appID
     }
 }
 
@@ -679,7 +736,12 @@ struct UserEntity: Decodable {
     let userID: String
     let imToken: String
     let chatToken: String
+    let sdkToken: String?
+    let sdkSvr: String
     let expiredTime: Int?
+    let sdkAuthType: String
+    let sdkAppId: String?
+    let sdkSecret: String?
 }
 
 struct AdminEntity: Decodable {
@@ -830,6 +892,10 @@ class ClientConfigData: Codable {
     func toMap() -> [String: Any] {
         return JsonTool.toMap(fromObject: self)
     }
+}
+
+class SvrTimeData: Codable {
+    var svrTime: Int?
 }
 
 struct DemoError: Error, Decodable {

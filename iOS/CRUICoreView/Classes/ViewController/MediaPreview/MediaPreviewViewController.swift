@@ -124,7 +124,7 @@ public class MediaPreviewViewController: UIViewController {
             ZLPhotoManager.saveImageToAlbum(image: image) { [weak self] (suc, _) in
                 hud.hide()
                 if !suc {
-                    ProgressHUD.showSucceed("保存图片成功".innerLocalized(), delay: 1)
+                    ProgressHUD.succeed("保存图片成功".innerLocalized(), delay: 1)
                 }
             }
         }

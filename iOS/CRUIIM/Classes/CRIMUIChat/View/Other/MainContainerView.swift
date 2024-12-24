@@ -7,9 +7,12 @@ import CRUICore
 final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: UIView, TrailingAccessory: StaticViewFactory>: UIView, SwipeNotifierDelegate {
 
     private var timer: DispatchSourceTimer?
+    private let queue = DispatchQueue(label: "com.crim.countdownQueue")
     private var countdownTime: Int = 0
     
     private var didTapRead: (() -> Void)?
+    var didTapSendFailure: (() -> Void)?
+    var didFinishedCountdown: (() -> Void)?
     
     var swipeCompletionRate: CGFloat = 0 {
         didSet {
@@ -24,6 +27,13 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
     var customView: BezierMaskedView<CustomView> {
         containerView.customView.customView
     }
+    
+    lazy var sendFailureImgView: UIImageView = {
+        let v = UIImageView()
+        v.image = UIImage(nameInBundle: "msg_send_fail_icon")
+        
+        return v
+    }()
     
     lazy var trailingAudioRedLabel: UIView = {
         let v = UIView()
@@ -62,6 +72,12 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
     private func tapAction() {
         didTapRead?()
     }
+    
+    @objc
+    private func tapSendFailureAction() {
+        didTapSendFailure?()
+    }
+    
     // 这里调整下右侧头像
 //    var statusView: TrailingAccessory.View? {
 //        containerView.trailingView
@@ -92,6 +108,70 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
             updateOffsets()
         }
     }
+    
+    var burnDuration: Int = 30 {
+        didSet {
+            leadingCountdownLabel.text = nil
+            trailingCountdownLabel.text = nil
+            
+            // 立即焚毁
+            if burnDuration < 0 {
+                didFinishedCountdown?()
+            }
+            
+            guard burnDuration > 0 else {
+                return
+            }
+            
+            countdownTime = burnDuration
+            timer?.cancel()
+            setupTimer()
+            resumeTimer()
+        }
+    }
+    
+    // 设置定时器
+    private func setupTimer() {
+        timer = DispatchSource.makeTimerSource(queue: queue)
+        timer?.schedule(deadline: .now() + 1.0, repeating: 1.0)
+        timer?.setEventHandler { [weak self] in
+            self?.updateTime()
+        }
+    }
+    
+    // 更新倒计时时间
+    private func updateTime() {
+        countdownTime -= 1
+        if countdownTime <= 0 {
+            self.pauseTimer()
+            print("倒计时结束")
+            // 在这里处理倒计时结束后的逻辑
+            DispatchQueue.main.async { [weak self] in
+                guard let `self` else { return }
+                leadingCountdownLabel.text = nil
+                trailingCountdownLabel.text = nil
+                didFinishedCountdown?()
+            }
+        } else {
+            print("剩余时间: \(countdownTime) 秒")
+            DispatchQueue.main.async { [weak self] in
+                guard let `self` else { return }
+                leadingCountdownLabel.text = "\(countdownTime)s"
+                trailingCountdownLabel.text = "\(countdownTime)s"
+            }
+        }
+    }
+    
+    // 启动定时器
+    func resumeTimer() {
+        timer?.resume()
+    }
+    
+    // 暂停定时器
+    func pauseTimer() {
+        timer?.cancel()
+        timer = nil
+    }
 
     private(set) lazy var containerView = CellLayoutContainerView<LeadingAccessory, VerticalContentContainerView<CustomView>, TrailingAccessory>()
 
@@ -108,7 +188,7 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
     }
     
     deinit {
-        timer = nil
+        timer?.cancel()
     }
 
     private func setupSubviews() {
@@ -119,7 +199,7 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
         containerView.translatesAutoresizingMaskIntoConstraints = false
         trailingAudioRedLabel.translatesAutoresizingMaskIntoConstraints = false
         
-        let statusContainerStack = UIStackView(arrangedSubviews: [containerView, trailingAudioRedLabel])
+        let statusContainerStack = UIStackView(arrangedSubviews: [sendFailureImgView, containerView, trailingAudioRedLabel])
         statusContainerStack.spacing = 5
         statusContainerStack.alignment = .center
         statusContainerStack.translatesAutoresizingMaskIntoConstraints = false
@@ -153,6 +233,11 @@ final class MainContainerView<LeadingAccessory: StaticViewFactory, CustomView: U
         accessoryView.translatesAutoresizingMaskIntoConstraints = false
 
         updateOffsets()
+        
+        let tap = UITapGestureRecognizer()
+        tap.addTarget(self, action: #selector(tapSendFailureAction))
+        sendFailureImgView.isUserInteractionEnabled = true
+        sendFailureImgView.addGestureRecognizer(tap)
     }
 
     private func updateAccessoryView() {

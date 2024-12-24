@@ -31,7 +31,7 @@ Pod::Spec.new do |s|
   s.dependency 'Kingfisher', '7.7.0'
   s.dependency 'lottie-ios', '~> 3.0'
   s.dependency 'ZLPhotoBrowser', '4.3.0'
-  s.dependency 'ProgressHUD'
+  s.dependency 'ProgressHUD', '14.1.0'
   s.dependency 'IQKeyboardManagerSwift'
   s.dependency 'Localize-Swift', '~> 3.2'
   s.dependency 'Alamofire', '4.9.1'

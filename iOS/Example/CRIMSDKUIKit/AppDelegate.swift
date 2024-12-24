@@ -4,16 +4,12 @@ import Localize_Swift
 import RxSwift
 import GTSDK
 import Bugly
+import CRUICalling
+import IQKeyboardManagerSwift
 
 let kGtAppId = "AKO73DOTtmAIsCcEnTWS58"
 let kGtAppKey = "f4bEG4a8dE9fdCdoZHfw88"
 let kGtAppSecret = "VaQHJiYBuDATVC2zn9kRr1"
-
-// 默认鉴权配置
-let defaultSDKApi = "sdk.cloudroom.com"
-let defaultAppID = KDefaultAppID
-let defaultAppSecret = KDefaultAppSecret
-let defaultToken = ""
 
 // 默认使用的IP或者域名
 let defaultHost = "demo.cloudroom.com" // 填入host
@@ -36,30 +32,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     private let _disposeBag = DisposeBag();
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
+        IQKeyboardManager.shared.shouldResignOnTouchOutside = true
+        
         UINavigationBar.appearance().tintColor = .c0C1C33
         
         let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
         let httpScheme = protocolType == 0 ? "http://" : "https://"
         
         let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
-        
-        // 设置获取全局配置
-        //UserDefaults.standard.setValue(httpScheme + severAddress + adminPort, forKey: adminSeverAddrKey)
-        
+            
         // 设置登录注册等 - AccountViewModel
         UserDefaults.standard.setValue(httpScheme + severAddress + (protocolType == 0 ? bussinessPort : httpsBussinessPort), forKey: bussinessSeverAddrKey)
         
-        // 设置sdk接口地址
-        var sdkAPIAddr = UserDefaults.standard.string(forKey: sdkAPIAddrKey) ?? defaultSDKApi
-        sdkAPIAddr = httpScheme + sdkAPIAddr
-        
+        GeTuiSdk.runBackgroundEnable(false)
+        GeTuiSdk.start(withAppId: kGtAppId, appKey: kGtAppKey, appSecret: kGtAppSecret, delegate: self)
+        GeTuiSdk.registerRemoteNotification([.alert, .badge, .sound])
+
+        Bugly.start(withAppId: "326fea6cd9")
+        debugPrint("HomeDirectory: \(NSHomeDirectory())")
+    
+        return true
+    }
+    
+    class func setupIMSDK(sdkSvr: String) {
+        let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
         // 设置对象存储
-        let sdkObjectStorage = UserDefaults.standard.string(forKey: sdkObjectStorageKey) ?? "minio"
-        
-        CRIMSessionManagerWrapper.shared.updateCertificateValidation()
+        let sdkObjectStorage = "minio"
         
         // 初始化SDK
-        IMController.shared.setup(sdkAPIAdrr: sdkAPIAddr,
+        IMController.shared.setup(sdkAPIAdrr: sdkSvr,
                                   skipVerifyCert: protocolType == 3,
                                   sdkOS: sdkObjectStorage) {
             IMController.shared.currentUserRelay.accept(nil)
@@ -68,14 +69,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
             NotificationCenter.default.post(name: .init("kickLineOff"), object: nil)
         }
         
-        GeTuiSdk.runBackgroundEnable(false)
-        GeTuiSdk.start(withAppId: kGtAppId, appKey: kGtAppKey, appSecret: kGtAppSecret, delegate: self)
-        GeTuiSdk.registerRemoteNotification([.alert, .badge, .sound])
-        
-        Bugly.start(withAppId: "326fea6cd9")
-        debugPrint("HomeDirectory: \(NSHomeDirectory())")
+        CRIMSessionManagerWrapper.shared.updateCertificateValidation()
+    }
     
-        return true
+    class func setupVideoSDK(sdkSvr: String, sdkToken: String? = nil, sdkAppId: String? = nil, sdkSecret: String? = nil) {
+        CRUICalling.CallingManager.manager.setupVideoSDK(sdkServer: sdkSvr)
+        CRUICalling.CallingManager.manager.setup(appID: sdkAppId, appSecret: sdkSecret, token: sdkToken)
     }
     
     func applicationWillResignActive(_ application: UIApplication) {

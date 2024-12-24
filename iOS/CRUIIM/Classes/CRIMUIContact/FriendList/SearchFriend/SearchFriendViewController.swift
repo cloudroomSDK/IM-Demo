@@ -151,7 +151,7 @@ class SearchFriendViewController: UIViewController, UITableViewDelegate, UITable
                     self?.navigationController?.pushViewController(vc, animated: true)
                     self?.dismiss(animated: true)
                 } else {
-                    //ProgressHUD.showError(result)
+                    //ProgressHUD.errorresult)
                 }
             }
             vc.modalPresentationStyle = .fullScreen
