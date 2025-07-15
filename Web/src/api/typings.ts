@@ -13,6 +13,7 @@ export namespace API {
       password?: string;
       account?: string;
     };
+
     export type LoginData = {
       chatToken: string;
       imToken: string;
@@ -21,6 +22,8 @@ export namespace API {
       sdkAppId: string;
       sdkSvr: string;
       sdkToken: string;
+      sdkAuthType: "0" | "1"; // 0: 密钥模式 1: Token模式
+      sdkSecret: string;
     };
     export type SendSmsParams = {
       phoneNumber: string;

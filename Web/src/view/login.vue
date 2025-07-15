@@ -119,7 +119,7 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import loginApi from "~/api/login";
 import { API } from "~/api/typings";
-import { md5 } from "~/utils";
+import { md5, base64Parms } from "~/utils";
 import { LoginSetting } from "~/components";
 
 const configStore = useConfigStore();
@@ -235,14 +235,24 @@ const login = async () => {
               };
           console.log(obj);
           // 登录业务服务器
-          const { sdkSvr, sdkToken } = await userStore.businessLogin(obj);
+          const { sdkSvr, sdkAuthType, sdkToken, sdkAppId, sdkSecret } =
+            await userStore.businessLogin(obj);
 
           try {
+            const loginInfo =
+              sdkAuthType === "0"
+                ? {
+                    sdkServer: sdkSvr,
+                    appId: sdkAppId,
+                    appSecret: md5(base64Parms(sdkSecret)),
+                  }
+                : {
+                    sdkServer: sdkSvr,
+                    token: sdkToken,
+                  };
+
             //登录SDK
-            await userStore.sdkLogin({
-              sdkServer: sdkSvr,
-              token: sdkToken,
-            });
+            await userStore.sdkLogin(loginInfo);
 
             router.replace({ name: "home" });
           } catch (err: any) {
