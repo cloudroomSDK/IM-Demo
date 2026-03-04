@@ -23,7 +23,7 @@ withDefaults(
   }>(),
   {
     disabled: true,
-  }
+  },
 );
 
 const $emit = defineEmits(["updateUrl"]);

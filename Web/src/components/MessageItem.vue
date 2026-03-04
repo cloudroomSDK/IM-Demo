@@ -8,8 +8,8 @@
   >
     <template
       v-if="
-        [101, 102, 103, 104, 105, 106, 107, 108, 109, 114].includes(
-          source.contentType
+        [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 114].includes(
+          source.contentType,
         )
       "
     >
@@ -35,7 +35,7 @@
             openUserInfo(
               source.sendID,
               groupStore.currentGroupInfo,
-              groupStore.isCurrentGroupAdmin
+              groupStore.isCurrentGroupAdmin,
             )
           "
         />
@@ -58,7 +58,9 @@
                     ? 'left'
                     : 'right'
                 "
-                @visible-change="visibleChange($event, $refs.dropdownRef)"
+                @visible-change="
+                  visibleChange($event, $refs.dropdownRef as Ref)
+                "
               >
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -82,8 +84,8 @@
                 <div v-else-if="source.contentType === 102" class="pic">
                   <el-image
                     class="img"
-                    :src="source.pictureElem.sourcePicture.url"
-                    :previewSrcList="[source.pictureElem.sourcePicture.url]"
+                    :src="source.pictureElem!.sourcePicture.url"
+                    :previewSrcList="[source.pictureElem!.sourcePicture.url]"
                     :z-index="9999"
                     loading="lazy"
                   />
@@ -105,7 +107,7 @@
                   <el-icon class="icon-video"><i-ep-videoPlay /></el-icon>
                   <el-image
                     class="img"
-                    :src="source.videoElem.snapshotUrl"
+                    :src="source.videoElem!.snapshotUrl"
                     loading="lazy"
                   />
                 </div>
@@ -113,14 +115,14 @@
                 <div
                   v-else-if="source.contentType === 105"
                   class="file"
-                  @click="downloadUrl(source.fileElem.sourceUrl)"
+                  @click="downloadUrl(source.fileElem!.sourceUrl)"
                 >
                   <div class="l">
-                    <span class="filename" :title="source.fileElem.fileName">
-                      {{ source.fileElem.fileName }}
+                    <span class="filename" :title="source.fileElem!.fileName">
+                      {{ source.fileElem!.fileName }}
                     </span>
                     <span class="fileSize">
-                      {{ formatFileSize(source.fileElem.fileSize) }}
+                      {{ formatFileSize(source.fileElem!.fileSize) }}
                     </span>
                   </div>
                   <div class="r">
@@ -139,10 +141,10 @@
                   class="chatRecords"
                   @click="openChatRecord"
                 >
-                  <p class="title">{{ source.mergeElem.title }}</p>
+                  <p class="title">{{ source.mergeElem!.title }}</p>
                   <div
                     class="chatItem"
-                    v-for="item in source.mergeElem.abstractList"
+                    v-for="item in source.mergeElem!.abstractList"
                   >
                     <TextMsgRender :arr="chatTextSplit(item)" />
                   </div>
@@ -155,7 +157,7 @@
                     </span>
                   </div>
                   <MessageItem
-                    :source="source.quoteElem.quoteMessage"
+                    :source="source.quoteElem!.quoteMessage"
                     isQuote
                     disabledRightClick
                   />
@@ -164,11 +166,13 @@
                 <div
                   v-else-if="source.contentType === 108"
                   class="businessCard"
-                  @click="openUserInfo(source.cardElem.userID)"
+                  @click="openUserInfo(source.cardElem!.userID)"
                 >
                   <div class="info">
-                    <Avatar :src="source.cardElem.faceURL" />
-                    <span class="nickname">{{ source.cardElem.nickname }}</span>
+                    <Avatar :src="source.cardElem!.faceURL" />
+                    <span class="nickname">{{
+                      source.cardElem!.nickname
+                    }}</span>
                   </div>
                   <p>个人名片</p>
                 </div>
@@ -186,6 +190,10 @@
                     :LngLat="[data.longitude, data.latitude]"
                     simple
                   />
+                </div>
+                <!-- 普通文本消息 -->
+                <div v-else-if="source.contentType === 110">
+                  <span class="text">[暂不支持音视频通话]</span>
                 </div>
                 <p v-else>[暂不支持该内容]</p>
               </component>
@@ -258,8 +266,8 @@
     <div class="centerToast" v-else-if="source.contentType === 1509">
       <span class="toast">
         <Nickname
-          :nickname="data.opUser.nickname"
-          :userID="data.opUser.userID"
+          :nickname="data.inviterUser.nickname"
+          :userID="data.inviterUser.userID"
         />
         邀请
         <Nickname :infos="data.invitedUserList" />
@@ -354,11 +362,6 @@
         />
         <Nickname
           v-else="data.revokerID === data.sourceMessageSendID"
-          nickname="你"
-          :userID="userStore.userInfo?.userID"
-        />
-        <Nickname
-          v-else="data.revokerID === data.sourceMessageSendID"
           :nickname="data.revokerNickname"
           :userID="data.revokerID"
         />
@@ -380,7 +383,12 @@ import {
   Ref,
   watch,
 } from "vue";
-import { getPrivateExpirationMsgTime, IMSDK, IMTYPE } from "~/utils/imsdk";
+import {
+  getPrivateExpirationMsgTime,
+  IMSDK,
+  MessageItem as MessageItemType,
+  WsResponse,
+} from "~/utils/imsdk";
 import {
   PicPreview,
   Avatar,
@@ -413,7 +421,7 @@ const userStore = useUserStore();
 const conversationStore = useConversationStore();
 const groupStore = useGroupStore();
 
-type MsgItem = IMTYPE.MessageItem & {
+type MsgItem = MessageItemType & {
   isShowTime?: boolean;
 };
 const props = defineProps<{
@@ -438,7 +446,7 @@ const attachedHandle = async () => {
   if (msg.isRead || msg.sendID !== userStore.getMyUserID) {
     const time = await getPrivateExpirationMsgTime(
       conversationStore.currentConversation?.conversationID!,
-      msg
+      msg,
     );
     if (time > 0) {
       attachedTime.value = Math.ceil(time / 1000);
@@ -457,7 +465,7 @@ watch(
   () => [props.source?.isRead, props.source?.attachedInfoElem?.hasReadTime],
   () => {
     attachedHandle();
-  }
+  },
 );
 
 onBeforeMount(() => {
@@ -465,7 +473,7 @@ onBeforeMount(() => {
 });
 onBeforeUnmount(() => {
   clearInterval(attachedTimerId);
-  clearTimeout(revokeTimerId);
+  clearTimeout(revokeTimerId!);
 });
 
 const data = computed(() => {
@@ -478,12 +486,12 @@ const data = computed(() => {
       1701, 2101,
     ].includes(props.source.contentType)
   ) {
-    return JSON.parse(props.source.notificationElem.detail);
+    return JSON.parse(props.source.notificationElem!.detail);
   }
 
   if (props.source.contentType === 109) {
     try {
-      const locationElem = props.source.locationElem;
+      const locationElem = props.source.locationElem!;
       const description = JSON.parse(locationElem.description);
       return {
         name: description.name,
@@ -498,7 +506,7 @@ const data = computed(() => {
   return null;
 });
 
-const openMediaPreview = (chat: IMTYPE.MessageItem, title: string) => {
+const openMediaPreview = (chat: MessageItemType, title: string) => {
   ElMessageBox({
     title: title,
     message: h(PicPreview, {
@@ -512,9 +520,9 @@ const openMediaPreview = (chat: IMTYPE.MessageItem, title: string) => {
 
 const openChatRecord = () => {
   ElMessageBox({
-    title: props.source.mergeElem.title,
+    title: props.source.mergeElem!.title,
     message: h(MessageRecord, {
-      list: props.source.mergeElem.multiMessage,
+      list: props.source.mergeElem!.multiMessage,
     }),
     customClass: "histroy-message-box",
     showClose: true,
@@ -651,7 +659,7 @@ const reSendMsg = async () => {
     console.log(successMessage);
     conversationStore.updateMsgList([successMessage]);
   } catch (error) {
-    errorHandle(error as IMTYPE.WsResponse);
+    errorHandle(error as WsResponse);
     props.source.status = 3;
     conversationStore.updateMsgList([props.source]);
   }

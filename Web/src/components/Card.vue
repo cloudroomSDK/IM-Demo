@@ -43,12 +43,20 @@
 </template>
 
 <script lang="ts" setup>
+import { ConversationItem, MessageItem } from "~/utils/imsdk";
+import Avatar from "./Avatar.vue";
+import { toLastMessage } from "~/utils/index";
+import { formatListString } from "~/utils/dayjs";
+import { computed } from "vue";
+import { chatTextSplit } from "~/utils/index";
+import { TextMsgRender } from "~/components";
+
 interface Props {
   name: string;
   imgSrc?: string;
   active?: boolean;
   msgCount?: number;
-  conversationItem?: IMTYPE.ConversationItem | null;
+  conversationItem?: ConversationItem | null;
   avatarType?: "user" | "group";
 }
 const props = withDefaults(defineProps<Props>(), {
@@ -57,14 +65,6 @@ const props = withDefaults(defineProps<Props>(), {
   conversationItem: null,
   avatarType: "user",
 });
-
-import { IMTYPE } from "~/utils/imsdk";
-import Avatar from "./Avatar.vue";
-import { toLastMessage } from "~/utils/index";
-import { formatListString } from "~/utils/dayjs";
-import { computed } from "vue";
-import { chatTextSplit } from "~/utils/index";
-import { TextMsgRender } from "~/components";
 
 const bgc = computed(() => {
   if (props.active) {
@@ -76,7 +76,7 @@ const bgc = computed(() => {
   return "";
 });
 
-const latestMsg = computed<IMTYPE.MessageItem>(() => {
+const latestMsg = computed<MessageItem>(() => {
   if (props.conversationItem?.latestMsg) {
     return JSON.parse(props.conversationItem.latestMsg);
   }

@@ -111,11 +111,8 @@ router.beforeEach(async (to, from, next) => {
 
   if (!userStore.userInfo && userStore.businessData) {
     try {
-      const { sdkSvr, sdkToken } = await userStore.businessLoginByToken();
-      await userStore.sdkLogin({
-        sdkServer: sdkSvr,
-        token: sdkToken,
-      });
+      const businessData = await userStore.businessLoginByToken();
+      await userStore.sdkLogin(businessData); //登录SDK
     } catch (error) {
       userStore.businessData = undefined;
     }

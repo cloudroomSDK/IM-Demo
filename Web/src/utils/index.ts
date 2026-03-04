@@ -1,7 +1,7 @@
 // @ts-ignore
 import CryptoJS from "crypto-js";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { errorDesc, IMTYPE } from "./imsdk";
+import { errorDesc, GroupItem, MessageItem, WsResponse } from "./imsdk";
 import { UserInfo } from "~/components";
 import { h } from "vue";
 import { useUserStore } from "~/stores";
@@ -105,9 +105,9 @@ export const getVideoSnshotFile = (file: File): Promise<File> => {
   });
 };
 
-export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
+export const toLastMessage = (messageItem: MessageItem) => {
   if (messageItem.contentType === 101) {
-    return messageItem.textElem.content;
+    return messageItem.textElem!.content;
   }
   if (messageItem.contentType === 102) {
     return "[图片]";
@@ -122,8 +122,8 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
     return "[文件]";
   }
   if (messageItem.contentType === 106) {
-    let text = messageItem.atTextElem.text;
-    messageItem.atTextElem.atUsersInfo?.forEach((item) => {
+    let text = messageItem.atTextElem!.text;
+    messageItem.atTextElem!.atUsersInfo?.forEach((item) => {
       const reg = new RegExp(`@${item.atUserID}`, "g");
       text = text.replace(reg, `@${item.groupNickname}`);
     });
@@ -138,27 +138,30 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
   if (messageItem.contentType === 109) {
     return "[位置]";
   }
+  if (messageItem.contentType === 110) {
+    return "[音视频]";
+  }
   if (messageItem.contentType === 114) {
-    return messageItem.quoteElem.text;
+    return messageItem.quoteElem!.text;
   }
   if (messageItem.contentType === 1201) {
     return "你们已经成为好友，可以开始聊天了";
   }
 
   if (messageItem.contentType === 1501) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 创建了群聊`;
   }
   if (messageItem.contentType === 1504) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.quitUser.nickname} 退出了群聊`;
   }
   if (messageItem.contentType === 1507) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 将群主转让给了 ${data.newGroupOwner.nickname}`;
   }
   if (messageItem.contentType === 1508) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
 
     const nameListStr = data.kickedUserList
       // @ts-ignore
@@ -168,50 +171,50 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
     return `${nameListStr} 被 ${data.opUser.nickname} 踢出群聊`;
   }
   if (messageItem.contentType === 1509) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     const nameListStr = data.invitedUserList
       // @ts-ignore
       .map((item) => item.nickname)
       .join("、");
-    return `${data.opUser.nickname} 邀请 ${nameListStr} 加入群聊`;
+    return `${data.inviterUser.nickname} 邀请 ${nameListStr} 加入群聊`;
   }
   if (messageItem.contentType === 1510) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.entrantUser.nickname} 加入了群聊`;
   }
   if (messageItem.contentType === 1511) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 解散了群聊`;
   }
   if (messageItem.contentType === 1512) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.mutedUser.nickname} 被 ${data.opUser.nickname} 禁言${~~(
       data.mutedSeconds / 60
     )}分${data.mutedSeconds % 60}秒`;
   }
   if (messageItem.contentType === 1513) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 取消了 ${data.mutedUser.nickname} 的禁言`;
   }
   if (messageItem.contentType === 1514) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 开启了群禁言`;
   }
   if (messageItem.contentType === 1515) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 关闭了群禁言`;
   }
   if (messageItem.contentType === 1520) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 修改了群名称`;
   }
   if (messageItem.contentType === 1701) {
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     return `已${data.isPrivate ? "开启" : "关闭"}阅后即焚`;
   }
   if (messageItem.contentType === 2101) {
     const userStore = useUserStore();
-    const data = JSON.parse(messageItem.notificationElem.detail);
+    const data = JSON.parse(messageItem.notificationElem!.detail);
     let nickname = "";
     if (data.revokerID === userStore.userInfo?.userID) {
       if (data.revokerID === data.sourceMessageSendID) {
@@ -230,8 +233,8 @@ export const toLastMessage = (messageItem: IMTYPE.MessageItem) => {
 
 export const openUserInfo = (
   userID: string,
-  groupInfo?: IMTYPE.GroupItem,
-  isAdmin: boolean = false
+  groupInfo?: GroupItem,
+  isAdmin: boolean = false,
 ) => {
   ElMessageBox({
     title: "",
@@ -286,7 +289,7 @@ export const formatFileSize = (bytes: number): string => {
   return `${num.toFixed(2)} ${units[unitIndex]}`;
 };
 
-export const errorHandle = (error: IMTYPE.WsResponse) => {
+export const errorHandle = (error: WsResponse) => {
   console.error(error);
   if (error.errCode) {
     const desc = errorDesc[error.errCode] || error.errMsg;
@@ -299,25 +302,25 @@ export const errorHandle = (error: IMTYPE.WsResponse) => {
 
 export const chatTextSplit = (function () {
   const emoticons = getFaceList();
-  return (message: IMTYPE.MessageItem | string) => {
+  return (message: MessageItem | string) => {
     let text = "";
     let atUsersInfo: any[] = [];
     if (typeof message === "string") {
       text = message;
     } else if (message.contentType === 101) {
-      text = message.textElem.content;
+      text = message.textElem!.content;
     } else if (message.contentType === 106) {
-      text = message.atTextElem.text;
-      atUsersInfo = message.atTextElem.atUsersInfo || [];
+      text = message.atTextElem!.text;
+      atUsersInfo = message.atTextElem!.atUsersInfo || [];
     } else if (message.contentType === 114) {
-      text = message.quoteElem.text;
+      text = message.quoteElem!.text;
     }
     const atIds = atUsersInfo.map((item) => `@${item.atUserID}`);
     const idsReg = atIds.length ? `(${atIds.join("|")})|` : "";
     const easyAtReg = `(@\{\\w+\\|.+?\})|`;
     const regex = new RegExp(
       `${idsReg}${easyAtReg}(?:${emoticons.join("|")})`,
-      "g"
+      "g",
     );
 
     // 执行匹配并生成结果
@@ -347,7 +350,7 @@ export const chatTextSplit = (function () {
       } else if (match[0].startsWith("@")) {
         const userID = match[0].slice(1);
         const nickname = atUsersInfo.find(
-          (item) => item.atUserID === userID
+          (item) => item.atUserID === userID,
         )?.groupNickname;
         // 将匹配到的@加入结果
         result.push({

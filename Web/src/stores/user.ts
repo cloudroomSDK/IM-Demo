@@ -1,14 +1,17 @@
 import { defineStore } from "pinia";
-import { UserStore, SDKLoginInfo } from "./type";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { UserStore } from "./type";
+import { CbEvents, IMSDK, SelfUserInfo } from "~/utils/imsdk";
 import router from "~/router";
 import { API } from "~/api/typings";
 import loginApi from "~/api/login";
+import { base64Parms, md5 } from "~/utils";
 
 export const useUserStore = defineStore("user", {
   state: (): UserStore => ({
     businessData: undefined,
     userInfo: undefined,
+    isSyncing: false,
+    syncProgress: 0,
   }),
   getters: {
     getMyUserID: (state) => state.userInfo?.userID,
@@ -26,7 +29,28 @@ export const useUserStore = defineStore("user", {
       return this.businessData;
     },
     // 登录SDK
-    async sdkLogin(loginInfo: SDKLoginInfo) {
+    async sdkLogin({
+      sdkAuthType,
+      sdkSvr,
+      sdkAppId,
+      sdkSecret,
+      sdkToken,
+    }: API.Login.LoginData) {
+      const loginInfo =
+        sdkAuthType === "0"
+          ? {
+              sdkServer: sdkSvr,
+              appId: sdkAppId,
+              appSecret: md5(base64Parms(sdkSecret)),
+            }
+          : {
+              sdkServer: sdkSvr,
+              token: sdkToken,
+            };
+
+      this.isSyncing = true;
+      this.syncProgress = 0;
+
       await IMSDK.login({
         userID: this.businessData!.userID,
         appId: loginInfo.appId,
@@ -37,16 +61,15 @@ export const useUserStore = defineStore("user", {
       });
 
       const { data: selfUserInfo } = await IMSDK.getSelfUserInfo();
-      IMSDK.on("OnSelfInfoUpdated", this.updateUserInfo);
-      IMSDK.on("OnSelfInfoUpdated", () => {});
+      IMSDK.on(CbEvents.OnSelfInfoUpdated, this.updateUserInfo);
       this.userInfo = selfUserInfo;
     },
     logout() {
-      IMSDK.off("OnSelfInfoUpdated", this.updateUserInfo);
+      IMSDK.off(CbEvents.OnSelfInfoUpdated, this.updateUserInfo);
       IMSDK.logout();
       this.exit();
     },
-    updateUserInfo({ data }: { data: IMTYPE.SelfUserInfo }) {
+    updateUserInfo({ data }: { data: SelfUserInfo }) {
       this.userInfo = data;
     },
     exit() {

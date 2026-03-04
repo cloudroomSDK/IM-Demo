@@ -30,7 +30,7 @@
               openUserInfo(
                 item.userID,
                 groupStore.currentGroupInfo,
-                groupStore.isCurrentGroupAdmin
+                groupStore.isCurrentGroupAdmin,
               )
             "
           >
@@ -55,24 +55,20 @@ import { Avatar } from "~/components";
 import { openUserInfo } from "~/utils";
 import { useGroupStore } from "~/stores";
 import { inject, Ref, ref } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { GroupMemberItem, IMSDK } from "~/utils/imsdk";
 
 const groupStore = useGroupStore();
 
 const dropdownVisibleChange = inject("dropdownVisibleChange") as (
   e: boolean,
-  ref: any
+  ref: any,
 ) => void;
 const dropdownRef = ref();
 
 const handleCommand = (command: string) => {};
 const list = ref<any[]>([]);
 
-const visibleChange = (
-  isOpen: boolean,
-  ref: Ref,
-  item: IMTYPE.GroupMemberItem
-) => {
+const visibleChange = (isOpen: boolean, ref: Ref, item: GroupMemberItem) => {
   dropdownVisibleChange(isOpen, ref);
   if (!isOpen) return;
   list.value = [];
@@ -82,7 +78,7 @@ const visibleChange = (
       openUserInfo(
         item.userID,
         groupStore.currentGroupInfo,
-        groupStore.isCurrentGroupAdmin
+        groupStore.isCurrentGroupAdmin,
       );
     },
   });

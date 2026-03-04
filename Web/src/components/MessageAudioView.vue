@@ -13,7 +13,7 @@
           <i class="icon2" v-show="iconType > 1" />
           <i class="icon3" v-show="iconType > 2" />
         </i>
-        <span class="text">{{ props.data.duration }}''</span>
+        <span class="text">{{ props.data!.duration }}''</span>
       </div>
     </el-check-tag>
     <el-button
@@ -29,13 +29,13 @@
 </template>
 <script setup lang="ts">
 import { ref } from "vue";
-import { IMTYPE } from "~/utils/imsdk";
+import { MessageItem } from "~/utils/imsdk";
 import { AudioPlayer } from "~/utils/audioPlayer";
 import { ElMessage } from "element-plus";
 import { onUnmounted } from "vue";
 
 interface Props {
-  data: IMTYPE.MessageItem["soundElem"];
+  data: MessageItem["soundElem"];
   reverse: boolean;
 }
 
@@ -67,7 +67,7 @@ const playIcon = () => {
     iconType.value++;
   }, 300);
 };
-const player = new AudioPlayer(props.data.sourceUrl);
+const player = new AudioPlayer(props.data!.sourceUrl);
 player.onEnded = () => {
   playerStatus.value = PlayerStatus.STOPPED;
   checked.value = false;

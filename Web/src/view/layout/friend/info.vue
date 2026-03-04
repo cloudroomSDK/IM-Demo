@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { Avatar, MemberSetting, InputItem } from "~/components";
 import { useRoute, useRouter } from "vue-router";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { FriendUserItem, IMSDK, CbEvents } from "~/utils/imsdk";
 import { openUserInfo } from "~/utils";
 import { onBeforeUnmount, ref, watch } from "vue";
 import { ElMessageBox } from "element-plus";
@@ -85,16 +85,16 @@ const del = async function () {
   await IMSDK.deleteFriend($route.params.userID as string);
 };
 
-const OnFriendDeleted = ({ data }: { data: IMTYPE.FriendUserItem }) => {
+const OnFriendDeleted = ({ data }: { data: FriendUserItem }) => {
   if (data.userID === conversationStore.currentConversation?.userID) {
     $router.replace({ name: "friend" });
   }
 };
 
-IMSDK.on("OnFriendDeleted", OnFriendDeleted);
+IMSDK.on(CbEvents.OnFriendDeleted, OnFriendDeleted);
 
 onBeforeUnmount(() => {
-  IMSDK.off("OnFriendDeleted", OnFriendDeleted);
+  IMSDK.off(CbEvents.OnFriendDeleted, OnFriendDeleted);
 });
 </script>
 

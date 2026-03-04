@@ -112,7 +112,7 @@
 import { UserHeader, AddFriend } from "~/components";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { computed, h, onMounted, Ref, ref } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { GroupMemberItem, IMSDK } from "~/utils/imsdk";
 import { useUserStore, useConversationStore } from "~/stores";
 import { getBusinessUserInfo, updateBusinessUserInfo } from "~/api/login";
 import { formatString } from "~/utils/dayjs";
@@ -154,7 +154,7 @@ const info = ref({
   email: "-",
 });
 
-let inGroupInfo: Ref<IMTYPE.GroupMemberItem>;
+let inGroupInfo: Ref<GroupMemberItem>;
 onMounted(async () => {
   // 如果打开自己的窗口
   if (userStore.getMyUserID === props.userID) {
@@ -190,8 +190,8 @@ onMounted(async () => {
       } else {
         //如果不是好友
         const userInfo = (await IMSDK.getUsersInfo([props.userID])).data[0];
-        imgSrc.value = userInfo.publicInfo!.faceURL;
-        info.value.nickname = userInfo.publicInfo!.nickname;
+        imgSrc.value = userInfo.faceURL;
+        info.value.nickname = userInfo.nickname;
       }
 
       resetInfo();

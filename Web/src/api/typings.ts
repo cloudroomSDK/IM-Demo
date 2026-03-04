@@ -6,6 +6,7 @@ export namespace API {
       Login = 3,
     }
     export type LoginParams = {
+      appID?: string; //如果不使用默认appID，需要传此参数
       verifyCode?: string;
       deviceID?: string;
       phoneNumber?: string;

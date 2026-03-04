@@ -3,7 +3,7 @@
     <div
       v-if="
         conversationStore.isCurrentGroupChat &&
-        groupStore.currentGroupInfo?.status === 2
+        groupStore.currentGroupInfo?.status === GroupStatus.Dismissed
       "
       class="dissolveToast"
     >
@@ -13,7 +13,7 @@
       v-else-if="
         conversationStore.isCurrentGroupChat &&
         !groupStore.isCurrentGroupAdmin &&
-        groupStore.currentGroupInfo?.status === 3
+        groupStore.currentGroupInfo?.status === GroupStatus.Muted
       "
       class="dissolveToast"
     >
@@ -95,7 +95,7 @@
                   <TextMsgRender
                     v-if="
                       [106, 101, 114].indexOf(
-                        conversationStore.currentQuoteMessage.contentType
+                        conversationStore.currentQuoteMessage.contentType,
                       ) > -1
                     "
                     :arr="chatTextSplit(conversationStore.currentQuoteMessage)"
@@ -135,10 +135,13 @@ import BusinessCardSvg from "~/assets/icons/tools-business-card.svg";
 import { h, onBeforeUnmount, ref, shallowRef, watch } from "vue";
 import {
   IMSDK,
-  IMTYPE,
   createVideoMessage,
   createImageMessage,
   setDraft,
+  MessageItem,
+  WsResponse,
+  FriendUserItem,
+  GroupStatus,
 } from "~/utils/imsdk";
 import {
   useAppStore,
@@ -212,7 +215,7 @@ watch(
         editorRef.value?.setHtml(`<p>${html}</p>`);
       });
     }
-  }
+  },
 );
 
 onMounted(() => {
@@ -263,7 +266,7 @@ const insertFace = (value: string) => {
   });
 };
 
-const sendMsg = async (message: IMTYPE.MessageItem) => {
+const sendMsg = async (message: MessageItem) => {
   try {
     const { data: successMessage } = await IMSDK.sendMsg({
       recvID: conversationStore.isCurrentGroupChat
@@ -279,7 +282,7 @@ const sendMsg = async (message: IMTYPE.MessageItem) => {
     console.log(successMessage);
     conversationStore.updateMsgList([successMessage]);
   } catch (error) {
-    errorHandle(error as IMTYPE.WsResponse);
+    errorHandle(error as WsResponse);
     message.status = 3;
     conversationStore.updateMsgList([message]);
   }
@@ -289,7 +292,7 @@ const sendHandle = async () => {
   if (!text) {
     return "";
   }
-  let messageItem: IMTYPE.MessageItem;
+  let messageItem: MessageItem;
   if (/@\{\w+\|.+?\}/.test(text)) {
     const atUserList: Record<string, string> = {};
     // 包含@消息
@@ -299,7 +302,7 @@ const sendHandle = async () => {
         console.log(str, userID, nickname, idx);
         atUserList[userID] = nickname;
         return `@${userID}`;
-      }
+      },
     );
     const { data } = await IMSDK.createTextAtMsg({
       text,
@@ -315,7 +318,7 @@ const sendHandle = async () => {
   } else if (conversationStore.currentQuoteMessage) {
     const { data } = await IMSDK.createQuoteMsg({
       text,
-      message: conversationStore.currentQuoteMessage,
+      message: JSON.stringify(conversationStore.currentQuoteMessage),
     });
     messageItem = data;
     conversationStore.currentQuoteMessage = undefined;
@@ -467,7 +470,7 @@ const mergeTransmitHandle = async () => {
   let list: MsgItem[] = [];
   conversationStore.multipleSelect.forEach((msgID) => {
     const messageItem = conversationStore.msgList.find(
-      (item) => item.clientMsgID === msgID
+      (item) => item.clientMsgID === msgID,
     );
     if (messageItem) {
       list.push(messageItem);
@@ -480,7 +483,7 @@ const mergeTransmitHandle = async () => {
       ? "群聊天记录"
       : `${userStore.userInfo?.nickname}和${conversationStore.currentConversation?.showName}的聊天记录`,
     summaryList: list.map(
-      (item) => `${item.senderNickname}: ${toLastMessage(item)}`
+      (item) => `${item.senderNickname}: ${toLastMessage(item)}`,
     ),
   });
 
@@ -506,13 +509,13 @@ const mergeTransmitHandle = async () => {
     }
   });
 };
-const sendBusinessCard = async (friendUserItem: IMTYPE.FriendUserItem) => {
+const sendBusinessCard = async (friendUserItem: FriendUserItem) => {
   console.log(friendUserItem);
   const { data: message } = await IMSDK.createCardMsg({
     userID: friendUserItem.userID,
     nickname: friendUserItem.nickname,
     faceURL: friendUserItem.faceURL,
-    // ex: "",
+    ex: "",
   });
   conversationStore.pushMsg([message]);
   sendMsg(message);

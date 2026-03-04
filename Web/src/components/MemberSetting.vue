@@ -48,7 +48,11 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { clearConversationMsg, IMSDK } from "~/utils/imsdk";
+import {
+  clearConversationMsg,
+  IMSDK,
+  MessageReceiveOptType,
+} from "~/utils/imsdk";
 import { InputItem } from ".";
 import { ElMessageBox } from "element-plus";
 import { computed, onBeforeMount, ref } from "vue";
@@ -77,17 +81,19 @@ const burnDurationOptions = ref([
 ]);
 
 const MsgDisturbing = computed(
-  () => conversationStore.currentConversation?.recvMsgOpt === 2
+  () =>
+    conversationStore.currentConversation?.recvMsgOpt ===
+    MessageReceiveOptType.NotNotify,
 );
 
 onBeforeMount(async () => {
   isBlack.value = !!(await friendStore.getBlackInfo(
-    conversationStore.currentConversation!.userID
+    conversationStore.currentConversation!.userID,
   ));
 });
 
 const changePinned = (val: boolean) => {
-  IMSDK.pinConversation({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
     isPinned: val,
   });
@@ -96,32 +102,34 @@ const changePinned = (val: boolean) => {
 const changePrivateChat = (val: boolean) => {
   if (val && conversationStore.currentConversation?.burnDuration === 0) {
     conversationStore.currentConversation!.burnDuration = 30;
-    IMSDK.setConversationBurnDuration({
+    IMSDK.setConversation({
       conversationID: conversationStore.currentConversation!.conversationID,
       burnDuration: 30,
     });
   }
-  IMSDK.setConversationPrivateChat({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
-    isPrivate: val,
+    isPrivateChat: val,
   });
 };
 const changePrivateTime = (val: number) => {
-  IMSDK.setConversationBurnDuration({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
     burnDuration: val,
   });
 };
 
 const changeRecvMsgOpt = (val: boolean) => {
-  IMSDK.setConversationRecvMsgOpt({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
-    opt: val ? 2 : 0,
+    recvMsgOpt: val
+      ? MessageReceiveOptType.NotNotify
+      : MessageReceiveOptType.Normal,
   });
 };
 const changeBlackStatus = (val: boolean) => {
   if (val) {
-    IMSDK.addBlack(conversationStore.currentConversation!.userID);
+    IMSDK.addBlack({ toUserID: conversationStore.currentConversation!.userID });
   } else {
     IMSDK.removeBlack(conversationStore.currentConversation!.userID);
   }
@@ -136,7 +144,7 @@ const clearHistory = async () => {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
-    }
+    },
   );
   clearConversationMsg(conversationStore.currentConversation!.conversationID);
 };

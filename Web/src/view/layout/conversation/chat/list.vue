@@ -29,7 +29,13 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import {
+  CbEvents,
+  IMSDK,
+  MessageItem as MessageItemType,
+  ReceiptInfo,
+  RevokedInfo,
+} from "~/utils/imsdk";
 import { useConversationStore, useUserStore } from "~/stores";
 import { Empty } from "~/components";
 import { nextTick, onBeforeMount, onBeforeUnmount, ref } from "vue";
@@ -63,7 +69,7 @@ onBeforeMount(async () => {
   if (conversationStore.currentConversation?.unreadCount > 0) {
     // 清空当前绘画未读数
     IMSDK.markConversationMsgAsRead(
-      conversationStore.currentConversation!.conversationID
+      conversationStore.currentConversation!.conversationID,
     );
   }
 
@@ -122,7 +128,7 @@ const onItemRendered = (id: string, size: number) => {
   }
 };
 
-const inCurrentConversation = (messageItem: IMTYPE.MessageItem): Boolean => {
+const inCurrentConversation = (messageItem: MessageItemType): Boolean => {
   switch (messageItem.sessionType) {
     case 1:
       return (
@@ -143,25 +149,25 @@ const inCurrentConversation = (messageItem: IMTYPE.MessageItem): Boolean => {
   }
 };
 
-const onRecvNewMsgs = async ({ data }: { data: IMTYPE.MessageItem[] }) => {
+const onRecvNewMsgs = async ({ data }: { data: MessageItemType[] }) => {
   // 只接收当前聊天框的有效信息
   const validMsgList = data.filter(
     (messageItem) =>
       inCurrentConversation(messageItem) &&
-      ![113, 2101].includes(messageItem.contentType)
+      ![113, 2101].includes(messageItem.contentType),
   );
 
   if (validMsgList.length) {
     validMsgList.forEach(async (item) => {
       item.isRead = true;
-      if (item.attachedInfoElem.isPrivateChat) {
+      if (item.attachedInfoElem?.isPrivateChat) {
         item.attachedInfoElem.hasReadTime = await getSvrTime();
       }
     });
     // 清空当前绘画未读数
     conversationStore.currentConversation?.conversationID &&
       IMSDK.markConversationMsgAsRead(
-        conversationStore.currentConversation.conversationID
+        conversationStore.currentConversation.conversationID,
       );
     conversationStore.pushMsg(validMsgList);
 
@@ -175,7 +181,7 @@ const onRecvNewMsgs = async ({ data }: { data: IMTYPE.MessageItem[] }) => {
   }
 };
 
-const onNewRecvMsgRevoked = ({ data }: { data: IMTYPE.RevokedInfo }) => {
+const onNewRecvMsgRevoked = ({ data }: { data: RevokedInfo }) => {
   const messageItem = {
     clientMsgID: data.clientMsgID,
     contentType: 2101,
@@ -184,10 +190,10 @@ const onNewRecvMsgRevoked = ({ data }: { data: IMTYPE.RevokedInfo }) => {
     },
   };
 
-  conversationStore.updateMsgList([messageItem as IMTYPE.MessageItem]);
+  conversationStore.updateMsgList([messageItem as MessageItemType]);
 };
 
-const onRecv1v1ReadReceipt = ({ data }: { data: IMTYPE.ReceiptInfo[] }) => {
+const onRecv1v1ReadReceipt = ({ data }: { data: ReceiptInfo[] }) => {
   data.forEach((item) => {
     return item.msgIDList.forEach((msgID) => {
       conversationStore.msgList.some((msg) => {
@@ -212,14 +218,14 @@ const onListScroll = () => {
   }
 };
 
-IMSDK.on("OnRecvNewMsgs", onRecvNewMsgs);
-IMSDK.on("OnNewRecvMsgRevoked", onNewRecvMsgRevoked);
-IMSDK.on("OnRecv1v1ReadReceipt", onRecv1v1ReadReceipt);
+IMSDK.on(CbEvents.OnRecvNewMsgs, onRecvNewMsgs);
+IMSDK.on(CbEvents.OnNewRecvMsgRevoked, onNewRecvMsgRevoked);
+IMSDK.on(CbEvents.OnRecv1v1ReadReceipt, onRecv1v1ReadReceipt);
 
 onBeforeUnmount(() => {
-  IMSDK.off("OnRecvNewMsgs", onRecvNewMsgs);
-  IMSDK.off("OnNewRecvMsgRevoked", onNewRecvMsgRevoked);
-  IMSDK.off("OnRecv1v1ReadReceipt", onRecv1v1ReadReceipt);
+  IMSDK.off(CbEvents.OnRecvNewMsgs, onRecvNewMsgs);
+  IMSDK.off(CbEvents.OnNewRecvMsgRevoked, onNewRecvMsgRevoked);
+  IMSDK.off(CbEvents.OnRecv1v1ReadReceipt, onRecv1v1ReadReceipt);
 });
 </script>
 <style lang="scss" scoped>

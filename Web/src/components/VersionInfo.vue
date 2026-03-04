@@ -1,7 +1,7 @@
 <template>
   <div class="wrap">
     <div class="box">
-      <el-image class="img" :src="CRLogo"></el-image>
+      <el-image class="img" :src="logo"></el-image>
     </div>
     <p>应用版本: {{ version }}</p>
     <p>SDK版本: {{ IMSDK.sdkVersion }}</p>
@@ -9,7 +9,7 @@
 </template>
 <script lang="ts" setup>
 import { IMSDK } from "~/utils/imsdk";
-import CRLogo from "~/assets/CR_logo.svg";
+import logo from "~/assets/logo.svg";
 import { computed } from "vue";
 
 const version = computed(() => __APP_VERSION__);
@@ -17,12 +17,12 @@ const version = computed(() => __APP_VERSION__);
 <style lang="scss" scoped>
 .wrap {
   border-top: 1px solid var(--el-border-color);
-  padding: 90px 0;
+  padding: 40px 0;
   .box {
     text-align: center;
     margin-bottom: 40px;
     .img {
-      width: 160px;
+      width: 80px;
     }
   }
   p {

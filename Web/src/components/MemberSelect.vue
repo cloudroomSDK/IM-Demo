@@ -144,7 +144,10 @@
                 >
                   <Avatar :size="30" :src="item?.imgSrc" />
                   <span class="name">{{ item?.showName }}</span>
-                  <el-icon class="icon" @click="checkList.splice(index, 1)">
+                  <el-icon
+                    class="icon"
+                    @click="checkList.splice(index as number, 1)"
+                  >
                     <i-ep-close />
                   </el-icon>
                 </div>
@@ -178,9 +181,9 @@ import {
   useUserStore,
   useGroupStore,
 } from "~/stores";
-import { IMTYPE } from "~/utils/imsdk";
+import { FriendUserItem } from "~/utils/imsdk";
 
-type SelectItem = IMTYPE.FriendUserItem & {
+type SelectItem = FriendUserItem & {
   disabled?: boolean;
 };
 
@@ -227,7 +230,7 @@ selectList = computed(() => {
   return checkList.value.map((str) => {
     if (str.indexOf("f_") === 0) {
       const member = allList.value!.find(
-        (item) => item.userID === str.slice(2)
+        (item) => item.userID === str.slice(2),
       );
       if (member) {
         return {
@@ -239,7 +242,7 @@ selectList = computed(() => {
       }
     } else if (str.indexOf("u_") === 0) {
       const frient = friendStore.list!.find(
-        (item) => item.userID === str.slice(2)
+        (item) => item.userID === str.slice(2),
       );
       if (frient) {
         return {
@@ -251,7 +254,7 @@ selectList = computed(() => {
       }
     } else {
       const conversation = conversationStore.conversationList!.find(
-        (item) => item.groupID === str.slice(2)
+        (item) => item.groupID === str.slice(2),
       );
       if (conversation) {
         return {
@@ -266,7 +269,7 @@ selectList = computed(() => {
 });
 
 const multipleDisabled = computed(
-  () => props.data.multiple === false && checkList.value.length > 0
+  () => props.data.multiple === false && checkList.value.length > 0,
 );
 
 onBeforeMount(async () => {
@@ -277,20 +280,20 @@ onBeforeMount(async () => {
         showName: item.nickname,
         faceURL: item.faceURL,
         disabled: userStore.userInfo?.userID === item.userID,
-      }))
+      })),
     );
   } else {
     canSelectConversation = computed(
-      () => props.data.type === "all" || props.data.type === "conversation"
+      () => props.data.type === "all" || props.data.type === "conversation",
     );
     canSelectFriend = computed(
       () =>
         props.data.type === "all" ||
         props.data.type === "friend" ||
-        props.data.type === "createGroup"
+        props.data.type === "createGroup",
     );
     canSelectGroup = computed(
-      () => props.data.type === "all" || props.data.type === "group"
+      () => props.data.type === "all" || props.data.type === "group",
     );
 
     canSelectConversation && conversationStore.getList();

@@ -110,7 +110,7 @@ const handleCommand = async (command: any) => {
   console.log(command);
   const conversation = command.conversation;
   if (command.type === "togglePinned") {
-    IMSDK.pinConversation({
+    IMSDK.setConversation({
       conversationID: conversation.conversationID,
       isPinned: !conversation.isPinned,
     });

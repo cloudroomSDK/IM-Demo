@@ -3,13 +3,23 @@
     <el-aside class="aside">
       <Aside />
     </el-aside>
-    <div class="mian">
-      <router-view style="height: 100%" />
+    <div v-if="userStore.isSyncing" class="sync">
+      <div
+        v-loading="true"
+        class="sync-loading"
+        element-loading-background="transparent"
+      ></div>
+      <p class="text">数据同步中，进度: {{ userStore.syncProgress }}%</p>
     </div>
-    <div class="logging" v-if="showLoading">
-      <div v-loading="true" class="loading" />
-      正在连接
-    </div>
+    <template v-else>
+      <div class="mian">
+        <router-view style="height: 100%" />
+      </div>
+      <div class="logging" v-if="showLoading">
+        <div v-loading="true" class="loading" />
+        正在连接
+      </div>
+    </template>
   </el-container>
 
   <el-dialog
@@ -38,7 +48,7 @@ import {
   useFriendStore,
   useGroupStore,
 } from "~/stores";
-import { IMSDK } from "~/utils/imsdk";
+import { CbEvents, IMSDK } from "~/utils/imsdk";
 import Aside from "./aside.vue";
 
 const appStore = useAppStore();
@@ -86,59 +96,65 @@ const onUserTokenExpired = () => {
   userStore.exit();
 };
 
-IMSDK.on("OnConnecting", onConnecting);
-IMSDK.on("OnConnectSuccess", onConnectSuccess);
-IMSDK.on("OnKickedOffline", onKickedOffline);
-IMSDK.on("OnUserTokenExpired", onUserTokenExpired);
-IMSDK.on("OnNewConversation", conversationStore.onNewConversation);
-IMSDK.on("OnConversationChanged", conversationStore.onConversationChanged);
+IMSDK.on(CbEvents.OnConnecting, onConnecting);
+IMSDK.on(CbEvents.OnConnectSuccess, onConnectSuccess);
+IMSDK.on(CbEvents.OnKickedOffline, onKickedOffline);
+IMSDK.on(CbEvents.OnUserTokenExpired, onUserTokenExpired);
+IMSDK.on(CbEvents.OnNewConversation, conversationStore.onNewConversation);
 IMSDK.on(
-  "OnTotalUnreadMsgCountChanged",
-  conversationStore.onTotalUnreadMsgCountChanged
+  CbEvents.OnConversationChanged,
+  conversationStore.onConversationChanged,
 );
-IMSDK.on("OnFriendAdded", friendStore.onFriendAdded);
-IMSDK.on("OnFriendDeleted", friendStore.onFriendDeleted);
-IMSDK.on("OnFriendInfoChanged", friendStore.onFriendInfoChanged);
-IMSDK.on("OnFriendReqAdded", friendStore.onFriendReqAdded);
-IMSDK.on("OnBlackAdded", friendStore.onBlackAdded);
-IMSDK.on("OnBlackDeleted", friendStore.onBlackDeleted);
-IMSDK.on("OnJoinedGrpAdded", groupStore.onJoinedGrpAdded);
-IMSDK.on("OnJoinedGrpDeleted", groupStore.onJoinedGrpDeleted);
-IMSDK.on("OnGrpInfoChanged", groupStore.onGrpInfoChanged);
-IMSDK.on("OnGrpDismissed", groupStore.onGrpDismissed);
-IMSDK.on("OnGrpReqAdded", groupStore.onGrpReqAdded);
-IMSDK.on("OnGrpMemberAdded", groupStore.onGrpMemberAdded);
-IMSDK.on("OnGrpMemberDeleted", groupStore.onGrpMemberDeleted);
-IMSDK.on("OnGrpMemberInfoChanged", groupStore.onGrpMemberInfoChanged);
+IMSDK.on(
+  CbEvents.OnTotalUnreadMsgCountChanged,
+  conversationStore.onTotalUnreadMsgCountChanged,
+);
+IMSDK.on(CbEvents.OnFriendAdded, friendStore.onFriendAdded);
+IMSDK.on(CbEvents.OnFriendDeleted, friendStore.onFriendDeleted);
+IMSDK.on(CbEvents.OnFriendInfoChanged, friendStore.onFriendInfoChanged);
+IMSDK.on(CbEvents.OnFriendReqAdded, friendStore.onFriendReqAdded);
+IMSDK.on(CbEvents.OnBlackAdded, friendStore.onBlackAdded);
+IMSDK.on(CbEvents.OnBlackDeleted, friendStore.onBlackDeleted);
+IMSDK.on(CbEvents.OnJoinedGrpAdded, groupStore.onJoinedGrpAdded);
+IMSDK.on(CbEvents.OnJoinedGrpDeleted, groupStore.onJoinedGrpDeleted);
+IMSDK.on(CbEvents.OnGrpInfoChanged, groupStore.onGrpInfoChanged);
+IMSDK.on(CbEvents.OnGrpDismissed, groupStore.onGrpDismissed);
+IMSDK.on(CbEvents.OnGrpReqAdded, groupStore.onGrpReqAdded);
+IMSDK.on(CbEvents.OnGrpMemberAdded, groupStore.onGrpMemberAdded);
+IMSDK.on(CbEvents.OnGrpMemberDeleted, groupStore.onGrpMemberDeleted);
+IMSDK.on(CbEvents.OnGrpMemberInfoChanged, groupStore.onGrpMemberInfoChanged);
 
 friendStore.init();
 conversationStore.init();
 
 onUnmounted(() => {
-  IMSDK.off("OnConnecting", onConnecting);
-  IMSDK.off("OnConnectSuccess", onConnectSuccess);
-  IMSDK.off("OnKickedOffline", onKickedOffline);
-  IMSDK.off("OnUserTokenExpired", onUserTokenExpired);
-  IMSDK.off("OnNewConversation", conversationStore.onNewConversation);
-  IMSDK.off("OnConversationChanged", conversationStore.onConversationChanged);
+  IMSDK.off(CbEvents.OnConnecting, onConnecting);
+  IMSDK.off(CbEvents.OnConnectSuccess, onConnectSuccess);
+  IMSDK.off(CbEvents.OnKickedOffline, onKickedOffline);
+  IMSDK.off(CbEvents.OnUserTokenExpired, onUserTokenExpired);
+  IMSDK.off(CbEvents.OnNewConversation, conversationStore.onNewConversation);
   IMSDK.off(
-    "OnTotalUnreadMsgCountChanged",
-    conversationStore.onTotalUnreadMsgCountChanged
+    CbEvents.OnConversationChanged,
+    conversationStore.onConversationChanged,
   );
-  IMSDK.off("OnFriendAdded", friendStore.onFriendAdded);
-  IMSDK.off("OnFriendDeleted", friendStore.onFriendDeleted);
-  IMSDK.off("OnFriendInfoChanged", friendStore.onFriendInfoChanged);
-  IMSDK.off("OnFriendReqAdded", friendStore.onFriendReqAdded);
-  IMSDK.off("OnBlackAdded", friendStore.onBlackAdded);
-  IMSDK.off("OnBlackDeleted", friendStore.onBlackDeleted);
-  IMSDK.off("OnJoinedGrpAdded", groupStore.onJoinedGrpAdded);
-  IMSDK.off("OnJoinedGrpDeleted", groupStore.onJoinedGrpDeleted);
-  IMSDK.off("OnGrpInfoChanged", groupStore.onGrpInfoChanged);
-  IMSDK.off("OnGrpDismissed", groupStore.onGrpDismissed);
-  IMSDK.off("OnGrpReqAdded", groupStore.onGrpReqAdded);
-  IMSDK.off("OnGrpMemberAdded", groupStore.onGrpMemberAdded);
-  IMSDK.off("OnGrpMemberDeleted", groupStore.onGrpMemberDeleted);
-  IMSDK.off("OnGrpMemberInfoChanged", groupStore.onGrpMemberInfoChanged);
+  IMSDK.off(
+    CbEvents.OnTotalUnreadMsgCountChanged,
+    conversationStore.onTotalUnreadMsgCountChanged,
+  );
+  IMSDK.off(CbEvents.OnFriendAdded, friendStore.onFriendAdded);
+  IMSDK.off(CbEvents.OnFriendDeleted, friendStore.onFriendDeleted);
+  IMSDK.off(CbEvents.OnFriendInfoChanged, friendStore.onFriendInfoChanged);
+  IMSDK.off(CbEvents.OnFriendReqAdded, friendStore.onFriendReqAdded);
+  IMSDK.off(CbEvents.OnBlackAdded, friendStore.onBlackAdded);
+  IMSDK.off(CbEvents.OnBlackDeleted, friendStore.onBlackDeleted);
+  IMSDK.off(CbEvents.OnJoinedGrpAdded, groupStore.onJoinedGrpAdded);
+  IMSDK.off(CbEvents.OnJoinedGrpDeleted, groupStore.onJoinedGrpDeleted);
+  IMSDK.off(CbEvents.OnGrpInfoChanged, groupStore.onGrpInfoChanged);
+  IMSDK.off(CbEvents.OnGrpDismissed, groupStore.onGrpDismissed);
+  IMSDK.off(CbEvents.OnGrpReqAdded, groupStore.onGrpReqAdded);
+  IMSDK.off(CbEvents.OnGrpMemberAdded, groupStore.onGrpMemberAdded);
+  IMSDK.off(CbEvents.OnGrpMemberDeleted, groupStore.onGrpMemberDeleted);
+  IMSDK.off(CbEvents.OnGrpMemberInfoChanged, groupStore.onGrpMemberInfoChanged);
 
   conversationStore.$reset();
   friendStore.$reset();
@@ -159,6 +175,23 @@ onUnmounted(() => {
   .mian {
     flex: 1;
     overflow: hidden;
+  }
+  .sync {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 200px;
+    background-color: rgba(0, 0, 0, 0.05);
+
+    .sync-loading {
+      width: 60px;
+      height: 60px;
+    }
+    .text {
+      color: var(--el-color-primary);
+    }
   }
   .logging {
     position: absolute;
