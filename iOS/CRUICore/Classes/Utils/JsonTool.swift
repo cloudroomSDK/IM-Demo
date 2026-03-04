@@ -32,8 +32,8 @@ public struct JsonTool {
                 fatalError("check your data is encodable from utf8!")
             }
             
-            print("输出参数：\(json)")
-            IMController.writeLog(content: "输出参数：\(json)")
+            print("输入参数：\(json)")
+            IMController.writeLog(content: "输入参数：\(json)")
             return json
         } catch let err {
             return ""

@@ -22,7 +22,7 @@ protocol ChatController {
     func getGroupInfo() -> GroupInfo?
     func getGroupMembers(completion: @escaping ([GroupMemberInfo]) -> Void)
     func getGrpInfo(requirePull: Bool, completion: @escaping (GroupInfo) -> Void)
-    func getOtherInfo(completion: @escaping (FullUserInfo) -> Void)
+    func getOtherInfo(completion: @escaping (FriendInfo) -> Void)
     func getSelfInfo() -> UserInfo?
     func getMessageInfo(ids: [String]) -> [MessageInfo]
     

@@ -8,7 +8,7 @@ import UIKit
 import Kingfisher
 import SnapKit
 import CRUICore
-import CloudroomVideoSDK_IOS
+import RTCSDK_IOS
 
 public typealias UserInfoHandler = () -> [CallingUserInfo]
 
@@ -39,7 +39,7 @@ public class CallingBaseViewController: CallingBaseController {
     var members = [UsrVideoId]()
     
     internal let disposeBag = DisposeBag()
-    internal let room: CloudroomVideoMeeting = CloudroomVideoMeeting.shareInstance()!
+    internal let room: RTCMeeting = RTCMeeting.shareInstance()
     internal var funcBttonsView: UIStackView?
     internal let sdk = DispatchQueue(label: "com.calling.rtc.queue", qos: .userInitiated)
     internal let ringToneQueue: OperationQueue = {
@@ -56,8 +56,8 @@ public class CallingBaseViewController: CallingBaseController {
     
     public var linkingDuration: Int = 0 // 通话时长
 
-    public override func connectRoom(meetID: String) {
-        connectRoom(ID: meetID)
+    public override func connectRoom(meetID: String, nickname: String) {
+        connectRoom(ID: meetID, nickname: nickname)
     }
 
     public override func dismiss() {
@@ -225,7 +225,7 @@ public class CallingBaseViewController: CallingBaseController {
     
     private func setupVideoView() -> CLCameraView {
         let t = CLCameraView()
-        t.keepAspectRatio = false
+        t.scaleType = .aspectFill
         
         return t
     }
@@ -504,7 +504,7 @@ public class CallingBaseViewController: CallingBaseController {
     internal func setupVideoInfos() {
         videoInfos.removeAll()
         let userId = room.getMyUserID()
-        guard let allVideoInfo = room.getAllVideoInfo(userId) else {
+        guard let allVideoInfo = room.getAllVideoInfo(userId) as? [UsrVideoInfo] else {
             return
         }
         
@@ -676,7 +676,7 @@ public class CallingBaseViewController: CallingBaseController {
         }
     }
     
-    private func connectRoom(ID: String) {
+    private func connectRoom(ID: String, nickname: String) {
         showLinkingView()
         stopSounds()
         
@@ -686,7 +686,7 @@ public class CallingBaseViewController: CallingBaseController {
             return
         }
         
-        room.enter(meetIDInt)
+        room.enter(meetIDInt, nickname: nickname)
     }
         
     internal func insertLinkingViewAbove(aboveView: UIView) {
@@ -739,26 +739,29 @@ public class CallingBaseViewController: CallingBaseController {
     internal func onTapAccepted() {}
 }
 
-extension CallingBaseViewController: CloudroomVideoMeetingCallBack {
+extension CallingBaseViewController: RTCMeetingCallBack {
     public func enterMeetingRslt(_ code: CRVIDEOSDK_ERR_DEF) {
         print("\(#function) code \(code)")
         
         showLinkingView(show: false)
         ProgressHUD.dismiss()
         
-        if code == CRVIDEOSDK_NOERR {
-            if !isSignal {
-                onlineFuncButtons()
-            }
-            setupVideoInfos()
-            publishMicrophone()
-            publishVideo()
-            onlineTopMoreFuncButtons()
-            //toggleSpeakerphoneEnabled()
-            onlineFuncButtons()
-            linkingTimer()
-            updateVideoWall()
+        guard code == CRVIDEOSDK_NOERR else {
+            dismiss()
+            return
         }
+
+        if !isSignal {
+            onlineFuncButtons()
+        }
+        setupVideoInfos()
+        publishMicrophone()
+        publishVideo()
+        onlineTopMoreFuncButtons()
+        //toggleSpeakerphoneEnabled()
+        onlineFuncButtons()
+        linkingTimer()
+        updateVideoWall()
     }
     
     func updateVideoWall() {

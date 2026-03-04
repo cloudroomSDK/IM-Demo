@@ -33,7 +33,7 @@ class UserProfileViewModel {
             IMController.shared.getUserInfo(uids: [userId]) { [weak self] users in
                 var user: UserInfo!
                 
-                if let u = users?.first {
+                if let u = users.first {
                     user = UserInfo(userID: u.userID!,
                                     nickname: u.nickname,
                                     faceURL: u.faceURL)

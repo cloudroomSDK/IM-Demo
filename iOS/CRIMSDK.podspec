@@ -6,10 +6,10 @@ Pod::Spec.new do |s|
   iOS版本IM SDK 可以轻松打造具备聊天、社交功能的app。
                        DESC
 
-  s.homepage         = 'https://github.com/cloudroomSDK/CRIM-SDK-iOS.git'
+  s.homepage         = 'https://github.com/crproj/CRIM-SDK-iOS.git'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'CRIMSDKCore' => 'https://github.com/cloudroomSDK/CRIM-SDK-iOS.git' }
-  s.source           = { :git => 'https://github.com/cloudroomSDK/CRIM-SDK-iOS.git', :tag => s.version.to_s }
+  s.author           = { 'CRIMSDKCore' => 'https://github.com/crproj/CRIM-SDK-iOS.git' }
+  s.source           = { :git => 'https://github.com/crproj/CRIM-SDK-iOS.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '11.0'
     

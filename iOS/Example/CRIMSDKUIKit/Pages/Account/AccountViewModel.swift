@@ -5,6 +5,13 @@ import CRUICore
 import RxSwift
 import GTSDK
 
+class AppConfig {
+    static var defaultServerAddr: String {
+        return Bundle.main.infoDictionary?["CRIMDefaultServer"] as? String
+            ?? "http://192.168.0.25:8018"
+    }
+}
+
 // 注册/忘记密码
 public enum UsedFor: Int {
     case register = 1
@@ -43,7 +50,7 @@ class CustomSessionManagerWrapper {
 open class AccountViewModel {
     
     // 业务服务器地址
-    static var API_BASE_URL = UserDefaults.standard.string(forKey: bussinessSeverAddrKey)!
+    static var API_BASE_URL = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
     static var ADMIN_BASE_URL = UserDefaults.standard.string(forKey: adminSeverAddrKey)!
     // 实际开发，抽离网络部分
     static let IMPreLoginAccountKey = "IMPreLoginAccountKey"
@@ -116,12 +123,6 @@ open class AccountViewModel {
         }
     }
     
-    static func ifQuerySvrtime() {
-        CRIMApi.querySvrDiffTimeHandler = { (completion: @escaping (Int) -> Void) in
-            completion(AccountViewModel.svrDiffTime)
-        }
-    }
-    
     static func loginDemo(phone: String? = nil, account: String? = nil, psw: String? = nil, verificationCode: String? = nil, areaCode: String, completionHandler: @escaping CompletionHandler) {
         let body = JsonTool.toJson(fromObject: Request(phoneNumber: phone,
                                                        account: account,
@@ -144,15 +145,18 @@ open class AccountViewModel {
                         savePreLoginAccount(phone)
                         loginIM(uid: res.data!.userID, sdkServer: res.data!.sdkSvr, sdkAuthType:res.data!.sdkAuthType, sdkToken: res.data!.sdkToken, sdkAppId: res.data!.sdkAppId, sdkSecret: res.data!.sdkSecret, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
                     } else {
+                        print("输出错误：\(res.errCode) \(String(describing: res.errMsg))")
                         IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
                         completionHandler(res.errCode, res.errMsg)
                     }
                 } else {
                     let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    print("输出错误：\(err?.errCode ?? -1) \(String(describing: err?.errMsg))")
                     IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
                     completionHandler(err?.errCode ?? -1, err?.errMsg)
                 }
             case .failure(let err):
+                print("输出错误：failure \(err.localizedDescription)")
                 IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
                 completionHandler(-1, err.localizedDescription)
             }
@@ -182,15 +186,18 @@ open class AccountViewModel {
                         savePreLoginAccount(phone)
                         loginIM(uid: res.data!.userID, sdkServer: res.data!.sdkSvr, sdkAuthType: res.data!.sdkAuthType, sdkToken: res.data!.sdkToken, sdkAppId: res.data!.sdkAppId, sdkSecret: res.data!.sdkSecret, imToken: res.data!.imToken, chatToken: res.data!.chatToken, completionHandler: completionHandler)
                     } else {
+                        print("输出错误：\(res.errCode) \(String(describing: res.errMsg))")
                         IMController.writeLog(content: "输出错误：\(String(describing: res.errMsg))")
                         completionHandler(res.errCode, res.errMsg)
                     }
                 } else {
                     let err = JsonTool.fromJson(result, toClass: DemoError.self)
+                    print("输出错误：\(err?.errCode ?? -1) \(String(describing: err?.errMsg))")
                     IMController.writeLog(content: "输出错误：\(String(describing: err?.errMsg))")
                     completionHandler(err?.errCode ?? -1, err?.errMsg)
                 }
             case .failure(let err):
+                print("输出错误：failure \(err.localizedDescription)")
                 IMController.writeLog(content: "输出错误：failure \(err.localizedDescription)")
                 completionHandler(-1, err.localizedDescription)
             }
@@ -571,15 +578,19 @@ open class AccountViewModel {
 
             IMController.shared.login(uid: uid, token: sdkToken) { resp in
                 print("login onSuccess \(String(describing: resp))")
-                getSvrTime()
                 ifQueryFriends()
                 ifQueryUserInfo()
                 ifQeuryConfig()
-                ifQuerySvrtime()
                 saveUser(uid: uid, imToken: imToken, chatToken: chatToken)
                 GeTuiSdk.bindAlias(uid, andSequenceNum: "crim") // 绑定别名
                 completionHandler(0, nil)
+                let svrTime = IMController.shared.getCurrentSvrTime()
+                print("getCurrentSvrTime: \(svrTime)")
             } onFail: { (code: Int, msg: String?) in
+                IMController.shared.logout(onSuccess: { _ in
+                    
+                })
+                
                 let reason = "IMSDK login onFail: code \(code), reason \(String(describing: msg))"
                 print(reason)
                 completionHandler(code, reason)
@@ -594,14 +605,14 @@ open class AccountViewModel {
             
             IMController.shared.login(uid: uid, appId: sdkAppId, appSecret: secret) { resp in
                 print("login onSuccess \(String(describing: resp))")
-                getSvrTime()
                 ifQueryFriends()
                 ifQueryUserInfo()
                 ifQeuryConfig()
-                ifQuerySvrtime()
                 saveUser(uid: uid, imToken: imToken, chatToken: chatToken)
                 GeTuiSdk.bindAlias(uid, andSequenceNum: "crim") // 绑定别名
                 completionHandler(0, nil)
+                let svrTime = IMController.shared.getCurrentSvrTime()
+                print("getCurrentSvrTime: \(svrTime)")
             } onFail: { (code: Int, msg: String?) in
                 let reason = "IMSDK login onFail: code \(code), reason \(String(describing: msg))"
                 print(reason)
@@ -620,7 +631,7 @@ open class AccountViewModel {
         UserDefaults.standard.set(chatToken, forKey: bussinessTokenKey)
         UserDefaults.standard.synchronize()
         
-        IMController.shared.setup(businessServer: UserDefaults.standard.string(forKey: bussinessSeverAddrKey)!, businessToken: chatToken)
+        IMController.shared.setup(businessServer: API_BASE_URL, businessToken: chatToken)
     }
     
     static func savePreLoginAccount(_ account: String?) {
@@ -648,29 +659,6 @@ open class AccountViewModel {
                           sdkSecret: "")
     }
     
-    static func getSvrTime() {
-        let req = try! URLRequest(url: API_BASE_URL + GetSvrTimeAPI, method: .get)
-        
-        CRIMSessionManagerWrapper.shared.sessionManager.request(req).responseString(encoding: .utf8) { (response: DataResponse<String>) in
-            switch response.result {
-            case .success(let result):
-                if let res = JsonTool.fromJson(result, toClass: Response<SvrTimeData>.self) {
-                    if res.errCode == 0 {
-                        let svrTimeData = res.data
-                        let current = Int(Date().timeIntervalSince1970)
-                        let svrTime = svrTimeData?.svrTime ?? current*1000
-                        svrDiffTime = svrTime/1000 - current
-                        print("svrDiffTime:\(svrDiffTime)")
-                        
-                    } else {
-                    }
-                } else {}
-            case .failure(_):
-                break
-            }
-        }
-    }
-    
     // 获取配置
     static func getClientConfig() {
         let body = try! JSONSerialization.data(withJSONObject: ["operationID": UUID().uuidString], options: .prettyPrinted)
@@ -695,7 +683,6 @@ open class AccountViewModel {
     }
     // 配置
     static var clientConfig: ClientConfigData?
-    static var svrDiffTime: Int = 0
 }
 
 

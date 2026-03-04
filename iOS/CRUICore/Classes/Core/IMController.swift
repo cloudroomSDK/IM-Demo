@@ -8,6 +8,7 @@ import RxSwift
 import UIKit
 import AudioToolbox
 
+
 // -1 链接失败 0 链接中 1 链接成功 2 同步开始 3 同步结束 4 同步错误
 public enum ConnectionStatus: Int {
     case connectFailure = 0
@@ -17,6 +18,7 @@ public enum ConnectionStatus: Int {
     case syncComplete = 4
     case syncFailure = 5
     case kickedOffline = 6
+    case syncProgress = 7
     
     public var title: String {
         switch self {
@@ -26,7 +28,7 @@ public enum ConnectionStatus: Int {
             return "连接中".innerLocalized()
         case .connected:
             return "连接成功".innerLocalized()
-        case .syncStart:
+        case .syncStart, .syncProgress:
             return "同步开始".innerLocalized()
         case .syncComplete:
             return "同步完成".innerLocalized()
@@ -105,7 +107,11 @@ public class IMController: NSObject {
     // 本地发出的消息，例如转发，推荐名片
     public let syncLocalMsgSentSubject: PublishSubject<MessageInfo> = .init()
     // 连接状态
-    public let connectionRelay: BehaviorRelay<ConnectionStatus> = .init(value: .connecting)
+    public let connectionRelay: BehaviorRelay<(status: ConnectionStatus, reInstall: Bool? , progress: Int?)> = .init(value:( status: .connecting, reInstall: nil, progress: nil))
+    
+    public let userStatusSubject: BehaviorSubject<UserStatusInfo?> = .init(value: nil)
+
+    public let inputStatusChangedSubject: BehaviorSubject<InputStatusChangedData?> = .init(value: nil)
     
     public var userID: String = ""
     public var token: String = ""
@@ -134,26 +140,25 @@ public class IMController: NSObject {
         var config = CRIMInitConfig()
         config.sdkServer = sdkAPIAdrr
         config.objectStorage = sdkOS
-        config.logLevel = 0
+        config.logLevel = 1
         config.skipVerifyCert = skipVerifyCert
         
         manager.initSDK(with: config)
         Self.shared.imManager = manager
         
         CRIMManager.callbacker.setConnListenerWithonConnecting { [weak self] in
-            self?.connectionRelay.accept(.connecting)
+            self?.connectionRelay.accept((status: .connecting, reInstall: nil, progress: nil))
         } onConnectFailure: { [weak self] code, msg in
             print("onConnectFailed code:\(code), msg:\(String(describing: msg))")
-            self?.connectionRelay.accept(.connectFailure)
+            self?.connectionRelay.accept((status: .connectFailure, reInstall: nil, progress: nil))
         } onConnectSuccess: { [weak self] in
             print("onConnectSuccess")
-            self?.connectionRelay.accept(.connected)
+            self?.connectionRelay.accept((status: .connected, reInstall: nil, progress: nil))
         } onKickedOffline: { [weak self] in
             print("onKickedOffline")
             onKickedOffline?()
-            self?.connectionRelay.accept(.kickedOffline)
+            self?.connectionRelay.accept((status: .kickedOffline, reInstall: nil, progress: nil))
         } onUserTokenExpired: {
-            onKickedOffline?()
             print("onUserTokenExpired")
         }
         
@@ -162,7 +167,6 @@ public class IMController: NSObject {
         CRIMSDK.CRIMManager.callbacker.addGroupListener(listener: self)
         CRIMSDK.CRIMManager.callbacker.addConversationListener(listener: self)
         CRIMSDK.CRIMManager.callbacker.addAdvancedMsgListener(listener: self)
-        CRIMSDK.CRIMManager.callbacker.addSignalingListener(listener: self)
         
         UINavigationBar.appearance().isTranslucent = true
         UINavigationBar.appearance().isOpaque = true
@@ -205,6 +209,10 @@ public class IMController: NSObject {
         } onFailure: { (code: Int, msg: String?) in
             
         }
+    }
+    
+    public func getCurrentSvrTime() -> Int64 {
+        return Self.shared.imManager.getCurrentSvrTime() // ms
     }
     
     public func login(uid: String, appId:String, appSecret: String, onSuccess: @escaping (String?) -> Void, onFail: @escaping (Int, String?) -> Void) {
@@ -344,10 +352,10 @@ extension IMController {
     /// 根据id查找用户
     /// - Parameter ids: 用户id
     /// - Returns: 第一个用户id
-    public func getFriendsBy(id: String) -> Observable<FullUserInfo?> {
-        return Observable<FullUserInfo?>.create { observer in
-            Self.shared.imManager.getSpecifiedFriendsInfo([id]) { users in
-                observer.onNext(users?.first?.toFullUserInfo())
+    public func getFriendsBy(id: String) -> Observable<FriendInfo?> {
+        return Observable<FriendInfo?>.create { observer in
+            Self.shared.imManager.getSpecifiedFriendsInfo([id], filterBlack: false) { users in
+                observer.onNext(users?.first?.toFriendInfo())
                 observer.onCompleted()
             } onFailure: { (code: Int, msg: String?) in
                 observer.onError(NetError(code: code, message: msg))
@@ -356,9 +364,9 @@ extension IMController {
         }
     }
     
-    public func getFriendsInfo(userIDs: [String], completion: @escaping CallBack.FullUserInfosReturnVoid) {
-        Self.shared.imManager.getSpecifiedFriendsInfo(userIDs) { users in
-            let r = users?.compactMap({ $0.toFullUserInfo() })
+    public func getFriendsInfo(userIDs: [String], completion: @escaping CallBack.FriendsInfosReturnVoid) {
+        Self.shared.imManager.getSpecifiedFriendsInfo(userIDs, filterBlack: false) { users in
+            let r = users?.compactMap({ $0.toFriendInfo() })
             completion(r ?? [])
         }
     }
@@ -366,11 +374,16 @@ extension IMController {
     /// 获取好友申请列表
     /// - Parameter completion: 申请数组
     public func getFriendReqList(completion: @escaping ([FriendApplication]) -> Void) {
-        Self.shared.imManager.getFriendReqListAsRecipientWith(onSuccess: { (applications: [CRIMFriendReq]?) in
+        let req = GetFriendReqListAsRecipientReq()
+        req.offset = 0
+        req.count = 100
+        Self.shared.imManager.getFriendReqList(asRecipient: req) { (applications: [CRIMFriendReq]?) in
             let arr = applications ?? []
             let ret = arr.compactMap { $0.toFriendApplication() }
             completion(ret)
-        })
+        } onFailure: { code, msg in
+            print("获取好友申请列表错误,code:\(code), msg: \(msg)")
+        }
     }
     
     /// 接受好友申请
@@ -398,20 +411,28 @@ extension IMController {
     }
     
     public func getGrpReqList(completion: @escaping ([GroupApplicationInfo]) -> Void) {
-        Self.shared.imManager.getGrpReqListAsRecipientWith(onSuccess: { (applications: [CRIMGroupReqInfo]?) in
+        let req = GetGroupReqListAsRecipientReq()
+        req.offset = 0
+        req.count = 100
+        Self.shared.imManager.getGrpReqList(asRecipient: req) { (applications: [CRIMGroupReqInfo]?) in
             let arr = applications ?? []
             let ret = arr.compactMap { $0.toGroupApplicationInfo() }
             completion(ret)
-        })
+        } onFailure: { code, msg in
+            print("获取群申请,code:\(code), msg: \(msg)")
+        }
     }
     
-    public func getFriendList(completion: @escaping ([FullUserInfo]) -> Void) {
-        Self.shared.imManager.getFriendListWith(onSuccess: { friends in
-            let arr = friends ?? []
-            let ret = arr.compactMap { $0.toFullUserInfo() }
-            completion(ret)
-        })
-    }
+    public func getFriendList(offset: Int = 0, count: Int = 40, filterBlack: Bool = true, completion: @escaping ([FriendInfo]) -> Void) {
+            Self.shared.imManager.getFriendListPage(withOffset: offset, count: count, filterBlack: filterBlack) { friends in
+                let arr = friends ?? []
+                let ret = arr.compactMap { $0.toFriendInfo() }
+                completion(ret)
+            } onFailure: { code, msg in
+                print("\(#function) throw error: code: \(code), msg: \(msg)")
+                completion([])
+            }
+        }
     
     public func acceptGrpReq(groupID: String, fromUserId: String, handleMsg: String? = nil, completion: @escaping (String?) -> Void) {
         
@@ -434,9 +455,9 @@ extension IMController {
     
     public func getGrpMemberList(groupId: String, filter: GroupMemberFilter = .member, offset: Int, count: Int, onSuccess: @escaping CallBack.GroupMembersReturnVoid) {
         Self.shared.imManager.getGrpMemberList(groupId,
-                                                 filter: CRIMGroupMemberFilter(rawValue: filter.rawValue)!,
-                                                 offset: offset,
-                                                 count: count) { (memberInfos: [CRIMGroupMemberInfo]?) in
+                                               filter: CRIMGroupMemberFilter(rawValue: filter.rawValue)!,
+                                               offset: offset,
+                                               count: count) { (memberInfos: [CRIMGroupMemberInfo]?) in
             let members: [GroupMemberInfo] = memberInfos?.compactMap { $0.toGroupMemberInfo() } ?? []
             onSuccess(members)
         }
@@ -590,13 +611,6 @@ extension IMController {
         Self.shared.imManager.getTotalUnreadMsgCountWith(onSuccess: completion, onFailure: nil)
     }
     
-    public func getConversationRecvMsgOpt(conversationIds: [String], completion: (([ConversationNotDisturbInfo]?) -> Void)?) {
-        Self.shared.imManager.getConversationRecvMsgOpt(conversationIds) { (conversationInfos: [CRIMConversationNotDisturbInfo]?) in
-            let arr = conversationInfos?.compactMap { $0.toConversationNotDisturbInfo() }
-            completion?(arr)
-        }
-    }
-    
     public func setConversationRecvMsgOpt(conversationID: String, status: ReceiveMessageOpt, completion: ((String?) -> Void)?) {
         let opt: CRIMReceiveMessageOpt
         switch status {
@@ -652,7 +666,7 @@ extension IMController {
         
         let opts = CRIMGetAdvancedHistoryMessageListParam()
         opts.conversationID = conversationID
-        opts.lastMinSeq = lastMinSeq
+        opts.viewType = .history
         opts.startClientMsgID = startCliendMsgId
         opts.count = count
         
@@ -670,7 +684,7 @@ extension IMController {
                                              completion: @escaping SeqMessagesCallBack) {
         let opts = CRIMGetAdvancedHistoryMessageListParam()
         opts.conversationID = conversationID
-        opts.lastMinSeq = lastMinSeq
+        opts.viewType = .history
         opts.startClientMsgID = startCliendMsgId
         opts.count = count
 
@@ -1031,7 +1045,7 @@ extension IMController {
             print("创建群聊成功")
             onSuccess(groupInfo?.toGroupInfo())
         } onFailure: { code, msg in
-            print("创建群聊成功录失败:\(code), \(msg)")
+            print("创建群聊失败:\(code), \(msg)")
         }
     }
     
@@ -1165,15 +1179,11 @@ extension IMController {
         }
     }
     
-    public func setOneConversationPrivateChat(conversationID: String, isPrivate: Bool, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
+    public func setOneConversationPrivateChat(conversationID: String, isPrivate: Bool, burnDuration: Int, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
         
-        Self.shared.imManager.setConversationPrivateChat(conversationID, isPrivate: isPrivate, onSuccess: onSuccess) { code, msg in
+        Self.shared.imManager.setConversationPrivateChat(conversationID, isPrivate: isPrivate, duration: burnDuration, onSuccess: onSuccess) { code, msg in
             print("设置阅后即焚失败:\(code), .msg:\(msg)")
         }
-    }
-    
-    public func setBurnDuration(conversationID: String, burnDuration: Int, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
-        Self.shared.imManager.setConversationBurnDuration(conversationID, duration: burnDuration, onSuccess: onSuccess)
     }
     
     public func hideConversation(conversationID: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid) {
@@ -1195,9 +1205,9 @@ extension IMController {
         }
     }
     
-    public func getUserInfo(uids: [String], onSuccess: @escaping CallBack.UsersInfoOptionalReturnVoid) {
+    public func getUserInfo(uids: [String], groupID: String? = nil, onSuccess: @escaping CallBack.PublicUserInfosReturnVoid) {
         Self.shared.imManager.getUsersInfo(uids) { userInfos in
-            let users = userInfos?.compactMap { $0.toUserInfo() } ?? []
+            let users = userInfos?.compactMap { $0.toPublicUserInfo() } ?? []
             onSuccess(users)
         }
     }
@@ -1220,122 +1230,6 @@ extension IMController {
     
     public func getLoginUserID() -> String {
         return imManager.getLoginUserID()
-    }
-}
-
-// MARK: - Signaling方法
-extension IMController {
-    
-    public func signalingInvite(inviteeUserID: String) {
-        let invitation = CRIMInvitationInfo()
-        invitation.inviteeUserIDList = [inviteeUserID]
-        invitation.mediaType = "audio"
-        invitation.roomID = "12345678"
-        
-        let push = OfflinePushInfo()
-        push.title = "语音呼叫"
-        push.desc = "你收到了一条语音通话邀请"
-        push.iOSBadgeCount = true
-        push.iOSPushSound = "default"
-        
-        let offlinePush = push.toCRIMOfflinePushInfo()
-        let message = CRIMMessageInfo.createSignalingInvite(invitation)
-        
-        Self.shared.imManager.sendMsg(message, recvID: inviteeUserID, groupID: nil, offlinePushInfo: offlinePush) { msg in
-            print("msg:\(msg)")
-        } onProgress: { _ in
-            
-        } onFailure: { code, msg in
-            print("code:\(code), msg:\(msg)")
-        }
-    }
-    
-    public func signalingInviteInGroup(inviteeUserIDList: [String], groupID: String) {
-        let invitation = CRIMInvitationInfo()
-        invitation.inviteeUserIDList = inviteeUserIDList
-        invitation.mediaType = "audio"
-        invitation.roomID = "12345678"
-        
-        let push = OfflinePushInfo()
-        push.title = "语音呼叫"
-        push.desc = "你收到了一条语音通话邀请"
-        push.iOSBadgeCount = true
-        push.iOSPushSound = "default"
-        
-        let offlinePush = push.toCRIMOfflinePushInfo()
-        let message = CRIMMessageInfo.createSignalingInvite(invitation)
-        
-        Self.shared.imManager.sendMsg(message, recvID: nil, groupID: groupID, offlinePushInfo: offlinePush) { msg in
-            print("msg:\(msg)")
-        } onProgress: { _ in
-            
-        } onFailure: { code, msg in
-            print("code:\(code), msg:\(msg)")
-        }
-    }
-    
-    public func signalingAccept(invitation: String) {
-        let info = CRIMSignalingInfo.mj_object(withKeyValues: invitation)
-        guard let info else { return }
-        
-//        let offlinePush = info.offlinePushInfo
-//        let message = CRIMMessageInfo.createSignalingAccept(info)
-//        
-//        Self.shared.imManager.sendMsg(message, recvID: info.invitation.inviteeUserIDList.first, groupID: info.invitation.groupID, offlinePushInfo: offlinePush) { msg in
-//            print("msg:\(msg)")
-//        } onProgress: { _ in
-//            
-//        } onFailure: { code, msg in
-//            print("code:\(code), msg:\(msg)")
-//        }
-    }
-    
-    public func signalingReject(invitation: String) {
-        let info = CRIMSignalingInfo.mj_object(withKeyValues: invitation)
-        guard let info else { return }
-        
-//        let offlinePush = info.offlinePushInfo
-//        let message = CRIMMessageInfo.createSignalingAccept(info)
-//        
-//        Self.shared.imManager.sendMsg(message, recvID: info.invitation.inviteeUserIDList.first, groupID: info.invitation.groupID, offlinePushInfo: offlinePush) { msg in
-//            print("msg:\(msg)")
-//        } onProgress: { _ in
-//            
-//        } onFailure: { code, msg in
-//            print("code:\(code), msg:\(msg)")
-//        }
-    }
-    
-    public func signalingCancel(invitation: String) {
-        let info = CRIMSignalingInfo.mj_object(withKeyValues: invitation)
-        guard let info else { return }
-        
-//        let offlinePush = info.offlinePushInfo
-//        let message = CRIMMessageInfo.createSignalingAccept(info)
-//        
-//        Self.shared.imManager.sendMsg(message, recvID: info.invitation.inviteeUserIDList.first, groupID: info.invitation.groupID, offlinePushInfo: offlinePush) { msg in
-//            print("msg:\(msg)")
-//        } onProgress: { _ in
-//            
-//        } onFailure: { code, msg in
-//            print("code:\(code), msg:\(msg)")
-//        }
-    }
-    
-    public func signalingHungUp(invitation: String) {
-        let info = CRIMSignalingInfo.mj_object(withKeyValues: invitation)
-        guard let info else { return }
-        
-//        let offlinePush = info.offlinePushInfo
-//        let message = CRIMMessageInfo.createSignalingAccept(info)
-//        
-//        Self.shared.imManager.sendMsg(message, recvID: info.invitation.inviteeUserIDList.first, groupID: info.invitation.groupID, offlinePushInfo: offlinePush) { msg in
-//            print("msg:\(msg)")
-//        } onProgress: { _ in
-//            
-//        } onFailure: { code, msg in
-//            print("code:\(code), msg:\(msg)")
-//        }
     }
 }
 
@@ -1401,26 +1295,33 @@ extension IMController: CRIMConversationListener {
         conversationChangedSubject.onNext(conversations)
     }
     
-    public func onSyncServerStart() {
-        connectionRelay.accept(.syncStart)
+    public func onSyncServerStart(_ reInstall: Bool) {
+        connectionRelay.accept((status: .syncStart, reInstall: reInstall, progress: nil))
     }
     
-    public func onSyncServerFinish() {
-        connectionRelay.accept(.syncComplete)
+    public func onSyncServerFinish(_ reInstall: Bool) {
+        connectionRelay.accept((status: .syncComplete, reInstall: reInstall, progress: nil))
     }
     
-    public func onSyncServerFailed() {
-        connectionRelay.accept(.syncFailure)
+    public func onSyncServerFailed(_ reInstall: Bool) {
+        connectionRelay.accept((status: .syncFailure, reInstall: reInstall, progress: nil))
+    }
+    
+    public func onSyncServerProgress(_ progress: Int) {
+        connectionRelay.accept((status: .syncProgress, reInstall: nil, progress: progress))
     }
     
     public func onNewConversation(_ conversations: [CRIMConversationInfo]) {
-        
         let arr = conversations.compactMap { $0.toConversationInfo() }
         newConversationSubject.onNext(arr)
     }
     
     public func onTotalUnreadMsgCountChanged(_ totalUnreadCount: Int) {
         totalUnreadSubject.onNext(totalUnreadCount)
+    }
+    
+    public func onConversationUserInputStatusChanged(_ inputStatusChangedData: CRIMInputStatusChangedData) {
+        inputStatusChangedSubject.onNext(inputStatusChangedData.toInputStatusChangedData())
     }
 }
 
@@ -1460,38 +1361,6 @@ extension IMController: CRIMAdvancedMsgListener {
     
     public func onRecvMsgRevoked(_ messageRevoked: CRIMMessageRevokedInfo) {
         msgRevokeReceived.onNext(messageRevoked.toMessageRevoked())
-    }
-}
-
-// MARK: CRIMSignalingListener
-
-extension IMController: CRIMSignalingListener {
-    public func onReceiveNewInvitation(_ signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onInviteeAccepted(_ signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onInviteeRejected(_ signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onInvitationCancelled(_ signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onInviteeRejected(byOtherDevice signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onInviteeAccepted(byOtherDevice signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
-    }
-    
-    public func onHunguUp(_ signalingInfo: CRIMSignalingInfo) {
-        print("signaling... \(#function):" + "\(signalingInfo.mj_JSONString())")
     }
 }
 
@@ -1621,7 +1490,7 @@ open class MessageInfo: Encodable {
     public var handleMsg: String?
     public var msgFrom: MessageLevel = .user
     public var contentType: MessageContentType = .unknown
-    public var platformID: Int = 0
+    public var senderPlatformID: Int = 0
     public var senderNickname: String?
     public var senderFaceUrl: String?
     public var groupID: String?
@@ -1691,6 +1560,13 @@ extension MessageInfo {
         assert(contentType == .revoke)
         let detail = notificationElem?.detail ?? content
         return JsonTool.fromJson(detail!, toClass: MessageRevoked.self) ?? MessageRevoked()
+    }
+    
+    public func shouldFilterCallMessage() -> Bool {
+        guard contentType == .custom else { return false }
+        guard let customElem = self.customElem,
+              let customType = customElem.type else { return false }
+        return customType == .invite || customType == .accept
     }
 }
 
@@ -1766,6 +1642,22 @@ extension GroupMemberInfo {
     public var isOwnerOrAdmin: Bool {
         return roleLevel == .owner || roleLevel == .admin
     }
+}
+
+public class UserStatusInfo: Decodable {
+    public var userID: String = ""
+    public var status: Int = 0
+    public var platformIDs: [Int]?
+    
+    public init() {
+        
+    }
+}
+
+public class InputStatusChangedData: Decodable {
+    public var conversationID: String = ""
+    public var userID: String = ""
+    public var platformIDs: [Int]?
 }
 
 public enum MessageContentType: Int, Codable {
@@ -1844,10 +1736,11 @@ public enum MessageContentType: Int, Codable {
     case privateMessage = 1701
     
     case revoke = 2101
-    /// 单聊已读回执
-    case hasReadReceipt = 2150
     /// 群聊消息回执
     case groupHasReadReceipt = 2155
+    
+    /// 已读回执
+    case hasReadReceipt = 2200
     
     public var abstruct: String? {
         switch self {
@@ -1899,6 +1792,20 @@ public enum ConversationType: Int, Codable {
     case notification
 }
 
+public enum GroupAtType: Int, Codable {
+    case normal = 0
+    case atMe = 1
+    case atAll = 2
+    case atAllAtMe = 3
+    case announcement = 4
+}
+
+public enum GroupType: Int, Codable {
+    case normal = 0
+    case `super` = 1
+    case working = 2
+}
+
 public enum GroupStatus: Int, Codable {
     case ok = 0
     case beBan = 1
@@ -1939,10 +1846,15 @@ public class GroupInfo: GroupBaseInfo {
     public var createTime: Int = 0
     public var memberCount: Int = 0
     public var creatorUserID: String?
+    public var groupType: GroupType = .working
     public var status: GroupStatus = .ok
     public var needVerification: GroupVerificationType = .applyNeedVerificationInviteDirectly
     public var lookMemberInfo: Int = 0
     public var applyMemberFriend: Int = 0
+    public var notificationUpdateTime: Int = 0
+    public var notificationUserID: String?
+    public var displayIsRead: Bool = false
+    public var ex: String?
     
     public var isMine: Bool {
         return ownerUserID == IMController.shared.userID
@@ -2324,9 +2236,6 @@ public class FriendInfo: PublicUserInfo {
     public var createTime: Int = 0
     public var addSource: Int = 0
     public var operatorUserID: String?
-    public var phoneNumber: String?
-    public var birth: Int = 0
-    public var email: String?
     public var attachedInfo: String?
     public var ex: String?
     
@@ -2441,8 +2350,11 @@ extension CRIMGroupInfo {
         item.groupName = groupName
         item.status = GroupStatus(rawValue: status.rawValue) ?? .ok
         item.needVerification = GroupVerificationType(rawValue: needVerification.rawValue) ?? .applyNeedVerificationInviteDirectly
-        item.lookMemberInfo = lookMemberInfo
-        item.applyMemberFriend = applyMemberFriend
+        item.lookMemberInfo = lookMemberInfo.rawValue
+        item.applyMemberFriend = applyMemberFriend.rawValue
+        item.notificationUserID = notificationUserID
+        item.notificationUpdateTime = notificationUpdateTime
+        item.ex = ex
         
         return item
     }
@@ -2503,17 +2415,6 @@ extension CRIMFriendReq {
     }
 }
 
-extension CRIMFullUserInfo {
-    public func toUserInfo() -> UserInfo {
-        let item = UserInfo(userID: userID)
-        item.faceURL = faceURL
-        // 注意此处值类型的不对应
-        item.nickname = showName
-
-        return item
-    }
-}
-
 extension CRIMConversationInfo {
     func toConversationInfo() -> ConversationInfo {
         let item = ConversationInfo(conversationID: conversationID ?? "")
@@ -2549,7 +2450,7 @@ extension CRIMMessageInfo {
         item.handleMsg = handleMsg
         item.msgFrom = msgFrom.toMessageLevel()
         item.contentType = contentType.toMessageContentType()
-        item.platformID = platformID
+        item.senderPlatformID = senderPlatformID
         item.senderNickname = senderNickname
         item.senderFaceUrl = senderFaceUrl
         item.groupID = groupID
@@ -2908,16 +2809,13 @@ extension CRIMReceiptInfo {
     }
 }
 
-extension CRIMFullUserInfo {
-    func toFullUserInfo() -> FullUserInfo {
-        let item = FullUserInfo()
-        item.blackInfo = blackInfo?.toBlackInfo()
-        item.friendInfo = friendInfo?.toFriendInfo()
-        item.publicInfo = publicInfo?.toPublicUserInfo()
+extension CRIMPublicUserInfo {
+    func toPublicUserInfo() -> PublicUserInfo {
+        let item = PublicUserInfo()
         item.userID = userID
-        item.showName = showName
+        item.nickname = nickname
         item.faceURL = faceURL
-        item.gender = Gender(rawValue: gender.rawValue) ?? .male
+
         return item
     }
 }
@@ -2948,9 +2846,6 @@ extension CRIMFriendInfo {
         item.createTime = createTime
         item.addSource = addSource
         item.operatorUserID = operatorUserID
-        item.phoneNumber = phoneNumber
-        item.birth = birth
-        item.email = email
         item.attachedInfo = attachedInfo
         item.ex = ex
         return item
@@ -2969,22 +2864,8 @@ extension CRIMSearchFriendsInfo {
         item.createTime = createTime
         item.addSource = addSource
         item.operatorUserID = operatorUserID
-        item.phoneNumber = phoneNumber
-        item.birth = birth
-        item.email = email
         item.attachedInfo = attachedInfo
         item.ex = ex
-        return item
-    }
-}
-
-extension CRIMPublicUserInfo {
-    func toPublicUserInfo() -> PublicUserInfo {
-        let item = PublicUserInfo()
-        item.userID = userID
-        item.nickname = nickname
-        item.faceURL = faceURL
-        item.gender = Gender(rawValue: gender.rawValue) ?? .male
         return item
     }
 }
@@ -3028,6 +2909,28 @@ extension CRIMMessageRevokedInfo {
     }
 }
 
+extension CRIMUserStatusInfo {
+    func toUserStatusInfo() -> UserStatusInfo {
+        let item = UserStatusInfo()
+        item.userID = userID!
+        item.status = status
+        item.platformIDs = (platformIDs ?? []) as [Int]
+        
+        return item
+    }
+}
+
+extension CRIMInputStatusChangedData {
+    func toInputStatusChangedData() -> InputStatusChangedData {
+        let item = InputStatusChangedData()
+        item.conversationID = conversationID
+        item.userID = userID
+        item.platformIDs = platformIDs.compactMap({ Int($0) })
+        
+        return item
+    }
+}
+
 // MARK: - 模型转换(From CRIMUIKit)
 
 extension UserInfo {
@@ -3048,9 +2951,13 @@ extension GroupInfo {
         item.groupName = groupName
         item.introduction = introduction
         item.notification = notification
-        item.lookMemberInfo = lookMemberInfo
-        item.applyMemberFriend = applyMemberFriend
+        item.lookMemberInfo = CRIMAllowType(rawValue: lookMemberInfo)!
+        item.applyMemberFriend = CRIMAllowType(rawValue: applyMemberFriend)!
         item.needVerification = CRIMGroupVerificationType(rawValue: needVerification.rawValue)!
+        item.groupType = CRIMGroupType(rawValue: groupType.rawValue)!
+        item.notificationUserID = notificationUserID
+        item.notificationUpdateTime = notificationUpdateTime
+        item.ex = ex
         
         return item
     }

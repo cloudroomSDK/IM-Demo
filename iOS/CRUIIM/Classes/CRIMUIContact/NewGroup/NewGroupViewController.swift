@@ -25,7 +25,7 @@ class NewGroupViewController: UITableViewController {
     private lazy var _photoHelper: PhotoHelper = {
         let v = PhotoHelper()
         v.setConfigToPickAvatar()
-        v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
+        v.didPhotoSelected = { [weak self] (images: [UIImage], _ assets: [PHAsset]) in
             guard var first = images.first else { return }
             ProgressHUD.animate()
             first = first.compress(to: 42)

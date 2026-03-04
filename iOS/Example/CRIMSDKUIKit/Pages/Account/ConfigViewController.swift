@@ -8,6 +8,7 @@ import ProgressHUD
 import CRUICalling
 
 let kAppIDDefaultShow = "默认appID"
+let kDefaultServerShow = "默认"
 
 class ConfigCell: UITableViewCell, UITextFieldDelegate {
     let disposeBag = DisposeBag()
@@ -29,6 +30,8 @@ class ConfigCell: UITableViewCell, UITextFieldDelegate {
         return v
     }()
     
+    private var titleRightToSuperViewConstraint: Constraint!
+    
     var onTextChanged: ((String?) -> Void)?
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
@@ -38,8 +41,11 @@ class ConfigCell: UITableViewCell, UITextFieldDelegate {
         contentView.addSubview(titleLabel)
         titleLabel.snp.makeConstraints { make in
             make.left.equalToSuperview().offset(15)
-            make.width.equalTo(88)
+            make.width.equalTo(60).priority(999)
             make.centerY.equalToSuperview()
+            
+            self.titleRightToSuperViewConstraint = make.right.equalToSuperview().offset(-15).priority(999).constraint
+            self.titleRightToSuperViewConstraint.isActive = false
         }
         
         contentView.addSubview(inputTextFiled)
@@ -53,10 +59,22 @@ class ConfigCell: UITableViewCell, UITextFieldDelegate {
         inputTextFiled.delegate = self
         inputTextFiled.rx.controlEvent(.editingChanged)
             .map { [weak inputTextFiled] _ -> String in
+                // 实时去空格
                 return inputTextFiled?.text?.replacingOccurrences(of: " ", with: "") ?? ""
             }
+            .do(onNext: { [weak self] filterText in
+                // 把去空格后的文本回调出去
+                self?.onTextChanged?(filterText)
+            })
             .bind(to: inputTextFiled.rx.text)
             .disposed(by: disposeBag)
+    }
+    
+    func updateInputVisible(_ isVisible: Bool) {
+        inputTextFiled.isHidden = !isVisible
+        titleRightToSuperViewConstraint.isActive = !isVisible
+        inputTextFiled.isUserInteractionEnabled = isVisible
+        contentView.layoutIfNeeded()
     }
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
@@ -68,22 +86,19 @@ class ConfigCell: UITableViewCell, UITextFieldDelegate {
     }
 }
 
-let severAddressKey = "com.crimuikit.adr"
 let bussinessSeverAddrKey = "com.crimuikit.bussiness.api.adr"
 let adminSeverAddrKey = "com.criuikit.admin.adr"
-let protocolKey = "com.crimuikit.use.protocol"
+let skipVerifyCertKey = "com.crimuikit.skip.verify.cert"
 
 class ConfigViewController: UIViewController {
 
     let disposeBag = DisposeBag()
     
     let rowHeight = 54
-    
-    var currentProtocol = UserDefaults.standard.integer(forKey: protocolKey)
-    let protocolTypes = ["http", "https(CA证书)", "https(自签名SSL证书)"]
-    
-    private var severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultDomain
-    private var bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? "http://\(defaultIP)\(bussinessPort)"
+        
+    private var bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
+    private var skipVerifyCert = UserDefaults.standard.bool(forKey: skipVerifyCertKey)
+    private var showSkipVerifyCert = false
 
     let list: UITableView = {
         let t = UITableView.init()
@@ -97,8 +112,11 @@ class ConfigViewController: UIViewController {
         let v = getConfigCell()
         let value = ConfigCellType.bussinessSever
         v.titleLabel.text = value.title
+        v.titleLabel.textAlignment = .natural
         v.titleLabel.textColor = DemoUI.color_666666
-        v.inputTextFiled.text = severAddress
+        v.inputTextFiled.text = makeServerAddressDisplay(bussinessSeverAddr)
+        v.inputTextFiled.placeholder = "http://xxx.xxx"
+        v.updateInputVisible(true)
         
         let line = UIView()
         line.backgroundColor = DemoUI.color_E0E0E0
@@ -111,24 +129,21 @@ class ConfigViewController: UIViewController {
         return v
     }()
     
-    private lazy var protocolTypeCell: OptionTableViewCell = {
-        let v = getOptionTableViewCell()
-        let value = ConfigCellType.protocolType
+    private lazy var skipVerifyCell: ConfigCell = {
+        let v = getConfigCell()
+        let value = ConfigCellType.skipVerifyCert
         v.titleLabel.text = value.title
+        v.titleLabel.textAlignment = .natural
         v.titleLabel.textColor = DemoUI.color_666666
-        v.subtitleLabel.text = protocolTypes[currentProtocol]
+        v.inputTextFiled.isHidden = true
+        v.updateInputVisible(!v.inputTextFiled.isHidden)
         
-        let tap = UITapGestureRecognizer()
-        tap.rx.event.subscribe(onNext: { [weak self] _ in
-            guard let sself = self else { return }
-            
-            ConfigPickerView.show(onWindowOf: sself.view, alertTitle: "通讯协议", currentItem: sself.protocolTypes[sself.currentProtocol], options: sself.protocolTypes, confirmTitle: "确定") { index, title in
-                sself.currentProtocol = index
-                sself.protocolTypeCell.subtitleLabel.text = title
-                sself.reloadRelatedRows()
-            }
-        }).disposed(by: disposeBag)
-        v.addGestureRecognizer(tap)
+        return v
+    }()
+    
+    private lazy var skipVerifySwitch: UISwitch = {
+        let v = UISwitch()
+        
         return v
     }()
     
@@ -182,6 +197,8 @@ class ConfigViewController: UIViewController {
             make.leading.bottom.trailing.equalToSuperview()
         }
         
+        showSkipVerifyCert = bussinessSeverAddr.hasPrefix("https://")
+        
         reloadRelatedRows()
         
         let footer = UIView()
@@ -198,6 +215,30 @@ class ConfigViewController: UIViewController {
             make.height.equalTo(saveButton)
         }
         list.tableFooterView = footer
+        
+        bussinessServerCell.onTextChanged = { [weak self] text in
+            guard let inputText = text, !inputText.isEmpty else {
+                self?.skipVerifyCert = false
+                self?.skipVerifySwitch.isOn = false
+                self?.showSkipVerifyCert = false
+                UserDefaults.standard.setValue(false, forKey: skipVerifyCertKey)
+                self?.reloadRelatedRows()
+                return
+            }
+            
+            let isHttps = inputText.hasPrefix("https://")
+            
+            self?.showSkipVerifyCert = isHttps
+            self?.reloadRelatedRows()
+        }
+        
+        skipVerifySwitch.rx.isOn
+            .subscribe(onNext: { [weak self] isOn in
+                self?.skipVerifyCert = isOn
+                UserDefaults.standard.setValue(isOn, forKey: skipVerifyCertKey)
+                CRIMSessionManagerWrapper.shared.updateCertificateValidation()
+            })
+            .disposed(by: disposeBag)
     }
     
     override open func viewWillAppear(_ animated: Bool) {
@@ -225,7 +266,12 @@ class ConfigViewController: UIViewController {
         let spacer = UIView()
         spacer.backgroundColor = .viewBackgroundColor
         
-        let arrangedViews = [bussinessServerCell, spacer, protocolTypeCell]
+        skipVerifySwitch.isOn = skipVerifyCert
+        skipVerifyCell.accessoryView = skipVerifySwitch
+        var arrangedViews = [bussinessServerCell]
+        if showSkipVerifyCert {
+            arrangedViews.append(skipVerifyCell)
+        }
        
         for value in arrangedViews {
             vStack.addArrangedSubview(value)
@@ -234,28 +280,29 @@ class ConfigViewController: UIViewController {
         bussinessServerCell.snp.remakeConstraints { make in
             make.height.equalTo(rowHeight)
         }
-        spacer.snp.remakeConstraints { make in
-            make.height.equalTo(16)
-        }
-        protocolTypeCell.snp.remakeConstraints { make in
+        
+        skipVerifyCell.snp.remakeConstraints { make in
             make.height.equalTo(rowHeight)
         }
         
-        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * (arrangedViews.count - 1) + 16)
+        vStack.bounds = CGRect(x: 0, y: 0, width: Int(kScreenWidth), height: rowHeight * arrangedViews.count + 16*(arrangedViews.count - 1))
         list.tableHeaderView = vStack
+    }
+    
+    private func makeServerAddressDisplay(_ actualValue: String) -> String {
+        // 如果是默认服务器地址，则显示"默认服务器"，否则显示实际值
+        return actualValue == AppConfig.defaultServerAddr ? kDefaultServerShow : actualValue
     }
     
     @objc func clearCacheConfig() {
         self.view.endEditing(true)
         
         let ud = UserDefaults.standard
-        ud.removeObject(forKey: severAddressKey)
         ud.removeObject(forKey: bussinessSeverAddrKey)
                 
-        severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultDomain
-        bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? "http://\(defaultIP)\(bussinessPort)"
+        bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
                 
-        bussinessServerCell.inputTextFiled.text = severAddress
+        bussinessServerCell.inputTextFiled.text = makeServerAddressDisplay(bussinessSeverAddr)
 
     }
 
@@ -263,13 +310,11 @@ class ConfigViewController: UIViewController {
 
         self.view.endEditing(true)
         
-        severAddress = bussinessServerCell.inputTextFiled.text ?? defaultHost
-        bussinessSeverAddr = (currentProtocol == 0 ? "http" : "https") + "://" + severAddress + (currentProtocol == 0 ? bussinessPort : httpsBussinessPort)
-
+        let inputText = bussinessServerCell.inputTextFiled.text
+        bussinessSeverAddr = inputText == kDefaultServerShow ? AppConfig.defaultServerAddr : (inputText ?? AppConfig.defaultServerAddr)
+        
         let ud = UserDefaults.standard
-        ud.set(severAddress, forKey: severAddressKey)
         ud.set(bussinessSeverAddr, forKey: bussinessSeverAddrKey)
-        ud.setValue(currentProtocol, forKey: protocolKey)
         
         // 更新业务地址
         AccountViewModel.API_BASE_URL = bussinessSeverAddr
@@ -298,29 +343,14 @@ class ConfigViewController: UIViewController {
 
     enum ConfigCellType: CaseIterable {
         case bussinessSever
-        case sdkServer
-        case authenType
-        case appID
-        case appSecret
-        case token
-        case protocolType
+        case skipVerifyCert
 
         var title: String {
             switch self {
             case .bussinessSever:
                 return "服务器:".innerLocalized()
-            case .sdkServer:
-                return "SDK服务器:".innerLocalized()
-            case .authenType:
-                return "   鉴权方式:".innerLocalized()
-            case .appID:
-                return "AppID:".innerLocalized()
-            case .appSecret:
-                return "AppSecret:".innerLocalized()
-            case .token:
-                return "Token:".innerLocalized()
-            case .protocolType:
-                return "通讯协议:".innerLocalized()
+            case .skipVerifyCert:
+                return "忽略证书校验".innerLocalized()
             }
         }
     }

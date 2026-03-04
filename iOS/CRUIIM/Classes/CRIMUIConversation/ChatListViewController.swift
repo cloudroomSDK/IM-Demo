@@ -76,6 +76,9 @@ extension UIViewController {
 }
 
 open class ChatListViewController: UIViewController, UITableViewDelegate {
+    
+    private var reInstall = false
+    
     private lazy var _headerView: ChatListHeaderView = {
         let v = ChatListHeaderView()
         
@@ -155,8 +158,35 @@ open class ChatListViewController: UIViewController, UITableViewDelegate {
 
     private func bindData() {
         
-        IMController.shared.connectionRelay.subscribe(onNext: { [weak self] status in
-            self?._headerView.updateConnectionStatus(status: status)
+        IMController.shared.connectionRelay.subscribe(onNext: { [weak self] result in
+            print("=====Connection status: \(result)")
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [self] in
+                
+                let status = result.status
+                let install = result.reInstall
+                
+                if status == .syncStart {
+                    self?.reInstall = install ?? false
+                    
+                    if self?.reInstall == true {
+                        ProgressHUD.animate(ConnectionStatus.syncStart.title, interaction: false)
+                    }
+                } else if status == .syncProgress {
+                    
+                    if self?.reInstall == true {
+                        let p = CGFloat(result.progress!) / 100.0
+                        
+                        ProgressHUD.progress(ConnectionStatus.syncStart.title, p, interaction: false)
+                    }
+                } else if status == .syncComplete {
+                    ProgressHUD.dismiss()
+                    self?._viewModel.getAllConversations()
+                }
+                
+                if self?.reInstall == false || (self?.reInstall == true && (status == .connectFailure || status == .syncFailure)) {
+                    self?._headerView.updateConnectionStatus(status: status)
+                }
+            }
         })
         
         _headerView.addBtn.rx.tap.subscribe(onNext: { [weak self] in

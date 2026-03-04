@@ -9,7 +9,9 @@
 /* Begin PBXBuildFile section */
 		1617322E2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1617322D2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift */; };
 		169A67A42AAB352A0011C5EC /* AboutUsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 169A67A32AAB352A0011C5EC /* AboutUsViewController.swift */; };
+		16D1B45A2F36EA40000A0998 /* AppServerConfig.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 16D1B4592F36EA40000A0998 /* AppServerConfig.xcconfig */; };
 		16E32BC12ABD6E5600D9F3BC /* ConfigPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */; };
+		16F655E92F3221BC0029CF16 /* KingfisherImageDownloader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 16F655E82F3221A70029CF16 /* KingfisherImageDownloader.swift */; };
 		170A2B3928F29C5000CA68EA /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 170A2B3828F29C5000CA68EA /* NotificationService.swift */; };
 		170A2B3D28F29C5000CA68EA /* NotificationService.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 170A2B3628F29C5000CA68EA /* NotificationService.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		1780764A29260BF50024399B /* InputPasswordViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1780764929260BF50024399B /* InputPasswordViewController.swift */; };
@@ -71,7 +73,9 @@
 		16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = VersionConfig.xcconfig; sourceTree = "<group>"; };
 		16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Debug.xcconfig; sourceTree = "<group>"; };
 		16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Release.xcconfig; sourceTree = "<group>"; };
+		16D1B4592F36EA40000A0998 /* AppServerConfig.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = AppServerConfig.xcconfig; sourceTree = "<group>"; };
 		16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigPickerView.swift; sourceTree = "<group>"; };
+		16F655E82F3221A70029CF16 /* KingfisherImageDownloader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KingfisherImageDownloader.swift; sourceTree = "<group>"; };
 		170A2B3628F29C5000CA68EA /* NotificationService.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NotificationService.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		170A2B3828F29C5000CA68EA /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		170A2B3A28F29C5000CA68EA /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -175,6 +179,7 @@
 			isa = PBXGroup;
 			children = (
 				1617322D2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift */,
+				16F655E82F3221A70029CF16 /* KingfisherImageDownloader.swift */,
 				1790EE802922294600C4024A /* AccountViewModel.swift */,
 				1790EE662921EAFC00C4024A /* ConfigViewController.swift */,
 				16E32BC02ABD6E5600D9F3BC /* ConfigPickerView.swift */,
@@ -216,6 +221,7 @@
 				DC28F0E627EE1BD90068B545 /* Pages */,
 				607FACD51AFB9204008FA782 /* AppDelegate.swift */,
 				16B6B94B2B4FBBA600BE97B7 /* VersionConfig.xcconfig */,
+				16D1B4592F36EA40000A0998 /* AppServerConfig.xcconfig */,
 				16B6B94C2B4FC4E600BE97B7 /* Debug.xcconfig */,
 				16B6B94D2B4FC4F900BE97B7 /* Release.xcconfig */,
 				607FACD91AFB9204008FA782 /* Main.storyboard */,
@@ -392,6 +398,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				16D1B45A2F36EA40000A0998 /* AppServerConfig.xcconfig in Resources */,
 				607FACDB1AFB9204008FA782 /* Main.storyboard in Resources */,
 				DCE04171283E5BD30095874E /* Localizable.strings in Resources */,
 				607FACE01AFB9204008FA782 /* LaunchScreen.xib in Resources */,
@@ -434,8 +441,8 @@
 				"${BUILT_PRODUCTS_DIR}/SnapKit/SnapKit.framework",
 				"${BUILT_PRODUCTS_DIR}/Toast-Swift/Toast_Swift.framework",
 				"${BUILT_PRODUCTS_DIR}/ZLPhotoBrowser/ZLPhotoBrowser.framework",
-				"${PODS_ROOT}/cloudroomvideo_ios_library/CloudroomVideoSDK_IOS/CloudroomVideoSDK_IOS.framework",
 				"${BUILT_PRODUCTS_DIR}/lottie-ios/Lottie.framework",
+				"${PODS_XCFRAMEWORKS_BUILD_DIR}/rtcsdk_ios_library/RTCSDK_IOS.framework/RTCSDK_IOS",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -464,8 +471,8 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SnapKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Toast_Swift.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/ZLPhotoBrowser.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/CloudroomVideoSDK_IOS.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Lottie.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/RTCSDK_IOS.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -563,6 +570,7 @@
 				1790EE6D2921EAFC00C4024A /* SettingTableViewController.swift in Sources */,
 				1790EE6F2921EAFC00C4024A /* SettingViewModel.swift in Sources */,
 				17BBFAC42925D4C10025B686 /* CountDownTimerButton.swift in Sources */,
+				16F655E92F3221BC0029CF16 /* KingfisherImageDownloader.swift in Sources */,
 				1790EE722921EAFC00C4024A /* MineViewModel.swift in Sources */,
 				1790EE742921EAFC00C4024A /* MineViewController.swift in Sources */,
 				1617322E2BCE2955009D8BB6 /* CRIMSessionManagerWrapper.swift in Sources */,
@@ -642,7 +650,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 cloudroom. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 crim. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";
@@ -681,7 +689,7 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = NotificationService/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NotificationService;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 cloudroom. All rights reserved.";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2023 crim. All rights reserved.";
 				IPHONEOS_DEPLOYMENT_TARGET = 13.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks";
 				MARKETING_VERSION = "$(CRIM_APP_BUILD_VERSION)";

@@ -28,11 +28,6 @@ class SingleChatSettingViewModel {
                         if let gender = friendInfo?.gender {
                             user.gender = gender
                         }
-                        user.phoneNumber = friendInfo?.phoneNumber
-                        if let birth = friendInfo?.birth {
-                            user.birth = birth
-                        }
-                        user.email = friendInfo?.email
                         users[index] = user
                     }
                 }
@@ -62,8 +57,8 @@ class SingleChatSettingViewModel {
             if let user = userInfos.first {
                 let userInfo = UserInfo(userID: user.userID!)
                 userInfo.faceURL = user.faceURL
-                var nickName: String? = user.showName
-                if let remark = user.friendInfo?.remark, !remark.isEmpty {
+                var nickName: String? = user.nickname
+                if let remark = user.remark, !remark.isEmpty {
                     nickName = nickName?.append(string: "(\(remark))")
                 }
                 userInfo.nickname = nickName
@@ -101,14 +96,10 @@ class SingleChatSettingViewModel {
     
     func toggleBurnDuration() {
         let isPrivateChat = !setPrivateChatRelay.value
-        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat) { [weak self] _ in
+        let burnDuration = 30
+        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat, burnDuration: burnDuration) { [weak self] _ in
             guard let sself = self else { return }
             self?.setPrivateChatRelay.accept(!sself.setPrivateChatRelay.value)
-            
-            let burnDuration = sself.setPrivateChatRelay.value == true ? 15 : 0
-            IMController.shared.setBurnDuration(conversationID: sself.conversation.conversationID, burnDuration: burnDuration) { [weak self] _ in
-                
-            }
         }
     }
 }

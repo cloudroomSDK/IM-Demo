@@ -8,7 +8,11 @@ public protocol ImageLoader {
 }
 
 
-let loader = CachingImageLoader(cache: imageCache, loader: DefaultImageLoader())
+public var defaultImageLoader = DefaultImageLoader()
+let loader = CachingImageLoader(
+    cache: imageCache,
+    loader: defaultImageLoader
+)
 
 
 public struct CachingImageLoader<C: AsyncKeyValueCaching>: ImageLoader where C.CachingKey == CacheableImageKey, C.Entity == UIImage {

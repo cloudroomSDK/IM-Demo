@@ -6,9 +6,9 @@ Pod::Spec.new do |s|
   CRIM：iOS版本IM SDK 可以轻松替代第三方IM云服务，打造具备聊天、社交功能的app。
                        DESC
 
-  s.homepage         = 'https://sdk.cloudroom.com/'
+  s.homepage         = 'https://sdk.crim.com/'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'CRUICore' => 'https://sdk.cloudroom.com/' }
+  s.author           = { 'CRUICore' => 'https://sdk.crim.com/' }
   s.source           = { :git => 'git@github.com:CRIMUI/CRUICore.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
@@ -30,7 +30,7 @@ Pod::Spec.new do |s|
   s.dependency 'RxDataSources'
   s.dependency 'Kingfisher', '7.7.0'
   s.dependency 'lottie-ios', '~> 3.0'
-  s.dependency 'ZLPhotoBrowser', '4.3.0'
+  s.dependency 'ZLPhotoBrowser', '4.6.0.1'
   s.dependency 'ProgressHUD', '14.1.0'
   s.dependency 'IQKeyboardManagerSwift'
   s.dependency 'Localize-Swift', '~> 3.2'

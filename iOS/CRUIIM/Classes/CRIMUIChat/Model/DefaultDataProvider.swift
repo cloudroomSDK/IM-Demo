@@ -164,30 +164,16 @@ final class DefaultDataProvider: DataProvider {
         
         IMController.shared.newMsgReceivedSubject.subscribe(onNext: { [weak self] (message: MessageInfo) in
             guard let self else { return }
-            
-            var skip = false
-            
-            if message.contentType == .custom {
-                let data = message.customElem!.value()
-                let customType = message.customElem?.type
-                
-                if (customType == CustomMessageType.invite ||
-                    customType == CustomMessageType.accept) {
-                    skip = true
+
+            // 输入状态
+            if case .typing = message.contentType {
+                if (self.conversation.userID == message.sendID ||
+                    self.conversation.groupID == message.groupID) {
+                    self.typingState = message.isTyping() ? .typing : .idle
+                    self.delegate?.typingStateChanged(to: self.typingState)
                 }
-            }
-            
-            if !skip {
-                // 输入状态
-                if case .typing = message.contentType {
-                    if (self.conversation.userID == message.sendID ||
-                        self.conversation.groupID == message.groupID) {
-                        self.typingState = message.isTyping() ? .typing : .idle
-                        self.delegate?.typingStateChanged(to: self.typingState)
-                    }
-                } else {
-                    self.receivedNewMessages(message: message)
-                }
+            } else {
+                self.receivedNewMessages(message: message)
             }
         }).disposed(by: _disposeBag)
         

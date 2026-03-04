@@ -105,7 +105,6 @@ public class CRIMApi {
     public static var queryFriendsWithCompletionHandler: QueryInfoHandler?
     public static var queryUsersInfoWithCompletionHandler: QueryInfoHandler?
     public static var queryConfigHandler: QueryDataHandler<[String: Any]>?
-    public static var querySvrDiffTimeHandler: QuerySererDiffTimeHandler?
 }
 
 extension CRIMApi {

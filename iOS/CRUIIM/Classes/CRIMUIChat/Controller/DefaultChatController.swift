@@ -33,7 +33,7 @@ final class DefaultChatController: ChatController {
     
     private var groupMembers: [GroupMemberInfo]?
     
-    private var otherInfo: FullUserInfo?
+    private var otherInfo: FriendInfo?
     
     private var messages: [MessageInfo] = []
     
@@ -41,8 +41,6 @@ final class DefaultChatController: ChatController {
 
     private var selectedUsers: [String] = [] // 选中的成员, 可做为@成员
     
-    private var svrDiffTime: Int = 0
-        
     init(dataProvider: DataProvider, senderID: String, receiverId: String, conversationType: ConversationType, conversation: ConversationInfo) {
         self.dataProvider = dataProvider
         self.receiverId = receiverId
@@ -63,16 +61,6 @@ final class DefaultChatController: ChatController {
         }
         //markMessageAsReaded()
         getUnReadTotalCount()
-        
-        if let handler = CRIMApi.querySvrDiffTimeHandler {
-            handler { [weak self] result in
-                guard let `self` else {
-                    return
-                }
-                
-                self.svrDiffTime = result
-            }
-        }
     }
     
     deinit {
@@ -200,7 +188,7 @@ final class DefaultChatController: ChatController {
         }
     }
     
-    func getOtherInfo(completion: @escaping (FullUserInfo) -> Void) {
+    func getOtherInfo(completion: @escaping (FriendInfo) -> Void) {
         if otherInfo == nil {
             IMController.shared.getFriendsInfo(userIDs: [receiverId]) { [weak self] info in
                 guard let r = info.first else { return }
@@ -279,7 +267,7 @@ final class DefaultChatController: ChatController {
             if !messageIDs.isEmpty {
                 for (index, msgID) in messageIDs.enumerated() {
                     let msg = self?.messages.first(where: { $0.clientMsgID == msgID })
-                    let hasReadTime = Date().timeIntervalSince1970 * 1000 + Double(self?.svrDiffTime ?? 0)
+                    let hasReadTime = Double(IMController.shared.getCurrentSvrTime())
                     msg?.hasReadTime = hasReadTime
                     msg?.isRead = true
                     msg?.attachedInfoElem?.hasReadTime = hasReadTime
@@ -638,9 +626,18 @@ final class DefaultChatController: ChatController {
     }
     
     private func appendConvertingToMessages(_ rawMessages: [MessageInfo]) {
-        var messages = messages
-        messages.append(contentsOf: rawMessages)
-        self.messages = messages.sorted(by: { $0.sendTime < $1.sendTime })
+        var updatedMessages = messages
+        let filterMessages = rawMessages.filter { !$0.shouldFilterCallMessage() }
+        
+        for rawMessage in filterMessages {
+            if let existingIndex = updatedMessages.firstIndex(where: { $0.clientMsgID == rawMessage.clientMsgID }) {
+                updatedMessages[existingIndex] = rawMessage
+            } else {
+                updatedMessages.append(rawMessage)
+            }
+        }
+        
+        self.messages = updatedMessages.sorted(by: { $0.sendTime < $1.sendTime })
     }
     
     private func propagateLatestMessages(completion: @escaping ([Section]) -> Void) {
@@ -653,7 +650,7 @@ final class DefaultChatController: ChatController {
             }
             
             let messagesSplitByDay = self.messages
-                .map { self.convertMessage($0) }
+                .compactMap { self.convertMessage($0) }
                 .reduce(into: [[Message]]()) { result, message in
                     guard var section = result.last,
                           let prevMessage = section.last else {
@@ -734,7 +731,7 @@ final class DefaultChatController: ChatController {
         
     }
     
-    private func convertMessage(_ msg: MessageInfo) -> Message {
+    private func convertMessage(_ msg: MessageInfo) -> Message? {
         
         var messageType: MessageType = msg.isOutgoing ? .outgoing : .incoming
         var owner = User(id: msg.sendID, name: msg.senderNickname ?? "", faceURL: msg.senderFaceUrl)
@@ -754,7 +751,7 @@ final class DefaultChatController: ChatController {
                     messageType = inviterUserID == IMController.shared.userID ? .outgoing : .incoming
                     // 将发送者换成对方
                     if messageType == .incoming && msg.sendID != inviterUserID {
-                        owner = User(id: receiverId, name: otherInfo?.showName ?? "", faceURL: otherInfo?.faceURL)
+                        owner = User(id: receiverId, name: otherInfo?.nickname ?? "", faceURL: otherInfo?.faceURL)
                     }
                     // 将发送者换成自己
                     if messageType == .outgoing && msg.sendID != senderID {
@@ -779,12 +776,20 @@ final class DefaultChatController: ChatController {
             status = msg.isRead ? .read : .received
         }
         
-        var burnDuration = 0
+        var leftBurnDuration = 0
         if let attachedInfoElem = msg.attachedInfoElem, attachedInfoElem.isPrivateChat, attachedInfoElem.hasReadTime > 0 {
-            let current = Int(Date().timeIntervalSince1970)
-            let duration = Int(attachedInfoElem.burnDuration) - (current + svrDiffTime - Int(attachedInfoElem.hasReadTime/1000))
-            burnDuration = duration > 0 ? duration : -1
-            //print("left burnDuration:\(burnDuration)")
+            let current = Int(IMController.shared.getCurrentSvrTime()/1000)
+            let hasReadTime = Int(attachedInfoElem.hasReadTime/1000)
+            let correctDuration = Int(attachedInfoElem.burnDuration == 0 ? 30 : attachedInfoElem.burnDuration)
+            let hasReadDuration = current - hasReadTime
+            leftBurnDuration = correctDuration - hasReadDuration
+            //print("left burnDuration:\(leftBurnDuration)")
+            
+            if leftBurnDuration <= 0 {
+                // 已过阅后即焚超时时间的直接删除
+                removeMessage(messageID: msg.clientMsgID)
+                return nil
+            }
         }
         
         return Message(id: msg.clientMsgID,
@@ -797,7 +802,7 @@ final class DefaultChatController: ChatController {
                        isSelected: msg.isSelected,
                        isAnchor: msg.isAnchor,
                        sessionType: msg.sessionType,
-                       burnDuration: burnDuration)
+                       burnDuration: leftBurnDuration)
     }
     
     private func convert(_ msg: MessageInfo) -> Message.Data {
@@ -979,6 +984,11 @@ extension DefaultChatController: DataProviderDelegate {
     }
     
     func received(message: MessageInfo) {
+        // filter call message
+        guard !message.shouldFilterCallMessage() else {
+            return
+        }
+        
         // 收到当前界面的消息
         if (conversation.conversationType == .c1v1 && message.sessionType == conversation.conversationType && conversation.userID == message.sendID) ||
             (conversation.conversationType == .group && message.sessionType == conversation.conversationType && conversation.groupID == message.groupID) {
@@ -1068,7 +1078,7 @@ extension DefaultChatController: DataProviderDelegate {
             for id in lastReadIDs {
                 if let index = self.messages.firstIndex(where: { $0.clientMsgID == id}) {
                     self.messages[index].isRead = true
-                    let hasReadTime = Date().timeIntervalSince1970 * 1000 + Double(self.svrDiffTime)
+                    let hasReadTime = Double(IMController.shared.getCurrentSvrTime())
                     self.messages[index].hasReadTime = hasReadTime
                     self.messages[index].attachedInfoElem?.hasReadTime = hasReadTime
                 }

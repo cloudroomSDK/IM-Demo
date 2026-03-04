@@ -1,10 +1,11 @@
 
 import Foundation
+import CRUICore
 import CRIMSDK
 import RxSwift
 import RxCocoa
 import ProgressHUD
-import CloudroomVideoSDK_IOS
+import RTCSDK_IOS
 
 enum CallingState: String {
     case normal = "normal"
@@ -30,16 +31,47 @@ enum CallingState: String {
 
 enum Cookie: String {
     case login = ""
-    
-    
+}
+
+public enum CRIM_CustomMsgType: Int {
+    case unknow = 0
+
+    case newinvitation = 300                /// 新邀请
+    case inviteeaccept = 301                /// 邀请接受
+    case inviteereject = 302                /// 邀请拒绝
+    case invitationcancel = 303             /// 邀请取消
+    case invitationhangup = 304             /// 邀请挂断
+}
+
+public enum CRInvitationOpType: Int {
+    case cancel = 0    //主叫取消
+    case timeout       //被叫超时无应答
+    case busy          //被叫忙
+    case reject        //被叫拒接
+    case butt
+}
+
+public class CRIMInvitationInfo: Encodable {
+    public var invitationMsgId: String = ""      //邀请的唯一标识，拒绝/接受/取消/挂断时应填写对应的邀请标识
+    public var inviterUserID: String = ""        //邀请的初始发起者
+    public var groupID: String?                  //被邀请的群id，单聊时为空
+    public var inviteeUserIDList: [String] = []  //被邀请者UserID列表,如果目标是群且为全部成员，列表可为空
+    public var roomID: String = ""               //会议号
+    public var mediaType: String = ""            //video/audio
+    public var initiateTime: Int64 = 0           //发起时间（秒）
+    public var timeout: Int = 30                //邀请超时时间（秒）
+    public var acceptTime: Int64 = 0             //接受邀请的时间（秒）
+    public var duration: Int = 0                //通话时长（秒）,通话接通后挂断者，依据acceptTime计算此值
+    public var opType: Int?                     //操作类型：CRInvitationOpType
+    public var opDesc: String?                   //操作附加描述
 }
 
 public typealias ValueChangedHandler<T> = (_ value: T) -> Void
 public typealias RTCSDKHandler<T, U, V> = (_ value: T, _ value: U, _ value: V) -> Void
 
-public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideoMeetingCallBack {
+public class CallingManager: NSObject, RTCMgrCallBack, RTCMeetingCallBack {
     private let disposeBag = DisposeBag()
-    private var signalingInfo: CRIMSignalingInfo?
+    private var invitationInfo: CRIMInvitationInfo?
     
     private var senderViewController: CallingSenderController?
     private var reciverViewController: CallingReceiverController?
@@ -54,8 +86,8 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
     public var remainingTime: Int = 0 // 最大超时时间
 
     public static let manager: CallingManager = CallingManager()
+    public var userID = ""
     public var username = ""
-    public var roomParticipantChangedHandler: ValueChangedHandler<CRIMParticipantConnectedInfo>?
     public var endCallingHandler: ValueChangedHandler<CRIMMessageInfo>?
     public var endCreateMeetingHandler: RTCSDKHandler<CRVIDEOSDK_ERR_DEF?, MeetInfo?, String>?
     
@@ -65,9 +97,9 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
         self.token = token
     }
     
-    public func setupVideoSDK(sdkServer: String) {
-        if CloudroomVideoSDK.shareInstance().isInitSuccess() {
-            CloudroomVideoSDK.shareInstance().uninit()
+    public func setupVideoSDK(sdkServer: String, verifyHttpsCert: Bool) {
+        if RTCSDK.shareInstance().isInitSuccess() {
+            RTCSDK.shareInstance().uninit()
         }
         
         let sdkPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true).first
@@ -75,13 +107,10 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
         let sdkInitData:SdkInitDat = SdkInitDat()
         sdkInitData.sdkDatSavePath = sdkPath
         sdkInitData.showSDKLogConsole = true
-        sdkInitData.noCall = false
-        sdkInitData.noQueue = true
-        sdkInitData.noMediaDatToSvr = false
         
         let isHttps = sdkServer.hasPrefix("https://")
         sdkInitData.datEncType = isHttps ? "1" : "0"
-        if isHttps {
+        if verifyHttpsCert {
             sdkInitData.params.setValue("1", forKey: "VerifyHttpsCert")
         } else {
             sdkInitData.params.setValue("0", forKey: "VerifyHttpsCert")
@@ -94,35 +123,36 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
             sdkInitData.params.setValue("0", forKey: "HttpDataEncrypt")
         }
         
-        let error = CloudroomVideoSDK.shareInstance().initSDK(sdkInitData)
+        let error = RTCSDK.shareInstance().initSDK(sdkInitData)
         guard error == CRVIDEOSDK_NOERR else {
-            print("CloudroomVideoSDK init error!")
-            CloudroomVideoSDK.shareInstance().uninit()
+            print("RTCSDK init error!")
+            RTCSDK.shareInstance().uninit()
             return
         }
         
-        let SDKVer = CloudroomVideoSDK.getVer()
-        print("GetCloudroomVideoSDKVer:" + SDKVer!)
+        let SDKVer = RTCSDK.getVer()
+        print("GetRTCSDKVer:" + SDKVer!)
         
         var server = sdkServer.replacingOccurrences(of: "https://", with: "")
         server = server.replacingOccurrences(of: "http://", with: "")
         
-        CloudroomVideoSDK.shareInstance().setServerAddr(server)
+        RTCSDK.shareInstance().setServerAddr(server)
     }
     
     public func unInitVideoSDK() {
-        CloudroomVideoSDK.shareInstance().uninit()
+        RTCSDK.shareInstance().uninit()
     }
     
-    public func start(nickname: String) {
+    public func call(userID: String, nickname: String) {
         NotificationCenter.default.addObserver(self, selector: #selector(willTerminate), name: UIApplication.willTerminateNotification, object: nil)
         
         CRIMManager.callbacker.addAdvancedMsgListener(listener: self)
-        CloudroomVideoMgr.shareInstance().registerCallback(self)
-        CloudroomVideoMeeting.shareInstance().registerCallback(self)
+        RTCMgr.shareInstance().registerCallback(self)
+        RTCMeeting.shareInstance().registerCallback(self)
         
-        username = nickname
-        login(nickname: username)
+        self.username = nickname
+        self.userID = userID
+        login(userID: userID, nickname: username)
     }
     
     public func end() {
@@ -130,11 +160,11 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
         timeoutTimer = nil
         
         CRIMManager.callbacker.removeAdvancedMsgListener(listener: self)
-        CloudroomVideoMgr.shareInstance().removeCallback(self)
-        CloudroomVideoMeeting.shareInstance().remove(self)
+        RTCMgr.shareInstance().removeCallback(self)
+        RTCMeeting.shareInstance().remove(self)
         
         hadLoginSuccess = false
-        CloudroomVideoMgr.shareInstance().logout()
+        RTCMgr.shareInstance().logout()
     }
 
     public func forceDismiss() {
@@ -185,23 +215,26 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
         }
         
         senderViewController!.onCancel = { [weak self] in
-            if let signalingInfo = self?.signalingInfo {
+            if let invitationInfo = self?.invitationInfo {
                 
-                let message = CRIMMessageInfo.createSignalingCancel(signalingInfo.invitation)
-                let recvID = signalingInfo.invitation.inviteeUserIDList.first ?? ""
-                self?.sendSignalingMessage(message: message, recvID: recvID)
+                invitationInfo.opType = CRInvitationOpType.cancel.rawValue
+                if let message = self?.createCallMessage(invitationInfo, callType:.invitationcancel) {
+                    let recvID = invitationInfo.inviteeUserIDList.first ?? ""
+                    self?.sendSignalingMessage(message: message, recvID: recvID)
+                }
             }
             
             self?.update(state: .cancel)
         }
         
         senderViewController!.onHungup = { [weak self] duration in
-            if let signalingInfo = self?.signalingInfo {
+            if let invitationInfo = self?.invitationInfo {
                 
-                signalingInfo.invitation.duration = duration
-                let message = CRIMMessageInfo.createSignalingHungUp(signalingInfo.invitation)
-                let recvID = signalingInfo.invitation.inviteeUserIDList.first ?? ""
-                self?.sendSignalingMessage(message: message, recvID: recvID)            }
+                invitationInfo.duration = duration
+                if let message = self?.createCallMessage(invitationInfo, callType:.invitationhangup) {
+                    let recvID = invitationInfo.inviteeUserIDList.first ?? ""
+                    self?.sendSignalingMessage(message: message, recvID: recvID)            }
+                }
             
             self?.update(state: .hangup, duration: duration)
         }
@@ -218,38 +251,32 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
         }
         
         reciverViewController!.onAccepted = { [weak self] in
-            if let signalingInfo = self?.signalingInfo {
+            if let invitationInfo = self?.invitationInfo {
                 
-                let message = CRIMMessageInfo.createSignalingAccept(signalingInfo.invitation)
-                self?.sendSignalingMessage(message: message, recvID: signalingInfo.invitation.inviterUserID)
-                
-                Task { [self] in
-                    await self?.reciverViewController?.connectRoom(meetID: signalingInfo.invitation.roomID)
+                invitationInfo.acceptTime = Int64(Date().timeIntervalSince1970)
+                if let message = self?.createCallMessage(invitationInfo, callType:.inviteeaccept) {
+                    self?.sendSignalingMessage(message: message, recvID: invitationInfo.inviterUserID)
+                    
+                    Task { [self] in
+                        await self?.reciverViewController?.connectRoom(meetID: invitationInfo.roomID, nickname: self?.username ?? "")
+                    }
                 }
             }
             self?.update(state: .beAccepted)
         }
         
         reciverViewController!.onRejected = { [weak self] in
-            if let signalingInfo = self?.signalingInfo {
+            if let invitationInfo = self?.invitationInfo {
                 
-                let message = CRIMMessageInfo.createSignalingReject(signalingInfo.invitation)
-                self?.sendSignalingMessage(message: message, recvID: signalingInfo.invitation.inviterUserID)
+                if let message = self?.createCallMessage(invitationInfo, callType:.inviteereject) {
+                    self?.sendSignalingMessage(message: message, recvID: invitationInfo.inviterUserID)
+                }
             }
             
             self?.update(state: .reject)
         }
         
         reciverViewController!.onHungup = { [weak self] duration in
-            /*
-            if let signalingInfo = self?.signalingInfo {
-                
-                signalingInfo.invitation.duration = duration
-                let message = CRIMMessageInfo.createSignalingHungUp(signalingInfo.invitation)
-                self?.sendSignalingMessage(message: message, recvID: signalingInfo.invitation.inviterUserID)
-            }
-            
-            */
             self?.update(state: .hangup, duration: duration)
         }
         
@@ -348,22 +375,18 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
             }
             
             let info = CRIMInvitationInfo()
+            info.invitationMsgId = UUID().uuidString
             info.inviterUserID = CRIMManager.manager.getLoginUserID()
             info.inviteeUserIDList = othersID
             info.mediaType = isVideo ? "video" : "audio"
             info.roomID = String(format: "%d", meetID)
+            info.initiateTime = Int64(Date().timeIntervalSince1970)            
             
-            let message = CRIMMessageInfo.createSignalingInvite(info)
-            
-            var offlinePushInfo = CRIMOfflinePushInfo()
-            
-            if let groupID, !groupID.isEmpty {
-                offlinePushInfo.title = "Someone invited you to a group chat."
+            guard let message = self.createCallMessage(info, callType:.newinvitation) else {
+                completion(false)
+                return
             }
-            
-            self.signalingInfo = CRIMSignalingInfo()
-            self.signalingInfo?.opUserID = CRIMManager.manager.getLoginUserID()
-            self.signalingInfo?.invitation = info
+            self.invitationInfo = info
             self.sendSignalingMessage(message: message, recvID: othersID[0])
             completion(true)
         }
@@ -371,7 +394,7 @@ public class CallingManager: NSObject, CloudroomVideoMgrCallBack, CloudroomVideo
     
     private func getUsersInfo(_ usersID: [String], callback: @escaping ([CallingUserInfo]) -> Void) {
         
-        CRIMManager.manager.getUsersInfo(usersID) { (infos: [CRIMUserInfo]?) in
+        CRIMManager.manager.getUsersInfo(usersID) { (infos: [CRIMPublicUserInfo]?) in
             guard let infos else {
                 callback([])
                 return
@@ -416,14 +439,14 @@ extension CallingManager {
         print("\(#function) sdkErr:\(sdkErr)")
         
         hadLoginSuccess = false
-        login(nickname: username)
+        login(userID: userID, nickname: username)
     }
     
-    private func login(nickname: String) {
+    private func login(userID: String, nickname: String) {
         if let token {
-            CloudroomVideoMgr.shareInstance().login(byToken: token, nickName: nickname, userID: nickname, userAuthCode: "", cookie: "")
+            RTCMgr.shareInstance().login(byToken: token, userID: userID, userAuthCode: "", cookie: "")
         } else if let appID, let appSecret {
-            CloudroomVideoMgr.shareInstance().login(appID, appSecret: appSecret, nickName: nickname, userID: nickname, userAuthCode: "", cookie: "")
+            RTCMgr.shareInstance().login(appID, appSecret: appSecret, userID: userID, userAuthCode: "", cookie: "")
         }
     }
     
@@ -438,7 +461,7 @@ extension CallingManager {
     
     private func createRoom(completion: @escaping RTCSDKHandler<CRVIDEOSDK_ERR_DEF?, MeetInfo?, String>) {
         endCreateMeetingHandler = completion
-        CloudroomVideoMgr.shareInstance().createMeeting("CallingCreateRoom")
+        RTCMgr.shareInstance().createMeeting("CallingCreateRoom")
     }
     
     public func createMeetingSuccess(_ meetInfo: MeetInfo!, cookie: String!) {
@@ -459,7 +482,7 @@ extension CallingManager {
         if state == .beAccepted || state == .disConnect {
             if state == .beAccepted {
                 Task {
-                    await senderViewController?.connectRoom(meetID: signalingInfo!.invitation.roomID)
+                    await senderViewController?.connectRoom(meetID: invitationInfo!.roomID, nickname: username)
                 }
             }
             return
@@ -469,7 +492,7 @@ extension CallingManager {
         reciverViewController = nil
         senderViewController?.dismiss()
         senderViewController = nil
-        signalingInfo = nil
+        invitationInfo = nil
     }
 }
 
@@ -482,15 +505,16 @@ extension CallingManager: CRIMAdvancedMsgListener {
             var data = try! JSONSerialization.jsonObject(with: dataStr.data(using: .utf8)!) as! [String: Any]
             let customType = data["customType"] as! Int
             let userID = data["userID"] as? String
+            let callType = CRIM_CustomMsgType(rawValue: customType) ?? .unknow
             
             data = data["data"] as! [String: Any]
             
             
-            if (customType == 300 ||
-                customType == 301 ||
-                customType == 302 ||
-                customType == 303 ||
-                customType == 304) {
+            if (callType == .newinvitation ||
+                callType == .inviteeaccept ||
+                callType == .inviteereject ||
+                callType == .invitationcancel ||
+                callType == .invitationhangup) {
                 
                 let invitation = CRIMInvitationInfo()
                 invitation.inviterUserID = data["inviterUserID"] as! String
@@ -498,28 +522,22 @@ extension CallingManager: CRIMAdvancedMsgListener {
                 invitation.roomID = data["roomID"] as? String ?? ""
                 invitation.timeout = data["timeout"] as? Int ?? 0
                 invitation.mediaType = data["mediaType"] as! String
-                invitation.sessionType = CRIMConversationType(rawValue: data["sessionType"] as? Int ?? 0) ?? .c1v1
-//                invitation.platformID = CRIMPlatform(rawValue: (data["platformID"] as! NSNumber).intValue)!
-                
-                let signaling = CRIMSignalingInfo()
-                signaling.opUserID = userID ?? ""
-                signaling.invitation = invitation
 
-                switch (customType) {
-                case 300:
-                    CallingManager.manager.onReceiveNewInvitation(signaling)
+                switch (callType) {
+                case .newinvitation:
+                    CallingManager.manager.onReceiveNewInvitation(invitation)
                     break;
-                case 301:
-                    CallingManager.manager.onInviteeAccepted(signaling)
+                case .inviteeaccept:
+                    CallingManager.manager.onInviteeAccepted(invitation)
                     break;
-                case 302:
-                    CallingManager.manager.onInviteeRejected(signaling)
+                case .inviteereject:
+                    CallingManager.manager.onInviteeRejected(invitation)
                     break;
-                case 303:
-                    CallingManager.manager.onInvitationCancelled(signaling)
+                case .invitationcancel:
+                    CallingManager.manager.onInvitationCancelled(invitation)
                     break;
-                case 304:
-                    CallingManager.manager.onHunguUp(signaling)
+                case .invitationhangup:
+                    CallingManager.manager.onHunguUp(invitation)
                     break;
                 default:
                     break
@@ -528,61 +546,68 @@ extension CallingManager: CRIMAdvancedMsgListener {
         }
     }
     
-    public func onReceiveNewInvitation(_ signalingInfo: CRIMSignalingInfo) {
+    public func onReceiveNewInvitation(_ invitation: CRIMInvitationInfo) {
         guard senderViewController == nil && reciverViewController == nil else {
             print("already in calling")
             return
         }
         
-        self.signalingInfo = signalingInfo
-        startLiveChat(inviterID: signalingInfo.invitation.inviterUserID,
-                      othersID: signalingInfo.invitation.inviteeUserIDList,
-                      isVideo: signalingInfo.isVideo,
+        self.invitationInfo = invitation
+        startLiveChat(inviterID: invitation.inviterUserID,
+                      othersID: invitation.inviteeUserIDList,
+                      isVideo: invitation.isVideo,
                       incoming: true)
     }
     
-    public func onInviteeAccepted(_ signalingInfo: CRIMSignalingInfo) {
-        print("Accepted：\(signalingInfo)")
-        self.signalingInfo = signalingInfo
+    public func onInviteeAccepted(_ invitation: CRIMInvitationInfo) {
+        print("Accepted：\(invitation)")
+        self.invitationInfo = invitation
         update(state: .beAccepted)
     }
     
-    public func onInviteeRejected(_ signalingInfo: CRIMSignalingInfo) {
-        print("Rejected：\(signalingInfo)")
-        self.signalingInfo = signalingInfo
+    public func onInviteeRejected(_ invitation: CRIMInvitationInfo) {
+        print("Rejected：\(invitation)")
+        self.invitationInfo = invitation
 
         update(state: .beRejected)
     }
     
-    public func onInvitationCancelled(_ signalingInfo: CRIMSignalingInfo) {
-        print("Cancelled：\(signalingInfo)")
-        self.signalingInfo = signalingInfo
+    public func onInvitationCancelled(_ invitation: CRIMInvitationInfo) {
+        print("Cancelled：\(invitation)")
+        self.invitationInfo = invitation
         update(state: .beCanceled)
     }
     
-    public func onInvitationTimeout(_ signalingInfo: CRIMSignalingInfo) {
-        print("Timeout：\(signalingInfo)")
-        self.signalingInfo = signalingInfo
+    public func onInvitationTimeout(_ invitation: CRIMInvitationInfo) {
+        print("Timeout：\(invitation)")
+        self.invitationInfo = invitation
        
         update(state: .noReply)
     }
     
-    public func onHunguUp(_ signalingInfo: CRIMSignalingInfo) {
-        print("HunguUp：\(signalingInfo)")
-        self.signalingInfo = signalingInfo
+    public func onHunguUp(_ invitation: CRIMInvitationInfo) {
+        print("HunguUp：\(invitation)")
+        self.invitationInfo = invitation
 
         var duration = (senderViewController?.duration ?? reciverViewController?.duration) ?? 0
         update(state: .beHangup, duration: duration)
     }
+        
+    public func createCallMessage(_ invitation: CRIMInvitationInfo, callType: CRIM_CustomMsgType) -> CRIMMessageInfo? {
+        if let data = JsonTool.toMap(fromObject: invitation) as? [String: Any] {
+            let dataStr = String.init(data: try! JSONSerialization.data(withJSONObject: ["customType": callType.rawValue,
+                                                                                         "data": data]),
+                                      encoding: .utf8)!
+            return CRIMMessageInfo.createCustomMsg(dataStr, extension: "")
+        }
+        return nil
+    }
 }
 
-extension CRIMSignalingInfo {
-    var isSignal: Bool {
-        true
-    }
+extension CRIMInvitationInfo {
     
     var isVideo: Bool {
-        return invitation.isVideo()
+        return mediaType == "video"
     }
 }
 

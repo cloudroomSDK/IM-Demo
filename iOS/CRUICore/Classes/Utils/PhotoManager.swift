@@ -2,12 +2,13 @@
 import Foundation
 import Photos
 import UIKit
-import ZLPhotoBrowser
 import ProgressHUD
+import ZLPhotoBrowser
+import MobileCoreServices
 
 open class PhotoHelper {
-    public var didPhotoSelected: ((_ images: [UIImage], _ assets: [PHAsset], _ isOriginPhoto: Bool) -> Void)?
-
+    public var didPhotoSelected: ((_ images: [UIImage], _ assets: [PHAsset]) -> Void)?
+    
     public var didPhotoSelectedCancel: (() -> Void)?
 
     public var didCameraFinished: ((UIImage?, URL?) -> Void)?
@@ -21,36 +22,6 @@ open class PhotoHelper {
         editConfig.tools([.draw, .clip, .textSticker, .mosaic])
         ZLPhotoConfiguration.default().editImageConfiguration(editConfig)
             .canSelectAsset { _ in true }
-            .navCancelButtonStyle(.text)
-            .noAuthorityCallback { (authType: ZLNoAuthorityType) in
-                switch authType {
-                case .library:
-                    debugPrint("No library authority")
-                case .camera:
-                    debugPrint("No camera authority")
-                case .microphone:
-                    debugPrint("No microphone authority")
-                }
-            }
-        ZLPhotoConfiguration.default().cameraConfiguration.videoExportType = .mp4
-    }
-
-    public func setConfigToPickAvatar() {
-        let editConfig = ZLPhotoConfiguration.default().editImageConfiguration
-        editConfig.tools([.clip])
-            .clipRatios([ZLImageClipRatio.wh1x1])
-        ZLPhotoConfiguration.default().maxSelectCount(1)
-            .editAfterSelectThumbnailImage(true)
-            .allowRecordVideo(false)
-            .allowMixSelect(false)
-            .allowSelectGif(false)
-            .allowSelectVideo(false)
-            .allowSelectLivePhoto(false)
-            .allowSelectOriginal(false)
-            .editImageConfiguration(editConfig)
-            .showClipDirectlyIfOnlyHasClipTool(true)
-            .canSelectAsset { _ in false }
-            .navCancelButtonStyle(.text)
             .noAuthorityCallback { (authType: ZLNoAuthorityType) in
                 switch authType {
                 case .library:
@@ -63,8 +34,79 @@ open class PhotoHelper {
             }
     }
     
+    public func setConfigToPickAvatar() {
+        let editConfig = ZLPhotoConfiguration.default().editImageConfiguration
+        editConfig.tools([.draw, .clip, .textSticker, .mosaic])
+            .clipRatios([ZLImageClipRatio.wh1x1])
+        ZLPhotoConfiguration.default().maxSelectCount(1)
+            .editAfterSelectThumbnailImage(true)
+            .allowMixSelect(false)
+            .allowSelectGif(false)
+            .allowSelectVideo(false)
+            .allowSelectLivePhoto(false)
+            .allowSelectOriginal(false)
+            .editImageConfiguration(editConfig)
+            .canSelectAsset { _ in true }
+            .saveNewImageAfterEdit(false)
+            .noAuthorityCallback { (authType: ZLNoAuthorityType) in
+                switch authType {
+                case .library:
+                    debugPrint("No library authority")
+                case .camera:
+                    debugPrint("No camera authority")
+                case .microphone:
+                    debugPrint("No microphone authority")
+                }
+            }
+    }
+    
+    public func setConfigToPickBackground() {
+        ZLPhotoConfiguration.default().maxSelectCount(1)
+            .editAfterSelectThumbnailImage(true)
+            .allowMixSelect(false)
+            .allowSelectGif(false)
+            .allowSelectVideo(false)
+            .allowSelectImage(true)
+            .allowSelectLivePhoto(false)
+            .allowSelectOriginal(false)
+            .allowEditImage(false)
+            .allowEditVideo(false)
+            .canSelectAsset { _ in true }
+            .saveNewImageAfterEdit(false)
+            .noAuthorityCallback { (authType: ZLNoAuthorityType) in
+                switch authType {
+                case .library:
+                    debugPrint("No library authority")
+                case .camera:
+                    debugPrint("No camera authority")
+                case .microphone:
+                    debugPrint("No microphone authority")
+                }
+            }
+    }
+    
+    public func setConfigToPickImageForChat(canSelectAsset: ((PHAsset) -> Bool)? = nil) {
+        let config = ZLPhotoConfiguration.default()
+        config.allowSelectImage = true
+        config.allowSelectVideo = true
+        config.allowSelectGif = true
+        config.allowSelectLivePhoto = false
+        config.allowSelectOriginal = false
+        config.cropVideoAfterSelectThumbnail = true
+        config.allowEditVideo = false
+        config.allowEditImage = false
+        config.allowMixSelect = true
+        config.maxSelectCount = 9
+        config.maxEditVideoTime = 60
+        config.canSelectAsset = canSelectAsset
+        
+        let cameraConfig = ZLCameraConfiguration()
+        cameraConfig.videoExportType = .mp4
+        config.cameraConfiguration = cameraConfig
+    }
+    
     public func setConfigToMultipleSelected(forVideo: Bool = false, maxSelectCount: Int = 9) {
-     
+        
         let config = ZLPhotoConfiguration.default()
         config.allowSelectImage = !forVideo
         config.allowSelectVideo = forVideo
@@ -82,27 +124,68 @@ open class PhotoHelper {
         cameraConfig.sessionPreset = .vga640x480
         config.cameraConfiguration = cameraConfig
     }
-
+    
+    public func setConfigToPickImageForScanQrcode() {
+        let config = ZLPhotoConfiguration.default()
+        config.allowSelectImage = true
+        config.allowSelectVideo = false
+        config.allowSelectGif = false
+        config.allowSelectLivePhoto = false
+        config.allowSelectOriginal = false
+        config.cropVideoAfterSelectThumbnail = false
+        config.allowEditVideo = false
+        config.allowEditImage = false
+        config.allowMixSelect = false
+        config.maxSelectCount = 1
+        config.allowTakePhotoInLibrary = false
+    }
+    
+    public func setConfigToPickImageForAddFaceEmoji() {
+        let config = ZLPhotoConfiguration.default()
+        config.allowSelectImage = true
+        config.allowSelectVideo = false
+        config.allowSelectGif = true
+        config.allowSelectLivePhoto = false
+        config.allowSelectOriginal = false
+        config.cropVideoAfterSelectThumbnail = false
+        config.allowEditVideo = false
+        config.allowEditImage = false
+        config.allowMixSelect = true
+        config.maxSelectCount = 9
+        config.allowTakePhotoInLibrary = false
+    }
+    
     func presentPhotoLibraryOnlyEdit(byController: UIViewController) {
         let sheet = ZLPhotoPreviewSheet(selectedAssets: nil)
-        sheet.selectImageBlock = didPhotoSelected
+        sheet.selectImageBlock = { [weak self] models, result in
+            let images = models.map { $0.image }
+            let assets = models.map { $0.asset }
+            
+            self?.didPhotoSelected?(images, assets)
+        }
         sheet.cancelBlock = didPhotoSelectedCancel
         sheet.showPhotoLibrary(sender: byController)
     }
-
+    
     public func presentPhotoLibrary(byController: UIViewController) {
         let sheet = ZLPhotoPreviewSheet(selectedAssets: nil)
-        sheet.selectImageBlock = didPhotoSelected
+        sheet.selectImageBlock = { [weak self] models, result in
+            let images = models.map { $0.image }
+            let assets = models.map { $0.asset }
+            
+            self?.didPhotoSelected?(images, assets)
+        }
         sheet.cancelBlock = didPhotoSelectedCancel
         sheet.showPhotoLibrary(sender: byController)
     }
-
+    
     public func presentCamera(byController: UIViewController) {
         let camera = ZLCustomCamera()
         camera.takeDoneBlock = didCameraFinished
+        camera.modalPresentationStyle = .overCurrentContext
         byController.showDetailViewController(camera, sender: nil)
     }
-
+    
     public static func getVideoAt(url: URL, handler: @escaping (_ main: FileHelper.FileWriteResult, _ thumb: FileHelper.FileWriteResult, _ duration: Int) -> Void) {
         let asset = AVURLAsset(url: url)
         let assetGen = AVAssetImageGenerator(asset: asset)
@@ -302,8 +385,8 @@ open class PhotoHelper {
     public static func compressVideoToMp4(asset: PHAsset, thumbnail: UIImage?, handler: @escaping (_ main: FileHelper.FileWriteResult, _ thumb: FileHelper.FileWriteResult, _ duration: Int) -> Void) {
         let fileHelper = FileHelper.shared
         let thumbnail = fileHelper.saveImage(image: thumbnail!)
-
-        ZLVideoManager.exportVideo(for: asset, exportType: .mp4) { (url: URL?, _: Error?) in
+        
+        ZLVideoManager.exportVideo(for: asset, exportType: .mp4, presetName: AVAssetExportPreset960x540) { (url: URL?, _: Error?) in
             guard let url = url else { return }
             let p = fileHelper.saveVideo(from: url.path)
             handler(p, thumbnail, Int(asset.duration))

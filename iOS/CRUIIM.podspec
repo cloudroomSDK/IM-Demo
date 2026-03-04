@@ -6,9 +6,9 @@ Pod::Spec.new do |s|
   CRIM：iOS版本IM SDK 可以轻松替代第三方IM云服务，打造具备聊天、社交功能的app。
                        DESC
 
-  s.homepage         = 'https://sdk.cloudroom.com/'
+  s.homepage         = 'https://sdk.crim.com/'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'CRUIIM' => 'https://sdk.cloudroom.com/' }
+  s.author           = { 'CRUIIM' => 'https://sdk.crim.com/' }
   s.source           = { :git => 'git@github.com:CRIMUI/CRUIIM.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'

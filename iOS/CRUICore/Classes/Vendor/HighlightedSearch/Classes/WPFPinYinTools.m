@@ -2,6 +2,11 @@
 #import "WPFPinYinTools.h"
 #import "WPFPerson.h"
 
+static inline id WPFArraySafeGet(NSArray *array, NSInteger index) {
+    if (index < 0 || index >= array.count) return nil;
+    return array[index];
+}
+
 @implementation WPFSearchResultModel
 
 @end
@@ -130,11 +135,11 @@
              *  就要匹配出“gai”、“ge”等“g”开头的拼音对应的字符，
              *  而不应该匹配到“wang”、“feng”等非”g“开头的拼音对应的字符
              */
-            NSInteger currentLocation = [completeSpellingArray[complateRange.location] integerValue];
-            NSInteger lastLocation = [completeSpellingArray[complateRange.location-1] integerValue];
+            NSInteger currentLocation = [WPFArraySafeGet(completeSpellingArray, complateRange.location) integerValue];
+            NSInteger lastLocation = [WPFArraySafeGet(completeSpellingArray, complateRange.location - 1) integerValue];
             if (currentLocation != lastLocation) {
                 // 高亮范围从匹配到的第一个关键字开始
-                highlightedRange = NSMakeRange(currentLocation, [completeSpellingArray[complateRange.length+complateRange.location -1] integerValue] - currentLocation +1);
+                highlightedRange = NSMakeRange(currentLocation, [WPFArraySafeGet(completeSpellingArray, complateRange.length+complateRange.location -1) integerValue] - currentLocation +1);
             }
         }
         searchModel.highlightedRange = highlightedRange;
@@ -146,14 +151,14 @@
     
     // MARK: 拼音首字母匹配
     if (initialRange.length!=0) {
-        NSInteger currentLocation = [pinyinFirstLetterLocationArray[initialRange.location] integerValue];
+        NSInteger currentLocation = [WPFArraySafeGet(pinyinFirstLetterLocationArray, initialRange.location) integerValue];
         NSInteger highlightedLength;
         if (initialRange.location ==0) {
-            highlightedLength = [pinyinFirstLetterLocationArray[initialRange.length-1] integerValue]-currentLocation +1;
+            highlightedLength = [WPFArraySafeGet(pinyinFirstLetterLocationArray, initialRange.length-1) integerValue]-currentLocation +1;
             // 拼音首字母匹配从0开始，即搜索的关键字与该数据源第一个汉字匹配到，所以高亮范围从0开始
             highlightedRange = NSMakeRange(0, highlightedLength);
         } else {
-            highlightedLength = [pinyinFirstLetterLocationArray[initialRange.length+initialRange.location-1] integerValue]-currentLocation +1;
+            highlightedLength = [WPFArraySafeGet(pinyinFirstLetterLocationArray, initialRange.length+initialRange.location-1) integerValue]-currentLocation +1;
             // 高亮范围从匹配到的第一个关键字开始
             highlightedRange = NSMakeRange(currentLocation, highlightedLength);
         }

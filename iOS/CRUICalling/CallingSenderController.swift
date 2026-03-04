@@ -5,7 +5,7 @@ import RxSwift
 import SnapKit
 import ProgressHUD
 import CRUICore
-import CloudroomVideoSDK_IOS
+import RTCSDK_IOS
 
 public class CallingSenderController: CallingBaseController {
     
@@ -16,8 +16,8 @@ public class CallingSenderController: CallingBaseController {
         signal?.linkingDuration ?? 0
     }
     
-    public override func connectRoom(meetID: String) {
-        signal?.connectRoom(meetID: meetID)
+    public override func connectRoom(meetID: String, nickname: String) {
+        signal?.connectRoom(meetID: meetID, nickname: nickname)
     }
     
     public override func dismiss() {

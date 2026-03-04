@@ -8,10 +8,10 @@ class UserDetailViewModel {
     let groupId: String?
     let groupInfo: GroupInfo?
     
-    let userInfoRelay: BehaviorRelay<FullUserInfo?> = .init(value: nil)
+    let userInfoRelay: BehaviorRelay<FriendInfo?> = .init(value: nil)
     //let userInfoRelay: BehaviorRelay<UserInfo?> = .init(value: nil)
     let loginUserPublish: PublishSubject<UserInfo?> = .init()
-    let strangerInfoRelay: BehaviorRelay<UserInfo?> = .init(value: nil)
+    let strangerInfoRelay: BehaviorRelay<PublicUserInfo?> = .init(value: nil)
     var memberInfoRelay: BehaviorRelay<GroupMemberInfo?> = .init(value: nil)
     var showSetAdmin: Bool = false
     var showJoinSource: Bool = false
@@ -29,20 +29,13 @@ class UserDetailViewModel {
         IMController.shared.friendInfoChangedSubject.subscribe { [weak self] (friendInfo: FriendInfo?) in
             guard let sself = self else { return }
             guard friendInfo?.userID == sself.userId else { return }
-            let user = sself.userInfoRelay.value?.friendInfo
+            let user = sself.userInfoRelay.value
             user?.nickname = friendInfo?.nickname
             if let gender = friendInfo?.gender {
                 user?.gender = gender
             }
-            user?.phoneNumber = friendInfo?.phoneNumber
-            if let birth = friendInfo?.birth {
-                user?.birth = birth
-            }
-            user?.email = friendInfo?.email
             user?.remark = friendInfo?.remark
-            let fullUser = self?.userInfoRelay.value
-            fullUser?.friendInfo = user
-            self?.userInfoRelay.accept(fullUser)
+            self?.userInfoRelay.accept(user)
         }.disposed(by: _disposeBag)
         
         IMController.shared.getBlackList {[weak self] blackUsers in
@@ -64,8 +57,8 @@ class UserDetailViewModel {
 
         let group = DispatchGroup()
         
-        var userInfo: FullUserInfo?
-        var strangerInfo: UserInfo?
+        var userInfo: FriendInfo?
+        var strangerInfo: PublicUserInfo?
         var memberInfo: GroupMemberInfo?
         
         IMController.shared.checkFriendBy(userID: userId).subscribe { [weak self] (result: Bool) in
@@ -81,10 +74,6 @@ class UserDetailViewModel {
                     
                     if let userID = self?.userId, let handler = CRIMApi.queryUsersInfoWithCompletionHandler {
                         handler([userID], { [weak self] users in
-                            if let u = users.first {
-                                userInfo?.friendInfo?.birth = u.birth ?? 0
-                                userInfo?.friendInfo?.phoneNumber = u.phoneNumber
-                            }
                             group.leave()
                         })
                     } else {
@@ -95,7 +84,7 @@ class UserDetailViewModel {
             } else {
                 group.enter()
                 IMController.shared.getUserInfo(uids: [userID]) { users in
-                    strangerInfo = users?.first
+                    strangerInfo = users.first
                     group.leave()
                 }
             }
@@ -123,7 +112,7 @@ class UserDetailViewModel {
                         }
                         
                         IMController.shared.getUserInfo(uids: [memberInfo!.inviterUserID!]) { users in
-                            memberInfo!.inviterUserName = users?.first?.nickname
+                            memberInfo!.inviterUserName = users.first?.nickname
                             group.leave()
                         }
                         
@@ -138,7 +127,7 @@ class UserDetailViewModel {
                 self?.strangerInfoRelay.accept(strangerInfo)
             }
             
-        }.disposed(by: _disposeBag)
+        }
         
     }
 
@@ -181,6 +170,10 @@ class UserDetailViewModel {
     
     func blockUser(blocked: Bool, onSuccess: @escaping CallBack.StringOptionalReturnVoid){
         IMController.shared.blockUser(uid: userId, blocked: blocked, onSuccess: onSuccess)
+    }
+    
+    func saveRemark(remark: String, onSuccess: @escaping CallBack.StringOptionalReturnVoid)  {
+        IMController.shared.setFriend(uid: userId, remark: remark, onSuccess: onSuccess)
     }
     
     func deleteFriend(onSuccess: @escaping CallBack.StringOptionalReturnVoid) {

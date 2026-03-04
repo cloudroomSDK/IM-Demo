@@ -313,8 +313,8 @@ class LoginViewController: UIViewController {
             return
         }
         
-        let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
-        if severAddress.isEmpty == false, severAddress != defaultHost {
+        let severAddress = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
+        if severAddress.isEmpty == false, severAddress != AppConfig.defaultServerAddr {
             captchaPromptLabel.isHidden = false
         } else {
             captchaPromptLabel.isHidden = true

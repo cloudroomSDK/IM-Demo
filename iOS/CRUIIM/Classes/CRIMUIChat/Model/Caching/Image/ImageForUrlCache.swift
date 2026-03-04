@@ -7,7 +7,15 @@ public struct CacheableImageKey: Hashable, PersistentlyCacheable {
     public let url: URL
 
     var persistentIdentifier: String {
-        url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? url.absoluteString
+        // 移除URL中的查询参数
+        var components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        components?.query = nil
+        
+        guard let cleanURL = components?.url else {
+            return url.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? url.absoluteString
+        }
+        
+        return cleanURL.absoluteString.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? cleanURL.absoluteString
     }
 }
 

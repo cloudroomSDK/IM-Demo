@@ -11,20 +11,24 @@
 }
 
 + (instancetype)personWithId:(NSString *)personId name:(NSString *)name sub:(nullable NSString *)sub hanyuPinyinOutputFormat:(HanyuPinyinOutputFormat *)pinyinFormat {
+    if (personId.length == 0 || name.length == 0 || !pinyinFormat) {
+        return nil;
+    }
+    
     WPFPerson *person = [[WPFPerson alloc] init];
     
     // 拼音全拼
-    NSMutableString *completeSpelling = [[NSMutableString alloc] init];
-    NSMutableString *polyPhoneCompleteSpelling;
+    NSMutableString *completeSpelling = [NSMutableString string];
+    NSMutableString *polyPhoneCompleteSpelling = [NSMutableString string];
     
     // 首字母所组成的字符串
-    NSString *initialString = @"";
-    NSString *polyPhoneInitialString;
+    NSString *initialString = [[NSString alloc] init];
+    NSString *polyPhoneInitialString = [[NSString alloc] init];
     // 全拼拼音数组
-    NSMutableArray *completeSpellingArray = [[NSMutableArray alloc] init];
-    NSMutableArray *polyPhoneCompleteSpellingArray;
+    NSMutableArray *completeSpellingArray = [NSMutableArray array];
+    NSMutableArray *polyPhoneCompleteSpellingArray = [NSMutableArray array];
     // 拼音首字母的位置数组
-    NSMutableArray *pinyinFirstLetterLocationArray = [[NSMutableArray alloc] init];
+    NSMutableArray *pinyinFirstLetterLocationArray = [NSMutableArray array];
    
     for (NSInteger i = 0; i < name.length; i++) {
         NSRange range = NSMakeRange(i, 1);

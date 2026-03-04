@@ -9,16 +9,15 @@ PODS:
   - ChatLayout/Ultimate (2.0.10):
     - ChatLayout/Core
     - ChatLayout/Extras
-  - cloudroomvideo_ios_library (0.0.4)
   - CRIMSDK (1.0.3):
     - MJExtension
   - CRUICalling (0.0.1):
-    - cloudroomvideo_ios_library
     - CRIMSDK
     - CRUICore
     - Kingfisher
     - lottie-ios
     - ProgressHUD
+    - rtcsdk_ios_library
     - RxCocoa
     - RxSwift
     - SnapKit
@@ -36,7 +35,7 @@ PODS:
     - RxSwift (~> 6.5)
     - SnapKit (~> 4.0)
     - Toast-Swift (~> 5.1.1)
-    - ZLPhotoBrowser (= 4.3.0)
+    - ZLPhotoBrowser (= 4.6.0.1)
   - CRUICoreView (0.0.1):
     - CRUICore
     - FDFullscreenPopGesture
@@ -82,6 +81,7 @@ PODS:
   - MJRefresh (3.7.5)
   - MMBAlertsPickers (1.1.93)
   - ProgressHUD (14.1.0)
+  - rtcsdk_ios_library (4.6.1)
   - RxCocoa (6.5.0):
     - RxRelay (= 6.5.0)
     - RxSwift (= 6.5.0)
@@ -101,9 +101,9 @@ PODS:
   - SGCodeTextField (0.1.4)
   - SnapKit (4.2.0)
   - Toast-Swift (5.1.1)
-  - ZLPhotoBrowser (4.3.0):
-    - ZLPhotoBrowser/Core (= 4.3.0)
-  - ZLPhotoBrowser/Core (4.3.0)
+  - ZLPhotoBrowser (4.6.0.1):
+    - ZLPhotoBrowser/Core (= 4.6.0.1)
+  - ZLPhotoBrowser/Core (4.6.0.1)
   - ZXSDK-Noidfa (3.2.4)
 
 DEPENDENCIES:
@@ -125,7 +125,6 @@ SPEC REPOS:
     - Alamofire
     - Bugly
     - ChatLayout
-    - cloudroomvideo_ios_library
     - DifferenceKit
     - Differentiator
     - FDFullscreenPopGesture
@@ -141,6 +140,7 @@ SPEC REPOS:
     - MJRefresh
     - MMBAlertsPickers
     - ProgressHUD
+    - rtcsdk_ios_library
     - RxCocoa
     - RxDataSources
     - RxGesture
@@ -169,12 +169,11 @@ SPEC CHECKSUMS:
   Alamofire: 85e8a02c69d6020a0d734f6054870d7ecb75cf18
   Bugly: b8715e6ec4004b7f7fbffab0643ba80545aee3da
   ChatLayout: 004369aa1d00f6490660980c1af48a546388ea2e
-  cloudroomvideo_ios_library: 03ee87e9ee487b79f998470224103fb78d62125f
-  CRIMSDK: 800897397ed963c420485bfab7ff226175a82630
-  CRUICalling: 7ebc2d5548f4800c7d1ddd4ea4709135becb2589
-  CRUICore: dc818c50cb60e99996639dd1556b468c568c596d
-  CRUICoreView: 84d8d4dc4ae79021bf9ebab8f5b2e4890ec6513f
-  CRUIIM: 3ecfda315968fe6a178bc3667859d06b7287a6eb
+  CRIMSDK: 3f05dfeb0a75a0fa8e75ed3f5ffd455b10fa0257
+  CRUICalling: 81422ca83fbf2477fe4667c452207cc2550d01ef
+  CRUICore: 0a42cd90beba7b5509a414bde7f8993e828f7428
+  CRUICoreView: 9005f762ba7f1438f0822a714880bcef673911c0
+  CRUIIM: 98bb8790e0f465f827a3d80909a2408abb52a7ab
   DifferenceKit: ab185c4d7f9cef8af3fcf593e5b387fb81e999ca
   Differentiator: e8497ceab83c1b10ca233716d547b9af21b9344d
   FDFullscreenPopGesture: a8a620179e3d9c40e8e00256dcee1c1a27c6d0f0
@@ -190,6 +189,7 @@ SPEC CHECKSUMS:
   MJRefresh: fdf5e979eb406a0341468932d1dfc8b7f9fce961
   MMBAlertsPickers: d52d288114c7dad4e4f1282fb2b1f1189ccc117a
   ProgressHUD: c4a55f108815c46a6bf082407d2f806840b7a869
+  rtcsdk_ios_library: feeae872f3d1e9713d2cbdd0a58701c36c0544d6
   RxCocoa: 94f817b71c07517321eb4f9ad299112ca8af743b
   RxDataSources: aa47cc1ed6c500fa0dfecac5c979b723542d79cf
   RxGesture: f3efb47ed2d26a8082f7b660d4a59970e275a7f8
@@ -199,7 +199,7 @@ SPEC CHECKSUMS:
   SGCodeTextField: 6b65291a52a092c24bd08cc32873e024223b2371
   SnapKit: fe8a619752f3f27075cc9a90244d75c6c3f27e2a
   Toast-Swift: 7a03a532afe3a560d4044bc7c237e2864d295173
-  ZLPhotoBrowser: 7c5c3ea5e42428d26dc74a52fe821aa2a9274fa3
+  ZLPhotoBrowser: 20f32e6429448cc1c008795a1b55472d5772939c
   ZXSDK-Noidfa: 475cd9d5ad96b1762cb97efd4738bc3f55e68cde
 
 PODFILE CHECKSUM: aee3e18dd97ac30b948436eaaf8d024b20fc5b49

@@ -119,6 +119,11 @@ class MainTabViewController: UITabBarController {
         vc.loginBtn.rx.tap.subscribe(onNext: { [weak vc, weak self] in
             guard let controller = vc else { return }
             
+            guard AccountViewModel.API_BASE_URL .hasPrefix("http") else {
+                ProgressHUD.error("不支持的URL，请检查业务服务器".localized())
+                return
+            }
+            
             guard let phone = controller.phone, !phone.isEmpty, controller.validatePhoneNumber(phone) else {
                 ProgressHUD.error("填写正确的手机号码".localized())
                 return

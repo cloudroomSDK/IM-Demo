@@ -117,8 +117,8 @@ class UserDetailTableViewController: UIViewController {
 
     private let _disposeBag = DisposeBag()
     private let _viewModel: UserDetailViewModel
-    private var user: FullUserInfo?
-    private var strangerInfo: UserInfo?
+    private var user: FriendInfo?
+    private var strangerInfo: PublicUserInfo?
     private var inBlackList = false
     
     private lazy var _tableView: UITableView = {
@@ -251,7 +251,7 @@ class UserDetailTableViewController: UIViewController {
     }
     
     private func bindData() {
-        _viewModel.userInfoRelay.subscribe(onNext: { [weak self] (userInfo: FullUserInfo?) in
+        _viewModel.userInfoRelay.subscribe(onNext: { [weak self] (userInfo: FriendInfo?) in
             guard let userInfo, let sself = self else {
                 self?.addFriendBtn.isHidden = true
                 self?.sendMsgStack.isHidden = true
@@ -264,25 +264,25 @@ class UserDetailTableViewController: UIViewController {
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
             }
-            var name: String? = userInfo.showName
-            if let remark = userInfo.friendInfo?.remark, !remark.isEmpty {
+            var name: String? = userInfo.nickname
+            if let remark = userInfo.remark, !remark.isEmpty {
                 name = name?.append(string: "(\(remark))")
             }
             sself.nameLabel.text = name
-            sself.addFriendBtn.isHidden = userInfo.friendInfo != nil
+            sself.addFriendBtn.isHidden = userInfo != nil
             sself.user = userInfo
 
             if userInfo.userID == IMController.shared.userID {
                 sself.addFriendBtn.isHidden = true
                 sself.sendMsgStack.isHidden = true
                 sself.unfriendStack.isHidden = true
-            } else if userInfo.friendInfo != nil, sself.rowItems.count < 3 {
+            } else if userInfo != nil, sself.rowItems.count < 3 {
                 //是好友可以查看详细
                 sself.addFriendBtn.isHidden = true
                 sself.sendMsgStack.isHidden = false
                 sself.unfriendStack.isHidden = false
                 
-                sself.rowItems.append([.remark, .gender, .birthday, .phone])
+                sself.rowItems.append([.remark])
                 sself.rowItems.append([.recommendCard])
                 sself.rowItems.append([.blocked])
                 
@@ -291,7 +291,7 @@ class UserDetailTableViewController: UIViewController {
             sself._tableView.reloadData()
         }).disposed(by: _disposeBag)
         
-        _viewModel.strangerInfoRelay.subscribe(onNext: { [weak self] (userInfo: UserInfo?) in
+        _viewModel.strangerInfoRelay.subscribe(onNext: { [weak self] (userInfo: PublicUserInfo?) in
             guard let userInfo, let sself = self else {
                 return
             }
@@ -323,7 +323,11 @@ class UserDetailTableViewController: UIViewController {
     }
     
     @objc func blockedUser() {
-        _viewModel.blockUser(blocked: !inBlackList) { r in
+        let newBlackListStatus = !inBlackList
+        _viewModel.blockUser(blocked: newBlackListStatus) { [weak self] r in
+            guard let self else { return }
+            self.inBlackList = newBlackListStatus
+            self._tableView.reloadData()
         }
     }
     
@@ -359,6 +363,24 @@ class UserDetailTableViewController: UIViewController {
                     cell.subtitleLabel.text = remark
                 }
                 */
+                _viewModel.saveRemark(remark: remark) { [weak self] r in
+                    guard let self = self else { return }
+                    
+                    var targetIndexPath: IndexPath?
+                    for (section, sectionItems) in self.rowItems.enumerated() {
+                        if let row = sectionItems.index(of: .remark) {
+                            targetIndexPath = IndexPath(row: row, section: section)
+                            break
+                        }
+                    }
+                    
+                    guard let indexPath = targetIndexPath,
+                          let cell = self._tableView.cellForRow(at: indexPath) as? OptionTableViewCell else {
+                        return
+                    }
+       
+                    cell.subtitleLabel.text = remark
+                }
             }
         })
         let cancelAction = UIAlertAction(title: "取消".innerLocalized(), style: .default, handler: {
@@ -422,20 +444,19 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
         switch rowType {
         
         case .remark:
-            cell.subtitleLabel.text = (user?.friendInfo?.remark?.isEmpty ?? true) ? user?.showName : user?.friendInfo?.remark
+            cell.subtitleLabel.text = (user?.remark?.isEmpty ?? true) ? user?.nickname : user?.remark
             cell.accessoryType = .disclosureIndicator
             
         case .gender:
-            cell.subtitleLabel.text = user?.friendInfo?.gender.description
+            cell.subtitleLabel.text = ""
             cell.accessoryType = .none
 
         case .birthday:
-            let birth = user?.friendInfo?.birth != nil ? ((user?.friendInfo?.birth)!) : 0
-            cell.subtitleLabel.text = FormatUtil.getFormatDate(of: birth/1000)
+            cell.subtitleLabel.text = ""
             cell.accessoryType = .none
 
         case .phone:
-            cell.subtitleLabel.text = user?.friendInfo?.phoneNumber
+            cell.subtitleLabel.text = ""
             cell.accessoryType = .none
             
         case .recommendCard:
@@ -478,7 +499,7 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
             vc.selectedContact() { [weak self] r in
                 guard let self else { return }
                 self.navigationController?.popViewController(animated: true)
-                let contact = ContactInfo(ID: self.user?.userID, name: self.user?.showName, faceURL: self.user?.faceURL)
+                let contact = ContactInfo(ID: self.user?.userID, name: self.user?.nickname, faceURL: self.user?.faceURL)
                 self._viewModel.sendCardMsg(contact, r) { msg in
                     
                 }
@@ -487,6 +508,8 @@ extension UserDetailTableViewController: UITableViewDataSource, UITableViewDeleg
             vc.hidesBottomBarWhenPushed = true
             self.navigationController?.pushViewController(vc, animated: true)
             
+        case .remark:
+            modifyRemark()
         case .nickName, .joinTime, .joinSource: break
         default:
             break

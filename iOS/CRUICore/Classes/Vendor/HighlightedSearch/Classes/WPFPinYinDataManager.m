@@ -22,11 +22,14 @@
 + (void)addInitializeString:(NSString *)string sub:(NSString *)sub identifer:(NSString *)identifier {
     WPFPinYinDataManager *manager = [WPFPinYinDataManager _shareInstance];
     WPFPerson *person = [WPFPerson personWithId:identifier name:string sub:sub hanyuPinyinOutputFormat:manager.outputFormat];
+    if (!person) {
+        return;
+    }
     [manager.dataSource addObject:person];
 }
 
 + (NSArray *)getInitializedDataSource {
-    return [WPFPinYinDataManager _shareInstance].dataSource;
+    return [[WPFPinYinDataManager _shareInstance].dataSource copy];
 }
 
 #pragma mark Private Method

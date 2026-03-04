@@ -1,27 +1,18 @@
 
 import CRUICore
+import CRUIIM
 import Localize_Swift
 import RxSwift
 import GTSDK
 import Bugly
 import CRUICalling
 import IQKeyboardManagerSwift
+import Kingfisher
 
+// 个推
 let kGtAppId = "AKO73DOTtmAIsCcEnTWS58"
 let kGtAppKey = "f4bEG4a8dE9fdCdoZHfw88"
 let kGtAppSecret = "VaQHJiYBuDATVC2zn9kRr1"
-
-// 默认使用的IP或者域名
-let defaultHost = "demo.cloudroom.com" // 填入host
-
-// 设置页用到的默认IP或域名，在设置页保存以后，defaultHost将失效
-let defaultIP = "demo.cloudroom.com"
-let defaultDomain = "demo.cloudroom.com"
-
-let bussinessPort = ":8018"
-//let adminPort = ":8019"
-
-let httpsBussinessPort = ":8218"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate, GeTuiSdkDelegate {
@@ -36,14 +27,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
         
         UINavigationBar.appearance().tintColor = .c0C1C33
         
-        let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
-        let httpScheme = protocolType == 0 ? "http://" : "https://"
-        
-        let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
-            
-        // 设置登录注册等 - AccountViewModel
-        UserDefaults.standard.setValue(httpScheme + severAddress + (protocolType == 0 ? bussinessPort : httpsBussinessPort), forKey: bussinessSeverAddrKey)
-        
         GeTuiSdk.runBackgroundEnable(false)
         GeTuiSdk.start(withAppId: kGtAppId, appKey: kGtAppKey, appSecret: kGtAppSecret, delegate: self)
         GeTuiSdk.registerRemoteNotification([.alert, .badge, .sound])
@@ -55,13 +38,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     class func setupIMSDK(sdkSvr: String) {
-        let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
         // 设置对象存储
         let sdkObjectStorage = "minio"
+        let skipVerifyCert = UserDefaults.standard.bool(forKey: skipVerifyCertKey)
+        let bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
+        let host = bussinessSeverAddr.parseToServerAddress()
+        let defaultServerAddr = AppConfig.defaultServerAddr
+        
+        KingfisherManager.shared.downloader = skipVerifyCert ? insecureImageDownloader : ImageDownloader.default
+
+        FileDownloadManager.manager.updateSSLTrustMode(trust: !skipVerifyCert, host: host)
+        defaultImageLoader.updateTrustMode(validate: !skipVerifyCert)
         
         // 初始化SDK
         IMController.shared.setup(sdkAPIAdrr: sdkSvr,
-                                  skipVerifyCert: protocolType == 3,
+                                  skipVerifyCert: skipVerifyCert,
                                   sdkOS: sdkObjectStorage) {
             IMController.shared.currentUserRelay.accept(nil)
             GeTuiSdk.unbindAlias(IMController.shared.userID, andSequenceNum: "crim", andIsSelf: true)
@@ -73,7 +64,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterD
     }
     
     class func setupVideoSDK(sdkSvr: String, sdkToken: String? = nil, sdkAppId: String? = nil, sdkSecret: String? = nil) {
-        CRUICalling.CallingManager.manager.setupVideoSDK(sdkServer: sdkSvr)
+        let skipVerifyCert = UserDefaults.standard.bool(forKey: skipVerifyCertKey)
+        
+        CRUICalling.CallingManager.manager.setupVideoSDK(sdkServer: sdkSvr, verifyHttpsCert: !skipVerifyCert)
         CRUICalling.CallingManager.manager.setup(appID: sdkAppId, appSecret: sdkSecret, token: sdkToken)
     }
     

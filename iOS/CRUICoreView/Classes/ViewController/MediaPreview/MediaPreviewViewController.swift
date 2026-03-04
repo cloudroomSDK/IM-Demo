@@ -119,11 +119,11 @@ public class MediaPreviewViewController: UIViewController {
     
     func showSaveImageAlert(_ image: UIImage) {
         func saveImage() {
-            let hud = ZLProgressHUD(style: ZLPhotoConfiguration.default().hudStyle)
-            hud.show()
+            let hud = ZLProgressHUD.show()
+
             ZLPhotoManager.saveImageToAlbum(image: image) { [weak self] (suc, _) in
                 hud.hide()
-                if !suc {
+                if (suc == nil) {
                     ProgressHUD.succeed("保存图片成功".innerLocalized(), delay: 1)
                 }
             }

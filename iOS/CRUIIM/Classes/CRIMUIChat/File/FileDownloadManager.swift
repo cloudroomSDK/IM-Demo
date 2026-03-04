@@ -11,13 +11,17 @@ public struct FileDownloadRequest {
 }
 
 public class FileDownloadManager {
-    static let manager = FileDownloadManager()
+    public static let manager = FileDownloadManager()
     
     private let progressKey = "progressKey"
     private let completionKey = "completionKey"
     private let messageIDKey = "messageIDKey"
-    private let downloader = FileDownloader()
+    private var downloader = FileDownloader()
     private var tasksHandlers: [Int: [String: Any]] = [:]
+    
+    public func updateSSLTrustMode(trust: Bool, host: String) {
+        downloader = trust ? FileDownloader() : FileDownloader(trustMode: .disabled, host: host)
+    }
         
     func downloadMessageFile(messageID: String,
                              url: URL,
@@ -67,19 +71,57 @@ public class FileDownloadManager {
     }
 }
 
+public enum SSLTrustMode {
+    case strict
+    case disabled
+}
 
-class FileDownloader: NSObject {
+public class FileDownloader: NSObject {
+    var host = ""
+    var trustMode: SSLTrustMode = .strict
     var resumeData: Data?
     var request: DownloadRequest?
     public private(set) var filePath: String!
     
+    init(trustMode: SSLTrustMode = .strict, host: String = "") {
+        self.trustMode = trustMode
+        self.host = host
+        super.init()
+    }
+    
     lazy var manager: SessionManager = {
-        let configuration = URLSessionConfiguration.background(withIdentifier: "com.crim.file.download.manager.session.manager")
+
+        let configuration: URLSessionConfiguration
+
+        if trustMode == .disabled {
+            // ⚠️ 忽略证书必须用前台 session
+            configuration = .default
+        } else {
+            configuration = URLSessionConfiguration.background(
+                withIdentifier: "com.crim.file.download.manager.session.manager"
+            )
+        }
+
         configuration.httpAdditionalHeaders = SessionManager.defaultHTTPHeaders
-        configuration.sharedContainerIdentifier = "com.crim.file.download.manager.session.manager"
-        let manager = SessionManager(configuration: configuration)
+
+        let serverTrustPolicyManager: ServerTrustPolicyManager?
+
+        if trustMode == .disabled {
+            serverTrustPolicyManager = ServerTrustPolicyManager(
+                policies: [
+                    host: .disableEvaluation
+                ]
+            )
+        } else {
+            serverTrustPolicyManager = nil
+        }
+
+        let manager = SessionManager(
+            configuration: configuration,
+            serverTrustPolicyManager: serverTrustPolicyManager
+        )
+
         manager.startRequestsImmediately = true
-        
         return manager
     }()
     
@@ -97,7 +139,10 @@ class FileDownloader: NSObject {
         print("下载地址:\(filePath)")
         
         let destination: DownloadRequest.DownloadFileDestination = { [weak self] _, _ in
-            return (URL(string: self!.filePath)!, [.removePreviousFile, .createIntermediateDirectories])
+            return (
+                        URL(fileURLWithPath: self!.filePath),
+                        [.removePreviousFile, .createIntermediateDirectories]
+                    )
         }
         
         if self.resumeData != nil {

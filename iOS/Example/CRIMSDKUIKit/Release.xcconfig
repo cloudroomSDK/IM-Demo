@@ -10,3 +10,4 @@
 // https://help.apple.com/xcode/#/dev745c5c974
 #include? "Pods/Target Support Files/Pods-CRIMSDKUIKit_Example/Pods-CRIMSDKUIKit_Example.release.xcconfig"
 #include "VersionConfig.xcconfig"
+#include "AppServerConfig.xcconfig"

@@ -135,14 +135,10 @@ class GroupChatSettingViewModel {
     
     func toggleBurnDuration() {
         let isPrivateChat = !setPrivateChatRelay.value
-        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat) { [weak self] _ in
+        let burnDuration = 30
+        IMController.shared.setOneConversationPrivateChat(conversationID: conversation.conversationID, isPrivate: isPrivateChat, burnDuration: burnDuration) { [weak self] _ in
             guard let sself = self else { return }
             self?.setPrivateChatRelay.accept(!sself.setPrivateChatRelay.value)
-            
-            let burnDuration = sself.setPrivateChatRelay.value == true ? 15 : 0
-            IMController.shared.setBurnDuration(conversationID: sself.conversation.conversationID, burnDuration: burnDuration) { [weak self] _ in
-                
-            }
         }
     }
     

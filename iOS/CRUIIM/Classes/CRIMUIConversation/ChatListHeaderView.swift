@@ -1,9 +1,11 @@
 
 import CRUICore
+import Alamofire
 
 class ChatListHeaderView: UIView {
     
     private var preConnectionStatus = ConnectionStatus.connected
+    private let reachabilityManager = NetworkReachabilityManager()
     private var statusChangeInterval = Date().timeIntervalSince1970
     
     let avatarImageView: AvatarView = {
@@ -137,49 +139,47 @@ class ChatListHeaderView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func showConnectionView(_ show: Bool) {
-        show ? connectionIndicator.startAnimating() : connectionIndicator.stopAnimating()
-        connectionView.snp.updateConstraints { make in
-            make.height.equalTo(show ? 25 : 0)
-        }
+    private func showConnectionView(_ show: Bool, showIndicator: Bool = false) {
+        showIndicator ? connectionIndicator.startAnimating() : connectionIndicator.stopAnimating()
         
         UIView.animate(withDuration: 0.3, animations: {[weak self] in
-            self?.connectionView.layoutIfNeeded()
+            self?.connectionView.alpha = show ? 1.0 : 0
         }, completion: { [weak self] _ in
             self?.connectionView.isHidden = !show
         })
     }
 
     func updateConnectionStatus(status: ConnectionStatus) {
+        guard reachabilityManager?.isReachable == true else { return }
         
-        if status != preConnectionStatus {
-            // 如果状态发生变更，展示出来
-            showConnectionView(status != .syncComplete && status != .connected)
-        }
+        showConnectionView(status != .syncComplete && status != .connected, showIndicator: true)
         
-        let now = Date().timeIntervalSince1970
-        // 间隔两秒刷新一次UI
-        if now - statusChangeInterval > 2 {
+        if preConnectionStatus != status {
             switch status {
             case .connectFailure, .syncFailure:
-                connectionLabel.text = status.title
-                connectionLabel.textColor = StandardUI.color_F44038
-                connectionIndicator.isHidden = true
-                errorImageView.isHidden = false
-                connectionView.backgroundColor = StandardUI.color_FF381F.withAlphaComponent(0.15)
-                break
-            case .connecting, .connected, .syncStart, .syncComplete:
-                connectionLabel.text = status.title
-                connectionLabel.textColor = StandardUI.color_0089FF
-                errorImageView.isHidden = true
-                connectionIndicator.isHidden = false
-                connectionView.backgroundColor = StandardUI.color_0089FF.withAlphaComponent(0.15)
-                break
+                setConnectIndicator(status: status, failure: true)
+            case .connecting, .connected, .syncStart, .syncComplete, .syncProgress:
+                setConnectIndicator(status: status, failure: false)
             case .kickedOffline:
                 break
             }
-            statusChangeInterval = now
         }
         preConnectionStatus = status
+    }
+    
+    private func setConnectIndicator(status: ConnectionStatus, failure: Bool) {
+        if failure {
+            connectionLabel.text = status.title
+            connectionLabel.textColor = .cFF381F
+            connectionIndicator.isHidden = true
+            errorImageView.isHidden = false
+            connectionView.backgroundColor = .c0089FF.withAlphaComponent(0.15)
+        } else {
+            connectionLabel.text = status.title
+            connectionLabel.textColor = .c0089FF
+            errorImageView.isHidden = true
+            connectionIndicator.isHidden = false
+            connectionView.backgroundColor = .c0089FF.withAlphaComponent(0.15)
+        }
     }
 }

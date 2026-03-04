@@ -45,7 +45,7 @@ class CoustomInputBarAccessoryView: InputBarAccessoryView {
     
     private lazy var _photoHelper: PhotoHelper = {
         let v = PhotoHelper()
-        v.didPhotoSelected = { [weak self, weak v] (images: [UIImage], assets: [PHAsset], _: Bool) in
+        v.didPhotoSelected = { [weak self, weak v] (images: [UIImage], _ assets: [PHAsset]) in
             guard let self else { return }
             sendButton.startAnimating()
             

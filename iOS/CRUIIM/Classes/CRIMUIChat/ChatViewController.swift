@@ -258,12 +258,12 @@ final class ChatViewController: UIViewController {
         if type == .c1v1 {
             chatController.getOtherInfo { [weak self] info in
                 guard let self else { return }
-                self.setRightButtons(show: info.friendInfo != nil)
-                var showName = info.showName
-                if let remark = info.friendInfo?.remark, !remark.isEmpty {
+                self.setRightButtons(show: info != nil)
+                var showName = info.nickname
+                if let remark = info.remark, !remark.isEmpty {
                     self.navigationItem.title = remark
                 } else {
-                    self.navigationItem.title = info.showName
+                    self.navigationItem.title = info.nickname
                 }
             }
         } else if type == .notification {
@@ -1121,7 +1121,7 @@ extension ChatViewController: CoustomInputBarAccessoryViewDelegate {
                     }
                 } else {
                     chatController.getOtherInfo { [weak self] otherUserInfo in
-                        let contact = ContactInfo(ID: otherUserInfo.userID, name: otherUserInfo.friendInfo?.nickname, faceURL: otherUserInfo.faceURL)
+                        let contact = ContactInfo(ID: otherUserInfo.userID, name: otherUserInfo.nickname, faceURL: otherUserInfo.faceURL)
                         self?.presentForwardConfirmAlert(contacts: [contact], abstruct: "[名片]".innerLocalized()) { [weak self] leaveMsg in
                             guard let `self` = self else { return }
                             

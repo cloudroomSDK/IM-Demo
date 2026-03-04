@@ -204,7 +204,7 @@ class GroupMemberDetailViewController: UIViewController {
     }
     
     private func bindData() {
-        _viewModel.userInfoRelay.subscribe(onNext: { [weak self] (userInfo: FullUserInfo?) in
+        _viewModel.userInfoRelay.subscribe(onNext: { [weak self] (userInfo: FriendInfo?) in
             guard let userInfo, let sself = self else {
                 self?.addFriendBtn.isHidden = false
                 self?.sendMsgBtn.isHidden = true
@@ -216,18 +216,18 @@ class GroupMemberDetailViewController: UIViewController {
                 let vc = UserProfileTableViewController.init(userId: self._viewModel.userId, groupId: self._viewModel.groupId)
                 self.navigationController?.pushViewController(vc, animated: true)
             }
-            var name: String? = userInfo.showName
-            if let remark = userInfo.friendInfo?.remark, !remark.isEmpty {
+            var name: String? = userInfo.nickname
+            if let remark = userInfo.remark, !remark.isEmpty {
                 name = name?.append(string: "(\(remark))")
             }
             sself.nameLabel.text = name
-            sself.addFriendBtn.isHidden = userInfo.friendInfo != nil
+            sself.addFriendBtn.isHidden = userInfo != nil
             //sself.IDLabel.text = userInfo.userID
 
             if userInfo.userID == IMController.shared.userID {
                 sself.addFriendBtn.isHidden = true
                 sself.sendMsgBtn.isHidden = true
-            } else if userInfo.friendInfo != nil, !sself.rowItems.contains([.profile]) {
+            } else if userInfo != nil, !sself.rowItems.contains([.profile]) {
                 //是好友可以查看详细
                 //sself.rowItems.append([.spacer])
                 sself.rowItems.append([.profile])
@@ -236,7 +236,7 @@ class GroupMemberDetailViewController: UIViewController {
             sself._tableView.reloadData()
         }).disposed(by: _disposeBag)
         
-        _viewModel.strangerInfoRelay.subscribe(onNext: { [weak self] (userInfo: UserInfo?) in
+        _viewModel.strangerInfoRelay.subscribe(onNext: { [weak self] (userInfo: PublicUserInfo?) in
             guard let userInfo, let sself = self else {
                 self?.addFriendBtn.isHidden = true
                 self?.sendMsgBtn.isHidden = true

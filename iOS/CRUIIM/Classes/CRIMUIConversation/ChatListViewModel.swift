@@ -89,8 +89,8 @@ class ChatListViewModel {
             self?.getAllConversations()
             self?.getSelfInfo(onSuccess: { (userInfo: UserInfo?) in
                 self?.loginUserPublish.onNext(userInfo)
-                if let nickname = userInfo?.nickname {
-                    CRUICalling.CallingManager.manager.start(nickname: nickname)
+                if let nickname = userInfo?.nickname, let userID = userInfo?.userID {
+                    CRUICalling.CallingManager.manager.call(userID: userID, nickname: nickname)
                 }
             })
         }.disposed(by: _disposeBag)

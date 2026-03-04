@@ -23,7 +23,7 @@ public class CallingBaseController: UIViewController {
                                     others: @escaping UserInfoHandler,
                                     isVideo: Bool = true) {}
 
-    @objc public func connectRoom(meetID: String) {}
+    @objc public func connectRoom(meetID: String, nickname: String) {}
 
     @objc public func dismiss() {}
 }

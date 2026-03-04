@@ -15,7 +15,7 @@ class ProfileTableViewController: CRUIIM.ProfileTableViewController {
     private lazy var _photoHelper: PhotoHelper = {
         let v = PhotoHelper()
         v.setConfigToPickAvatar()
-        v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset], _: Bool) in
+        v.didPhotoSelected = { [weak self] (images: [UIImage], _: [PHAsset]) in
             guard var first = images.first else { return }
             ProgressHUD.animate()
             first = first.compress(to: 42)

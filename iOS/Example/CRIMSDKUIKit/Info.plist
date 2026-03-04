@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>zh_CN</string>
 	<key>CFBundleDisplayName</key>
-	<string>云屋IM</string>
+	<string>CRIM Demo</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -22,6 +22,8 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>CRIMDefaultServer</key>
+	<string>$(API_SERVER_PROTOCOL)://$(API_SERVER_HOST_PORT)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
@@ -39,6 +41,8 @@
 	<string>请点击“允许”以允许访问。若不允许，你将无法给好友发送拍照或拍视频消息和扫一扫添加好友功能</string>
 	<key>NSContactsUsageDescription</key>
 	<string>请点击“允许”以允许访问。若不允许，你将无法通知到更多通讯录好友。</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>需要访问局域网设备用于连接服务</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>请点击“允许”以允许访问。若不允许，你将无法在聊天中定位和发送位置消息。</string>
 	<key>NSLocationUsageDescription</key>
@@ -51,8 +55,6 @@
 	<string>请点击“允许”以允许访问。若不允许，你将无法给好友发送或者上传本地相册图片及视频内容。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>请点击“允许”以允许访问。若不允许，你将无法给好友发送或者上传本地相册图片及视频内容。</string>
-	<key>RTCAppGroupIdentifier</key>
-	<string>group.com.cloudroom.ios.crim</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>remote-notification</string>

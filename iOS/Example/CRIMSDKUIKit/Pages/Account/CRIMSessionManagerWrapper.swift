@@ -16,14 +16,17 @@ class CRIMSessionManagerWrapper {
     private init() {
         let serverTrustPolicyManager = ServerTrustPolicyManager(policies: [:])
         sessionManager = SessionManager(serverTrustPolicyManager: serverTrustPolicyManager)
+        
+        updateCertificateValidation()
     }
 
     func updateCertificateValidation() {
+
+        let skipVerifyCert = UserDefaults.standard.bool(forKey: skipVerifyCertKey)
         
-        let protocolType = UserDefaults.standard.integer(forKey: protocolKey)
-        
-        if protocolType == 2 {
-            let severAddress = UserDefaults.standard.string(forKey: severAddressKey) ?? defaultHost
+        if skipVerifyCert {
+            let bussinessSeverAddr = UserDefaults.standard.string(forKey: bussinessSeverAddrKey) ?? AppConfig.defaultServerAddr
+            let severAddress = bussinessSeverAddr.parseToServerAddress()
             let serverTrustPolicyManager = ServerTrustPolicyManager(policies: [
                 severAddress: .disableEvaluation,
             ])
@@ -39,4 +42,15 @@ class CRIMSessionManagerWrapper {
     }
 }
 
-
+extension String {
+    /// 从完整网址中去除协议、端口、路径，仅保留服务器地址（域名/IP）
+    func parseToServerAddress() -> String {
+        guard !self.isEmpty else { return "" }
+        let handleUrlStr = self.hasPrefix("http") ? self : "https://\(self)"
+        guard let url = URL(string: handleUrlStr) else {
+            return self
+        }
+        guard let host = url.host else { return self }
+        return host
+    }
+}
