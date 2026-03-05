@@ -1,0 +1,1759 @@
+/*整体风格*/
+QWidget
+{
+	font:12px "Microsoft YaHei";
+	color:#2D2D2D;
+	outline:none;
+}
+
+
+QLineEdit,QTextEdit,QComboBox,QPlainTextEdit,QTimeEdit,QDateEdit
+{
+	border:1px solid #E1E1E1;		
+	border-radius:4px;
+	padding-left:9px;
+	padding-right:9px;
+	background:#FFFFFF;
+}
+
+QLineEdit:hover,QTextEdit:hover,QComboBox:hover,QPlainTextEdit:hover,QTimeEdit:hover,QDateEdit:hover
+{
+	border-color:#0074C6;
+}
+
+QLineEdit:disabled,QTextEdit:disabled,QComboBox:disabled,QPlainTextEdit:disabled,QTimeEdit:disabled,QDateEdit:disabled
+{
+	background:#F1F2F3;
+}
+
+QLineEdit:read-only, QTextEdit:read-only, QComboBox:read-only, QPlainTextEdit:read-only, QTimeEdit:read-only, QDateEdit:read-only
+{
+	background:#F1F2F3;
+}
+
+QComboBox{
+	padding-right:0;
+}
+
+QLineEdit{
+    lineedit-password-character: 42;
+}
+
+QTimeEdit::up-button,QTimeEdit::down-button,QDateEdit::up-button,QDateEdit::down-button{
+      width: 8px;
+	  padding: 4px;
+      border:0;
+}
+
+QTimeEdit::up-button,QDateEdit::up-button {
+      image: url(:/Res/spinup_Normal.svg);
+}
+
+QTimeEdit::up-button:hover,QTimeEdit::up-button:pressed,QDateEdit::up-button:hover,QDateEdit::up-button:pressed
+{
+      image: url(:/Res/spinup_Press.svg);
+}
+
+QTimeEdit::up-button:disabled,QDateEdit::up-button:disabled {
+      image: url(:/Res/spinup_Hover.svg);
+}
+
+
+QTimeEdit::down-button,QDateEdit::down-button {
+      image: url(:/Res/spindown_Normal.svg);
+}
+
+QTimeEdit::down-button:hover,QTimeEdit::down-button:pressed,QDateEdit::down-button:hover,QDateEdit::down-button:pressed {
+      image:url(:/Res/spindown_Press.svg);
+}
+  
+QTimeEdit::down-button:disabled,QDateEdit::down-button:disabled {
+      image:url(:/Res/spindown_Hover.svg);
+}
+
+
+QTabWidget::pane
+{
+	border:0;
+	border-top:1px;
+	border-style:solid;
+	border-color:#E1E1E1;
+	top:-1px;
+}
+QTabWidget::tab-bar {
+}
+QTabBar::tab{
+	background:transparent;
+	border:0;
+	border-radius:0;
+	min-width:45px;
+	min-height:25px;
+	margin-right:0;
+}
+QTabBar::tab:hover {
+	color:#0074C6;
+	border-bottom:1px solid #0074C6;
+	padding-bottom:-1px;
+}
+QTabBar::tab:selected{
+	color:#2384C8;
+	border-bottom:1px solid #2384C8;
+	padding-bottom:-1px;
+}
+QTabBar::tab:last {
+	margin-left:0;
+}
+/*按钮*/
+QToolButton,QPushButton{
+	min-height:25px;
+	border-radius:4px;
+	border:1px solid #E1E1E1;
+	color: #2D2D2D;
+	padding-left:10px;
+	padding-right:10px;
+}
+QPushButton{
+	min-width:80px;
+}
+QToolButton:disabled,QPushButton:disabled
+{
+	border-color:#CDCDCD;
+	color:#969696;
+}
+QToolButton:hover,QPushButton:hover
+{
+	border-color:#DEDEDE;
+	background-color:#DEDEDE;
+}
+QToolButton:pressed,QToolButton:checked,QPushButton:pressed,QPushButton:checked
+{
+	border-color:#C8C8C8;
+	background-color:#C8C8C8;
+}
+QToolButton::menu-button
+{
+	width:12px;
+	border:none;
+	image:none;
+}
+QToolButton::menu-button:hover,QToolButton::menu-button:pressed
+{
+	width:12px;
+	border-left:1px solid #9B9B9B;
+}
+QToolButton::menu-arrow
+{
+	image:url(:/Res/down.svg);
+}
+
+QHeaderView{
+	background-color:#F7F7F7;
+}
+
+QMenu
+{
+	border:1px solid #E1E1E1;
+	background:#FFFFFF;
+    padding-top:2px;
+    padding-bottom:2px;
+}
+QMenu::item
+{
+    padding-left:30px;
+    padding-right:22px;
+    padding-top:5px;
+    padding-bottom:5px;
+}
+QMenu::item:selected
+{
+    background-color:#e9ebf4;
+}
+QMenu::separator {
+	height:1px;
+	background-color:#E1E1E1;
+    margin-left:30px;
+    margin-right:10px;
+}
+QMenu::item:disabled
+{
+	color:#A0A0A0;
+}
+QMenu::indicator{
+	width:22px;
+	height:22px;
+}
+
+/*checkbox按钮风格*/
+QMenu::indicator:non-exclusive:checked
+{
+    image:url(:/Res/action_checked.svg);
+}
+QMenu::indicator:non-exclusive:checked:selected
+{
+    image:url(:/Res/action_checked_hover.svg);
+}
+
+
+QCheckBox::indicator,QRadioButton::indicator{
+	width: 16px;
+	height: 16px;
+}
+
+QCheckBox::indicator:unchecked{ image:url(":/Res/checkbox_uncheck.svg"); }
+QCheckBox::indicator:unchecked:hover{ image:url(":/Res/checkbox_uncheck_hover.svg"); }
+QCheckBox::indicator:checked{ image:url(":/Res/checkbox_checked.svg"); }
+QRadioButton::indicator:unchecked{ image:url(":/Res/radiobutton_uncheck.svg"); }
+QRadioButton::indicator:unchecked:hover{ image:url(":/Res/radiobutton_hover.svg"); }
+QRadioButton::indicator:checked{ image:url(":/Res/radiobutton_checked.svg"); }
+
+
+/*表格*/
+QHeaderView::section
+{
+	background:transparent;
+	border:0;
+	border-right:1px solid qlineargradient(spread:pad,x1:0.5,y1:0,x2:0.5,y2:1,
+											stop:0 rgba(255,255,255,0),
+											stop:0.2 rgba(255,255,255,0),
+											stop:0.201 #C4C4C4,
+											stop:0.799 #C4C4C4,
+											stop:0.8 rgba(255,255,255,0),
+											stop:1 rgba(255,255,255,0));
+	border-bottom:1px solid #C4C4C4;
+	min-height:30px;
+	padding-right:6;
+}
+QHeaderView::section:hover {
+	color:#0074C6;
+}
+QHeaderView::section:pressed {
+	color:#2D2D2D;
+	background-color:#0074C6;
+	border-right-color:#0074C6;
+	border-bottom-color:#0074C6;
+	margin:1px;
+}
+QHeaderView::down-arrow
+{
+	margin-right:6px;
+	min-width:18px;
+	min-height:16px;
+	image:url(:/Res/down.svg);
+}
+QHeaderView::up-arrow
+{
+	margin-right:6px;
+	min-width:18px;
+	min-height:16px;
+	image:url(:/Res/up.svg);
+}
+ 
+/**********滚动条*********/
+QScrollBar:horizontal{
+	padding-left:0;
+	padding-right:0;
+	border:0 solid grey;
+	background:transparent;
+	height:10px;
+	border-radius:4px;
+}
+QScrollBar:vertical{
+	padding-top:0;
+	padding-bottom:0;
+	border:0 solid grey;
+	background:transparent;
+	width:10px;
+	border-radius:4px;
+}
+QScrollBar::handle:vertical {
+	background-color:#80C4C4C4;
+	min-height:30px;
+	border-radius:4px;
+}
+QScrollBar::handle:horizontal {
+	background-color:#80C4C4C4;
+	min-width:30px;
+	border-radius:4px;
+}
+QScrollBar::handle:vertical:hover,QScrollBar::handle:horizontal:hover {
+	background-color:#C4C4C4;
+}
+QScrollBar::add-line:vertical{
+	height:3px;
+	background:transparent;
+}
+QScrollBar::sub-line:vertical{
+	height:3px;
+	background:transparent;
+}
+QScrollBar::add-line:horizontal{
+	width:0;
+	subcontrol-position:left;
+	subcontrol-origin:margin;
+	background:transparent;
+}
+QScrollBar::sub-line:horizontal{
+	width:0;
+	subcontrol-position:right;
+	subcontrol-origin:margin;
+	background:transparent;
+}
+QScrollBar::up-arrow:vertical,QScrollBar::down-arrow:vertical,
+QScrollBar::up-arrow:horizontal,QScrollBar::down-arrow:horizontal{
+	border:0 solid grey;
+	width:3px;
+	height:3px;
+	background:transparent;
+}
+QScrollBar::add-page:vertical,QScrollBar::sub-page:vertical,
+QScrollBar::add-page:horizontal,QScrollBar::sub-page:horizontal{
+	background:transparent;
+	border-radius:4px;
+}
+
+/*listView*/
+QListWidget,QListView{
+	background:transparent;
+	outline:0;	
+	border-radius:0;
+	padding:2px;
+}
+QListWidget::item,QListView::item{
+	min-height:26px;
+	max-height:26px;
+}
+QListWidget::item:hover,QListView::item:hover{
+	background-color:#325BFF;
+	color:#000000;
+} 
+QListWidget::item:selected,QListView::item:selected{
+	color:#000000;
+	background-color:#2384C8;
+}
+QListWidget::item:disabled ,QListView::item:disabled{
+	background-color:transparent;
+} 
+
+/*QComboBox*/
+QComboBox::drop-down
+{
+	width:20px;
+	padding:6px;
+	border:0;
+	image:url(:/Res/down.svg);
+}
+QComboBox:!editable,QComboBox::drop-down:editable {
+	background:transparent;
+}
+
+QComboBox QAbstractItemView{
+	margin-top:1;
+	outline:0;	
+	border:1px solid #E1E1E1;
+	background-color:#FFFFFF;
+	selection-background-color:#0074C6;
+	border-radius:4px;
+}
+QComboBox QAbstractItemView::item{
+	padding-left:12px;
+	padding-right:12px;
+	min-height:30px;
+	max-height:30px;
+}
+QComboBox QAbstractItemView::item:hover{
+    background-color:#e9ebf4;
+	color:#2D2D2D;
+}
+QComboBox QAbstractItemView::item:selected{
+    background-color:#e9ebf4;
+	color:#2D2D2D;
+}
+
+QTableWidget,QTableView,QTreeView,QTreeWidget{
+	background:transparent;
+	border:1px solid #C4C4C4;		
+	border-radius:2px;
+	outline:0;
+	gridline-color:#C4C4C4;
+	show-decoration-selected:1;
+}
+QTreeView::item,QTreeWidget::item{
+	min-height:20px;
+	max-height:20px;
+}
+QTableWidget::item,QTableView::item{
+	min-height:30px;
+	max-height:30px;
+}
+QTableWidget::item:selected,QTableView::item:selected,QTreeView::item:selected,QTreeWidget::item:selected{
+	background-color:#FAD86F;
+	color:#000000;
+	margin:1px;
+}
+QAbstractItemView::indicator::unchecked{image:url(:/Res/checkbox_uncheck.svg);}
+QAbstractItemView::indicator:unchecked:hover{image:url(:/Res/checkbox_uncheck_hover.svg);}
+QAbstractItemView::indicator::checked{image:url(:/Res/checkbox_checked.svg);}
+
+
+
+QGroupBox{
+	border:1px solid #C4C4C4;
+	margin-top:7px;
+	border-radius:2px;
+}
+QGroupBox::title
+{ 
+	top:-7px;
+	left:10px;
+}
+
+QSlider::add-page:vertical  {       
+	background-color: #ABD9F5;  
+}  
+QSlider::sub-page:vertical   {  
+	background-color: #3EADF5;
+}  
+QSlider::groove:vertical   {  
+	background:transparent;  
+	width:2px;  
+}  
+QSlider::handle:vertical   {  
+	height: 12px;  
+	width:12px;  
+	border-image: url(:/Res/new/volume_thumb.svg) ;  
+	/*由于槽（groove）只有2px，而滑块(handle)需要12px，则左右扩展5个px*/
+	margin-left:-5px;   
+	margin-right:-5px;
+}  
+QSlider::add-page:horizontal  {       
+	background-color: #EEEEEE;
+}  
+QSlider::sub-page:horizontal   {  
+	background-color: #3EADF5;
+}  
+QSlider::sub-page:horizontal:disabled   {  
+	background-color: #EEEEEE;
+}  
+QSlider::groove:horizontal   {  
+	background:transparent;  
+	height:2px;  
+}  
+QSlider::handle:horizontal   {  
+	height: 14px;  
+	width: 14px;  
+ 	border-image: url(:/Res/slider_thumb.svg) ;
+	/*由于槽（groove）只有2px，而滑块(handle)需要16px，则上下扩展7个px*/
+	margin-top:-6px;   
+	margin-bottom:-6px;
+}  
+QSlider::handle:horizontal:disabled   {  
+ 	border-image: url(:/Res/slider_thumb_disabled.svg) ;
+}  
+
+QProgressBar{
+	border: 1px solid #E1E1E1;		
+	border-radius:3px;
+	text-align: center;
+}
+
+QProgressBar::chunk {
+	background-color: #2384C8;
+	border-radius: 3px;
+}
+
+
+QGifLabel{
+	qproperty-speed: 8;
+    qproperty-imageFile: url(":/Res/wait_white.svg");
+}
+
+CRLineEdit #clsBtn{
+	min-width: 12px;
+	min-height: 12px;
+	border: 0px;
+	padding: 8px;
+	padding-right: 14px;
+	padding-left: 2px;
+	background-color: transparent;
+	image: url(:/Res/clear.svg);
+}
+CRLineEdit #clsBtn:hover{image: url(:/Res/clear_hover.svg);}
+CRLineEdit #clsBtn:pressed{image: url(:/Res/clear_pressed.svg);}
+CRLineEdit #leftIcon{
+	min-width: 12px;
+	min-height: 12px;
+	padding: 8px;
+	padding-left: 14px;
+	padding-right: 2px;
+	image: url(:/Res/search_gray.svg);
+}
+
+
+/*QNoNCDialog*/
+QNoNCDialog[dlgBorderType="0"]{
+	border-image: none;
+	border: 0px;
+	background-color: rgb(255,255,255);
+}
+
+QNoNCDialog[dlgBorderType="1"]{
+	border-image: none;
+	border: 1px solid rgb(220,220,220);
+	background-color: rgb(255,255,255);
+}
+
+QNoNCDialog[dlgBorderType="2"]{
+	border-width: 9px;
+	border-image: url(:/Res/shadow_rect.png);
+	background-color:transparent; 
+}
+
+
+QNoNCDialog TitleBar{
+	background-color:#F1F2F3;
+	border:none;
+	min-height:36px;
+	max-height:36px;
+}
+QNoNCDialog TitleBar #titleText{
+	padding-left:2px;
+	font:12px;
+}
+
+QNoNCDialog TitleBar QToolButton,CRSearchTitleBar QToolButton{
+	border:0;
+	border-radius:0;
+	padding: 0px;
+	min-width:36px;
+	max-width:36px;
+        qproperty-iconSize: 14px 14px;
+}
+QNoNCDialog TitleBar #titleCloseBtn{
+	qproperty-icon: url(:/Res/dialog_close.svg);
+}
+QNoNCDialog TitleBar #titleMinBtn{
+	qproperty-icon: url(:/Res/dialog_min.svg);
+}
+QNoNCDialog TitleBar #titleMaxBtn{
+	qproperty-icon: url(:/Res/dialog_max.svg);
+}
+QNoNCDialog TitleBar #titleRestoreBtn{
+	qproperty-icon: url(:/Res/dialog_restore.svg);
+}
+
+/*********提示框*******/
+CRMsgBox #CRMsg_label{
+	margin: 20px;
+	margin-top: 35px;
+	margin-bottom: 35px;
+}
+CRMsgBox #frameBtns QToolButton,CRMsgBox #frameBtns QPushButton{
+	min-height: 30px;
+	max-height: 30px;
+	padding-left: 10px;
+	padding-right: 10px;
+	min-width: 70px;
+	max-width: 70px;
+}
+
+/********** 红点提示器 **********/
+#NewDatRedTip{
+	min-width: 8px;
+	max-width: 8px;
+	min-height: 8px;
+	max-height: 8px;
+	border-radius: 4px;
+	background-color:#FF0000;
+}
+
+
+/********** IMDemo 全局搜索区域 **********/
+MainDialog #gSearchWidget{
+	min-height:65px;
+	max-height:65px;
+	border-bottom:1px solid #E1E1E1;
+}
+MainDialog #searchEdt{
+	min-height:34px;
+	max-height:34px;
+	background: #F0F0F0;
+	border-radius: 4px;
+	border: 0px;
+	qproperty-leftIconVisible: true;
+}
+MainDialog #searchEdt:focus{
+	background: white;
+	border: 1px solid #F0F0F0;
+}
+
+MainDialog #gSearchWidget #addBtn{
+	min-width:34px;
+	max-width:34px;
+	min-height:34px;
+	max-height:34px;
+    padding-left: 0px;
+    padding-right: 0px;
+	background-color: transparent;
+    border: 0px;
+	qproperty-iconSize: 14px 14px;
+	qproperty-icon:url(":/Res/titleNewBtn.svg");
+	background-color:#EAEAEA;
+}
+
+MainDialog #gSearchWidget #addBtn:hover{
+	background-color:#DEDEDE;
+}
+
+MainDialog #gSearchWidget #addBtn:pressed{
+	background-color:#C8C8C8;
+}
+
+MainDialog #lbMsgUnreadCount
+{
+	border: 0px;
+	border-radius: 7px;
+	min-height: 14px;
+	max-height: 14px;
+	padding-left: 4px;
+	padding-right: 4px;
+	background-color: #FF2525;
+	color: white;
+	font-size: 10px;
+	margin-top: 5px;
+	margin-right: 12px;
+}
+
+MainDialog #friendsBtn>#NewDatRedTip{
+	margin-top: 10px;
+	margin-right: 20px;
+}
+
+/* LoginDlg */
+LoginDlg #loginDlgTitleBar{
+	background-color:transparent;
+	border:0;
+    padding-right: 10px;
+}
+LoginDlg{
+	min-width:420px;
+	max-width:420px;
+	min-height:660px;
+	max-height:660px;
+}
+LoginDlg *{
+	 font:14px; 
+}
+LoginDlg #btns QPushButton,LoginDlg #btnCancelLogin
+{
+	min-height:36px;
+	max-height:36px;
+}
+LoginDlg #lbl_version,LoginDlg #lbl_otherMethod
+{
+    color: #999999;
+}
+LoginDlg #line1,LoginDlg #line2{
+	min-height: 1px;
+	max-height: 1px;
+	background-color: #DCDCDC;
+}
+
+LoginDlg #btnSetting{
+    qproperty-icon:url(:/Res/loginSetting.svg);	
+}
+
+LoginDlg #btnBack{
+    qproperty-icon:url(:/Res/back_Normal.svg);
+	min-width: 100px;
+	max-width: 100px;
+}
+
+LoginDlg #stackedWidget{
+	min-width:320px;
+	max-width:320px;
+}
+
+LoginPage #loginLogo{
+	min-height:180px;
+	max-height:180px;
+    image:url(:/Res/logo.svg);
+}
+
+LoginPage #label_version{
+	padding-top: 30px;
+	color: #888;
+}
+
+LoginPage #label_1{
+	font:22px;
+}
+LoginPage #label_2, LoginPage #labelDefAuthCode{
+	color: #969696;
+}
+
+LoginPage #acntWidget, LoginPage #authCodeWidget{
+	border: none;
+	border-bottom:1px solid #E1E1E1;
+}
+
+LoginPage #label_3{
+	border: none;
+	padding-right: 9px;
+	border-right:1px solid #E1E1E1;
+}
+
+LoginPage #phoneNumber, LoginPage #authCode{
+	padding-left: 3px;
+	padding-right: 6px;
+	border: none;
+}
+LoginPage #editAccount, LoginPage #editPassword{
+	padding-left: 3px;
+	padding-right: 6px;
+	min-height: 48px;
+	max-height: 48px;
+	border: 1px solid #E1E1E1;
+}
+
+LoginPage #editAccount:focus, LoginPage #editPassword:focus{
+	border-color:  #3981FC;
+}
+
+LoginPage #getAuthCodeBtn,LoginPage #swtichPwdPageBtn, LoginPage #swtichAuthCodePageBtn{
+	border: none;
+	background: none;
+	padding: 0px;
+	color: #3981FC;
+}
+LoginPage #getAuthCodeBtn:hover, LoginPage #swtichPwdPageBtn:hover, LoginPage #swtichAuthCodePageBtn:hover{
+	background: none;
+	color: #035AEB;
+}
+
+LoginPage #getAuthCodeBtn:pressed, LoginPage #swtichPwdPageBtn:pressed, LoginPage #swtichAuthCodePageBtn:pressed{
+	color: #3981FC;
+}
+
+LoginPage #authCodeLoginBtn, LoginPage #pswdLoginBtn, LoginSettingPage #resetBtn{
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+	min-height:35px;
+	max-height:35px;
+}
+LoginPage #authCodeLoginBtn:hover, LoginPage #pswdLoginBtn:hover, LoginSettingPage #resetBtn:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+LoginPage #authCodeLoginBtn:pressed, LoginPage #pswdLoginBtn:pressed, LoginSettingPage #resetBtn:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+LoginSettingPage QLabel{
+	min-height:35px;
+	max-height:35px;
+}
+
+QNoNCDialog CRDialogBtns{
+	background-color: transparent;
+	min-height:25px;
+	max-height:65535px;
+}
+
+
+/* MainDialog */
+MainDialog #mainLeftBar{
+	min-width: 64px;
+	max-width: 64px;
+	background-color: #EBEBEB;
+	border-right: 1px solid #DCDCDC;
+}
+
+
+#mainLeftBar QToolButton
+{
+	border:none;
+	border-radius:0;
+	max-height:55px;
+	min-height:55px;
+	background:transparent;
+	qproperty-iconSize: 32px 32px;
+	color:#444444;
+	padding:6px;
+	padding-bottom:5px;
+}
+
+uConnectClient #myselBtn
+{
+	max-width: 32px;
+	min-width: 32px;
+	qproperty-iconSize: 32px 32px;
+	padding: 0;
+    background: none;
+    border: 0;
+}
+
+
+#mainLeftBar QToolButton[isHover=true]
+{
+	color:#2384C8;
+}
+#mainLeftBar QToolButton[isChecked=true]
+{
+	color:#2384C8;
+}
+
+#mainLeftBar #messageBtn{
+	qproperty-icon:url(":/Res/msg_gray.svg");
+}
+#mainLeftBar #messageBtn[isHover=true], #mainLeftBar #messageBtn[isChecked=true]
+{
+	qproperty-icon:url(":/Res/msg_blue.svg");
+}
+
+#mainLeftBar #friendsBtn{
+	qproperty-icon:url(":/Res/friends_gray.svg");
+}
+#mainLeftBar #friendsBtn[isHover=true], #mainLeftBar #friendsBtn[isChecked=true]
+{
+	qproperty-icon:url(":/Res/friends_blue.svg");
+}
+
+#mainLeftBar #groupBtn{
+	qproperty-icon:url(":/Res/group_gray.svg");
+}
+#mainLeftBar #groupBtn[isHover=true], #mainLeftBar #groupBtn[isChecked=true]
+{
+	qproperty-icon:url(":/Res/group_blue.svg");
+}
+
+#mainLeftBar #moreBtn{
+	qproperty-icon:url(":/Res/more_gray.svg");
+}
+#mainLeftBar #moreBtn[isHover=true], #mainLeftBar #setBtn[isChecked=true]
+{
+	qproperty-icon:url(":/Res/more_blue.svg");
+}
+
+
+
+/******************会话列表**********************/
+MessageMgrPage #msgLeftBar{
+	border: 0px;
+	border-right: 1px solid #EDEDED;
+	min-width: 246px;
+	max-width: 246px;
+}
+MessageMgrPage #sessionList{
+	background: transparent;
+	border: 0px;
+	padding: 0px;
+	margin: 0px;
+	border-right: 1px solid #EDEDED;
+}
+MessageMgrPage #sessionList::item {
+	min-height: 65px;
+	max-height: 65px;
+}
+MessageMgrPage #sessionList::item:hover{
+	background-color: #F4F5F6;
+}
+MessageMgrPage #sessionList::item:selected{
+	background-color: #E9EBF4;
+}
+MessageMgrPage #lbNoMessage{
+	image: url(:/Res/no_content.svg);
+	min-width:250px;
+	min-height:100px;
+}
+SessionItemWidget #lbMsgNote{
+	color: #DD2B2B;
+}
+SessionItemWidget #lbLastTime,SessionItemWidget #lbLastMsg{
+	color: #999999;
+}
+SessionItemWidget #lbName{
+	font-size: 14px;
+	color: #333333;
+}
+SessionItemWidget #lbUnRead{
+	border: 0px;
+	min-width: 12px;
+	min-height: 16px;
+	max-height: 16px;
+	padding-left: 2px;
+	padding-right: 2px;
+	border-radius: 8px;
+	background-color: #FF2525;
+	color: white;
+	font-size: 12px;
+}
+SessionItemWidget #lbUnRead[text="0"]{
+	background-color: transparent;
+	color: transparent;
+}
+SessionItemWidget #lbUnRead:disabled{
+	background-color: #F0F0F0;
+	color: #AAA;
+}
+SessionItemWidget #lbUnRead[text="0"]:disabled{
+	background-color: transparent;
+	color: transparent;
+	image:url(:/Res/dnd.svg);
+}
+	
+SessionItemWidget #lbType{
+	min-width: 16px;
+	max-width: 16px;
+	min-height: 16px;
+	max-height: 16px;
+	image:url(:/Res/group_com.svg);
+}
+
+Conversation_C2C #chatTitleWidget,Conversation_Group #chatTitleWidget{
+	min-height: 65px;
+	max-height: 65px;
+	border-bottom: 1px solid #E1E1E1;
+}
+Conversation_C2C #contentWidget,Conversation_Group #contentWidget{
+	background-color: #F1F2F3;
+}
+Conversation_C2C #chatTitleWidget #lbName,Conversation_Group #chatTitleWidget #lbName{
+	color: #333333;
+	font: bold 14px;
+}
+Conversation_C2C #splitter::handle,Conversation_Group #splitter::handle{
+	background: #DCDCDC;
+}
+Conversation_C2C #toolBarWidget QToolButton,Conversation_Group #toolBarWidget QToolButton{
+	border: 0px;
+	padding: 0px;
+	background: transparent;
+	qproperty-iconSize: 20px 20px;
+}
+
+Conversation_Group #toolBarWidget #btnAddMember{qproperty-icon: url(:/Res/IM/add_member.svg);}
+Conversation_Group #toolBarWidget #btnAddMember[isHover=true]{qproperty-icon: url(:/Res/IM/add_member_hover.svg);}
+Conversation_C2C #toolBarWidget #btnSetting,Conversation_Group #toolBarWidget #btnSetting{qproperty-icon: url(:/Res/IM/setting.svg);}
+Conversation_C2C #toolBarWidget #btnSetting[isHover=true],Conversation_Group #toolBarWidget #btnSetting[isHover=true]{
+	qproperty-icon: url(:/Res/IM/setting_hover.svg);
+}
+Conversation_C2C #toolBarWidget #btnSetting::menu-indicator,Conversation_Group #toolBarWidget #btnSetting::menu-indicator{image:none;}
+Conversation_C2C #toolBarWidget #btnCreateGrp{qproperty-icon: url(:/Res/IM/add_member.svg);}
+Conversation_C2C #toolBarWidget #btnCreateGrp[isHover=true]{qproperty-icon: url(:/Res/IM/add_member_hover.svg);}
+Conversation_C2C #chatTitleWidget #btnAudioMsg,Conversation_Group #chatTitleWidget #btnAudioMsg{qproperty-icon: url(:/Res/IM/audio.svg);}
+Conversation_C2C #chatTitleWidget #btnVideoMsg,Conversation_Group #chatTitleWidget #btnVideoMsg{qproperty-icon: url(:/Res/IM/video.svg);}
+
+Conversation_Group #memberWidget{
+	min-width: 198px;
+	max-width: 198px;
+	border-left: 1px solid #E1E1E1;
+}
+Conversation_Group #lbMemberCount{
+	color: #333333;
+	font: bold 14px ;
+	margin-left: 5px;
+}
+Conversation_Group #findEdit{
+	min-height: 29px;
+	max-height: 29px;
+	padding: 0px;
+	
+}
+
+Conversation_Group #memberList{
+	border: 0px;
+	padding: 0px;
+	margin: 0px;
+}
+Conversation_Group #memberList::item{
+	padding-left: 15px;
+	min-height: 40px;
+	max-height: 40px;
+}
+Conversation_Group #memberList::icon
+{
+    left: -10px;
+}
+Conversation_Group #memberList::item:hover{
+	background-color: #E9EBF4;
+}
+Conversation_Group #memberList::item:selected{
+	background-color: #E9EBF4;
+}
+
+#GroupHostItemWidget #lbMemberRole_owner, #GroupHostItemWidget #lbMemberRole_host{
+	min-width: 16px;
+	max-width: 16px;
+	min-height: 20px;
+	max-height: 20px;
+	padding-right: 21px;
+}
+
+#GroupHostItemWidget #lbMemberRole_owner{
+	image:url(:/Res/IM/owner.svg);
+}
+#GroupHostItemWidget #lbMemberRole_host{
+	image:url(:/Res/IM/manager.svg);
+}
+
+MsgSendContainer #chatToolBar QToolButton{
+	border: 0px;
+	background: transparent;
+	min-width: 28px;
+	max-width: 28px;
+	min-height: 28px;
+	max-height: 28px;
+	padding: 0px;
+	qproperty-iconSize: 25px 25px;
+}
+MsgSendContainer #chatToolBar QToolButton:hover{
+	background: #DEDEDE;
+}
+MsgSendContainer #chatToolBar QToolButton:pressed{
+	background: #C8C8C8;
+}
+
+MsgSendContainer #chatToolBar #btnFace{qproperty-icon: url(:/Res/IM/face.svg);}
+MsgSendContainer #chatToolBar #btnOpenPic{qproperty-icon: url(:/Res/IM/picture.svg);}
+MsgSendContainer #chatToolBar #btnOpenFile{qproperty-icon: url(:/Res/IM/file.svg);}
+
+MsgSendContainer #btnSendMsg{
+	min-width: 63px;
+	max-width: 63px;
+	min-height: 31px;
+	max-height: 31px;
+	border: 0px;
+	border-radius: 3px;
+	background: #2384C8;
+	color: white;
+	font-size: 14px; 
+}
+MsgSendContainer #btnSendMsg:disabled{
+	background: #BBE0FA;
+}
+MsgSendContainer #msgSendWidget{
+	border:0px;
+	border-radius: 0px;
+	background: transparent;
+	font-size: 14px;
+}
+IMMsgWidget_Recv #MsgTipsWidget{
+	background: #BADAF8;
+	border:0px;
+	border-radius: 0px;
+	text-align: left;
+}
+IMMsgWidget_Search #btnViewContext{
+	border:0px;
+	border-radius: 0px;
+	padding: 0px;
+	background: transparent;
+	color: #2384C8;
+}
+
+IMMsgWidget_Recv #recvUnreadTipsWidget{
+	min-height: 32px;
+	max-height: 32px;
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget #widget{
+	background: white;
+	border-radius: 
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget QAbstractButton{
+	color: #09BB07;
+	border: 0px;
+	border-radius: 0px;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget QAbstractButton:hover, IMMsgWidget_Recv #recvUnreadTipsWidget QAbstractButton:pressed{
+	background: transparent;
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget #spacerWidget{
+	min-width: 1px;
+	max-width: 1px;
+	min-height: 14px;
+	max-height: 14px;
+	background: #E1E1E1;
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget #btnUnreadMsg{
+	qproperty-iconSize: 14px 14px;
+	qproperty-icon:url(:/Res/IM/arrow_green.svg);
+}
+IMMsgWidget_Recv #recvUnreadTipsWidget #btnCloseTips{
+	min-width: 34px;
+	max-width: 34px;
+	padding: 0px;
+	qproperty-icon: url(:/Res/clear.svg);
+	qproperty-iconSize: 12px 12px;
+}
+
+/******************好友列表**********************/
+FriendsMgrPage #friendsLeftBar{
+	border: 0px;
+	border-right: 1px solid #EDEDED;
+	min-width: 246px;
+	max-width: 246px;
+}
+FriendsMgrPage #friendsList{
+	background: transparent;
+	border: 0px;
+	padding: 0px;
+	margin: 0px;
+	border-right: 1px solid #EDEDED;
+}
+FriendsMgrPage #friendsList::item{
+	min-height: 65px;
+	max-height: 65px;
+}
+FriendsMgrPage #friendsList::item:hover{
+	background-color: #F4F5F6;
+}
+FriendsMgrPage #friendsList::item:selected{
+	background-color: #E9EBF4;
+}
+FriendsMgrPage #lbNoFriend{
+	image: url(:/Res/no_content.svg);
+	min-width:250px;
+	min-height:100px;
+}
+
+#FriendDetailDlg{
+	min-width:550px;
+	max-width:550px;
+	min-height:490px;
+	max-height:490px;
+}
+
+FriendsMgrPage FriendDetailWidget #scrollAreaWidgetContents{
+	min-width:550px;
+	max-width:550px;
+}
+
+
+FriendDetailWidget #scrollArea, FriendDetailWidget #scrollAreaWidgetContents{
+	border: 0px;
+	background: transparent;
+}
+
+
+FriendDetailWidget #lbFriendFace{
+	min-width: 60px;
+	max-width: 60px;
+	min-height: 60px;
+	max-height: 60px;
+}
+
+FriendDetailWidget QLineEdit{
+	padding: 0px;
+}
+
+FriendDetailWidget QLineEdit:read-only{
+	border: 0px;
+	background: #FFFFFF;
+}
+
+FriendDetailWidget #friendTopWidget, FriendDetailWidget #friendInfoWidget{
+	padding-bottom: 20px;
+	border: 0px;
+    border-bottom:1px solid #E1E1E1;
+}
+
+FriendDetailWidget #btnRemark{
+	border: 0px;
+	padding: 0px;
+	image: url(:/Res/edit.svg);
+}
+
+FriendDetailWidget QCheckBox{
+	min-height: 25px;
+	max-height: 25px;
+	min-width: 38px;
+	max-width: 38px;
+	padding: 0px;
+	margin: 0px;
+}
+
+FriendDetailWidget QCheckBox::indicator{
+	min-height: 25px;
+	max-height: 25px;
+	min-width: 38px;
+	max-width: 38px;
+}
+
+FriendDetailWidget QCheckBox::indicator:unchecked, FriendDetailWidget QCheckBox::indicator:unchecked:hover{ 
+	image: url(:/Res/turnoff.svg);
+}
+
+FriendDetailWidget QCheckBox::indicator:checked, FriendDetailWidget QCheckBox::indicator:checked:hover{
+	image: url(:/Res/turnon.svg);
+}
+
+FriendDetailWidget #btnFriendChat{
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+}
+FriendDetailWidget #btnFriendChat:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+FriendDetailWidget #btnFriendChat:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+
+
+/******************添加好友**********************/
+AddFriendDlg #lineEdit,  AddFriendDlg #btnWidget{
+	min-height: 30px;
+	max-height: 30px;
+}
+
+AddFriendDlg QPushButton{
+	min-width: 75px;
+}
+
+AddFriendDlg #searchBtn, SendFriendRequestDlg #sendBtn{
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+}
+AddFriendDlg #searchBtn:hover, SendFriendRequestDlg #sendBtn:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+AddFriendDlg #searchBtn:pressed, SendFriendRequestDlg #sendBtn:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+SendFriendRequestDlg{
+	min-width: 400px;
+	max-width: 40px;
+	min-height: 280px;
+	max-height: 280px;
+}
+
+AddFriendRequestDlg #backBtn{
+	min-height: 30px;
+	max-height: 30px;
+	border: 0px;
+	padding-left: 8px;
+	spacing: 6px;
+	font-size: 12px;
+}
+AddFriendRequestDlg #backBtn::indicator{
+	width: 12px;
+	height: 18px;
+	image: url(:/Res/back_Normal.svg);
+}
+
+/******************新的好友**********************/
+NewFriendMsgPage #name
+{
+	font-size: 16px;
+}
+NewFriendMsgPage>#listWidget
+{
+	font-size: 14px;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+NewFriendMsgPage>#listWidget::item{
+	min-height: 65px;
+	max-height: 65px;
+	border-bottom: 1px solid #E1E1E1;
+}
+NewFriendMsgPage>#listWidget::item:hover{
+	background-color: #F4F5F6;
+}
+NewFriendMsgPage>#listWidget::item:selected{
+	background-color: #E9EBF4;
+}
+NewFriendMsgPage #NewFriendMsgItem QToolButton{
+	border: 1px solid #2384C8;
+	color: #2384C8;
+	font-size: 14px;
+}
+NewFriendMsgPage #NewFriendMsgItem QToolButton:disabled {
+	border: 0px;
+}
+NewFriendMsgPage #NewFriendMsgItem #userInfo {
+	padding-left: 2px;
+	font-size: 12px;
+}
+
+/******************群组列表**********************/
+GroupsMgrPage #msgLeftBar{
+	border: 0px;
+	border-right: 1px solid #EDEDED;
+	min-width: 246px;
+	max-width: 246px;
+}
+GroupsMgrPage #btnNewGroup:pressed{
+	background-color: #E9EBF4;
+}
+GroupsMgrPage #groupList{
+	background: transparent;
+	border: 0px;
+	padding: 0px;
+	margin: 0px;
+	border-right: 1px solid #EDEDED;
+}
+
+GroupsMgrPage #groupList::item{
+	min-height: 65px;
+	max-height: 65px;
+}
+GroupsMgrPage #groupList::item:hover{
+	background-color: #F4F5F6;
+}
+GroupsMgrPage #groupList::item:selected{
+	background-color: #E9EBF4;
+}
+GroupsMgrPage #lbNoGroups{
+	image: url(:/Res/no_content.svg);
+	min-width:250px;
+	min-height:100px;
+}
+GroupItemWidget #lbName{
+	font-size: 14px;
+	color: #333333;
+}
+GroupItemWidget #lbNumber{
+	color: #999999;
+}
+
+#GroupDetailDlg{
+	min-width:560px;
+	max-width:560px;
+	min-height:650px;
+	max-height:650px;
+}
+
+GroupsMgrPage GroupDetailWidget #scrollAreaWidgetContents{
+	min-width:600px;
+	max-width:600px;
+}
+
+GroupDetailWidget #scrollArea, GroupDetailWidget #scrollAreaWidgetContents{
+	border: 0px;
+	background: transparent;
+}
+GroupDetailWidget #lbGroupFace{
+	min-width: 60px;
+	max-width: 60px;
+	min-height: 60px;
+	max-height: 60px;
+}
+GroupDetailWidget #memberList::item{
+	min-height: -1px;
+	max-height: -1px;
+	min-width: -1px;
+	max-width: -1px;
+	padding-top: 6px;
+}
+GroupDetailWidget #memberList::item:selected,GroupDetailWidget #memberList::item:hover{
+	color:#000000;
+	background:#DEDEDE;
+}
+
+GroupDetailWidget #groupTopFrame, GroupDetailWidget #groupListFrame, GroupDetailWidget #groupCfgFrame{
+	padding-bottom: 20px;
+	border: 0px;
+    border-bottom:1px solid #E1E1E1;
+}
+
+GroupDetailWidget #memberListCtrlBtn, GroupDetailWidget #memberListCtrlBtn:hover{
+	border: 0px;
+	background: transparent;
+}
+
+GroupDetailWidget #groupCfgFrame QLineEdit{
+	padding: 0px;
+}
+
+GroupDetailWidget #groupCfgFrame QLineEdit:read-only{
+	border: 0px;
+	background: #FFFFFF;
+}
+
+GroupDetailWidget #groupCfgFrame QToolButton{
+	border: 0px;
+	padding: 0px;
+	image: url(:/Res/edit.svg);
+}
+
+GroupDetailWidget #groupCfgFrame #btnCoypGroupId{
+	image: url(:/Res/edit.svg);
+}
+
+GroupDetailWidget #groupCfgFrame QCheckBox{
+	min-height: 25px;
+	max-height: 25px;
+	min-width: 38px;
+	max-width: 38px;
+	padding: 0px;
+	margin: 0px;
+}
+
+GroupDetailWidget #groupCfgFrame QCheckBox::indicator{
+	min-height: 25px;
+	max-height: 25px;
+	min-width: 38px;
+	max-width: 38px;
+}
+
+GroupDetailWidget #groupCfgFrame QCheckBox::indicator:unchecked{
+	image: url(:/Res/turnoff.svg);
+}
+
+GroupDetailWidget #groupCfgFrame QCheckBox::indicator:checked{
+	image: url(:/Res/turnon.svg);
+}
+
+GroupDetailWidget #btnGroupChat{
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+}
+GroupDetailWidget #btnGroupChat:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+GroupDetailWidget #btnGroupChat:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+
+
+
+/* SelectMembersWidget */
+
+SelectMembersWidget>#right{
+	border: none;
+	border-left: 1px solid #E8E8E8;
+	border-radius: 0px;
+}
+
+SelectMembersWidget QAbstractItemView::indicator,SelectMembersWidget QCheckBox::indicator{
+    width: 18px;
+    height: 18px;
+}
+SelectMembersWidget QAbstractItemView::indicator:unchecked,SelectMembersWidget QCheckBox::indicator:unchecked{
+	image:url(:/Res/checkbox2_uncheck.svg);
+}
+SelectMembersWidget QAbstractItemView::indicator:unchecked:hover,SelectMembersWidget QCheckBox::indicator:unchecked:hover{
+	image:url(:/Res/checkbox2_uncheck_hover.svg);
+}
+SelectMembersWidget QAbstractItemView::indicator:checked,SelectMembersWidget QCheckBox::indicator:checked{
+	image:url(:/Res/checkbox2_checked.svg);
+}
+SelectMembersWidget QListWidget::item
+{
+	padding-left: 11px;
+	min-height: 40px;
+	max-height: 40px;
+	color: #333333;
+} 
+SelectMembersWidget #selListWidget::item{
+	padding-right: 11px;
+}
+
+SelectMembersWidget QListWidget::item:disabled,SelectMembersWidget #text:disabled{color:#A0A0A0;}
+SelectMembersWidget QListWidget::item:hover{background-color:#F2F3F9}
+SelectMembersWidget QListWidget::item:selected{background-color:#E9EBF4;}
+SelectMembersWidget #listWidget::icon:enabled,SelectMembersWidget #listWidget::icon:disabled{
+	left: 11px;
+}
+SelectMembersWidget #listWidget::text:enabled,SelectMembersWidget #listWidget::text:disabled{
+	left: 11px;
+}
+
+SelectMembersWidget #checkAll{
+	min-height: 40px;
+	padding-left: 16px;
+	spacing: 11px;
+}
+
+SelectMembersWidget #lbSelCount{
+	min-height: 40px;
+	padding-left: 11px;
+}
+
+SelectMembersWidget #btnExpandDept,SelectMembersWidget #btnDel{
+	
+	qproperty-iconSize: 20px 20px;
+	border: 0px;
+	border-radius: 0px;
+	padding: 0px;
+}
+SelectMembersWidget #btnExpandDept{qproperty-icon: url(:/Res/expand.svg);}
+SelectMembersWidget #btnDel{qproperty-icon: url(:/Res/close.svg);}
+SelectMembersWidget #btnDel[isHover=true]{qproperty-icon: url(:/Res/close_hover.svg);}
+SelectMembersWidget #btnExpandDept:hover,SelectMembersWidget #btnDel:hover{
+	background: transparent;
+}
+
+DlgAddGroupMember{
+	min-width: 600px;
+	max-width: 600px;
+	min-height: 480px;
+	max-height: 480px;
+}
+
+DlgAddGroupMember SelectMembersWidget, DlgNewGroup SelectMembersWidget{
+	border: 1px solid #E8E8E8;
+}
+
+DlgNewGroup{
+	min-width: 680px;
+	max-width: 680px;
+	min-height: 500px;
+	max-height: 500px;
+}
+
+DlgNewGroup #editGroupName{
+	min-height: 30px;
+	max-height: 30px;
+}
+
+DlgNewGroup #btnOk{
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+}
+DlgNewGroup #btnOk:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+DlgNewGroup #btnOk:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+
+
+AboutDlg{
+	min-width: 450px;
+	max-width: 450px;
+	min-height: 260px;
+	max-height: 260px;
+}
+
+#UserInfoPage, #EditMyInfoDlg{
+	min-width: 300px;
+	max-width: 300px;
+	min-height: 360px;
+	max-height: 360px;
+}
+
+UserInfoPage #name{
+	font: bold 16px;
+}
+
+UserInfoPage #topWidget{
+	border-bottom:1px solid #E1E1E1;
+}
+
+UserInfoPage QLineEdit, UserInfoPage QPushButton,
+EditMyInfoDlg QLineEdit, EditMyInfoDlg QPushButton, EditMyInfoDlg QComboBox, EditMyInfoDlg QDateEdit
+{
+	min-height: 30px;
+	max-height: 30px;
+}
+
+UserInfoPage QLineEdit, UserInfoPage QLineEdit:disabled, UserInfoPage QLineEdit:read-only
+{
+	background: transparent;
+	border: 0px;
+}
+
+UserInfoPage QPushButton, EditMyInfoDlg QPushButton{
+	min-width: 75px;
+	max-width: 75px;
+	border-color:#3981FC;
+	background-color:#3981FC;
+	color:#FFFFFF;
+}
+UserInfoPage QPushButton:hover, EditMyInfoDlg QPushButton:hover{
+	border-color:#035AEB;
+	background-color:#035AEB;
+}
+
+UserInfoPage QPushButton:pressed, EditMyInfoDlg QPushButton:pressed{
+	border-color:#3981FC;
+	background-color:#3981FC;
+}
+EditMyInfoDlg #cancelBtn{
+	border-color:#E1E1E1;
+	background:transparent;
+	color: #2D2D2D;
+}
+EditMyInfoDlg #cancelBtn:hover{
+	border-color:#DEDEDE;
+	background-color:#DEDEDE;
+}
+EditMyInfoDlg #cancelBtn:pressed{
+	border-color:#C8C8C8;
+	background-color:#C8C8C8;
+}
+
+/* GlobalSearchRsltDlg */
+
+#GlobalSearchRsltDlg{
+	border-width:9px;
+	background-color:transparent; 
+	border-image:url(:/Res/shadow_rect.png);
+}
+
+GlobalIMSearchDlg #listWidget{
+	min-width:160px;
+	max-width:160px;
+}
+
+GlobalSearchRsltDlg #listWidget::item:hover,
+GlobalIMSearchDlg #listWidget::item:hover
+{
+	background-color:#F2F3F9;
+}
+GlobalSearchRsltDlg #listWidget::item:selected,
+GlobalIMSearchDlg #listWidget::item:selected
+{
+	background-color:#E9EBF4;
+}
+
+GlobalSearchRsltDlg #nulDesc{
+	padding: 12px;
+}
+
+GlobalSearchRsltDlg #MsgLoadingLabel{
+    qproperty-gif: ":/Res/wait_blue.svg";
+	padding: 15px;
+}
+
+
+#GlobalIMSearchDlg{
+	background-color:#F1F2F3;
+}
+
+GlobalIMSearchDlg #loadPage>#loadingLab{
+	padding-top: 20px;
+	min-height: 20px;
+	max-height: 20px;
+    qproperty-gif: ":/Res/wait_blue.svg";
+}
+
+GlobalIMSearchDlg #imSearchTopBar{
+	border-bottom:1px solid #E1E1E1;
+}
+GlobalIMSearchDlg #imSearchClient>#stackedWidget{
+	border:0px;
+	border-left:1px solid #E1E1E1;
+}
+GlobalIMSearchDlg #imSearchClient>#listWidget{
+	padding:-2;
+}
+GlobalIMSearchDlg #imSearchTopBar>#searchEdit{
+	min-width: 400px;
+	max-width: 400px;
+	min-height: 28px;
+	max-height: 28px;
+}
+
+#msgListTop, #msgHisTop{
+	background-color: transparent;
+	border-bottom: 1px solid #E1E1E1;
+	padding: 9px;
+}
+
+GlobalIMSearchDlg #msgListTop>#enterButton{
+	qproperty-icon:url(":/Res/contact_msg.svg");
+}
+GlobalIMSearchDlg #msgHisTop>#hisBackBtn{
+	qproperty-icon:url(":/Res/back_Normal.svg");
+}
+
+/**********IM Call**********/
+ImCalloutDlg, ImCallinDlg{
+	min-width: 300px;
+	max-width: 300px;
+	min-height: 330px;
+	max-height: 330px;
+}
+
+ImCalloutDlg>#dlgFrame, ImCallinDlg>#dlgFrame{
+	background-color: #262B3B;
+}
+
+ImCalloutDlg TitleBar, ImCallinDlg TitleBar{
+	background-color:#1A1D28;
+}
+ImCalloutDlg TitleBar #titleCloseBtn, ImCallinDlg TitleBar #titleCloseBtn{
+ qproperty-icon:url(:/Res/titlebar_close.svg);
+ }
+ 
+ImCalloutDlg TitleBar #titleCloseBtn:hover, ImCallinDlg TitleBar #titleCloseBtn:hover{
+	background-color:#FF6868;
+}
+ImCalloutDlg TitleBar #titleCloseBtn:pressed,ImCallinDlg TitleBar #titleCloseBtn:pressed{
+	background-color:#FF5A5A;
+}
+
+ImCalloutDlg #titleText, #ImCalloutDlg>QLabel, #ImCalloutDlg>QToolButton,
+ImCallinDlg #titleText, #ImCallinDlg>QLabel, #ImCallinDlg>QToolButton{
+	color: #FFFFFF;
+}
+
+
+#ImCalloutDlg>#name, #ImCallinDlg>#name{
+	padding-top: 5px;
+	font-size: 20px;
+}
+
+#ImCalloutDlg>QToolButton,#ImCallinDlg>QToolButton{
+	background-color: transparent;
+	border: 0px;
+	qproperty-iconSize: 46px 46px;
+}
+
+#ImCalloutDlg>#cancelBtn, #ImCallinDlg>#rejectBtn{
+	qproperty-icon: url(:/Res/hangUp.svg);
+}
+#ImCalloutDlg>#cancelBtn[isHover=true], #ImCallinDlg>#rejectBtn[isHover=true]{
+	qproperty-icon: url(:/Res/hangUp_hover.svg);
+}
+
+
+#ImCallinDlg>#acceptBtn{
+	qproperty-icon: url(:/Res/answer.svg);
+}
+#ImCallinDlg>#acceptBtn[isHover=true]{
+	qproperty-icon: url(:/Res/answer_hover.svg);
+}
+
+
+#ImCalloutDlg, #ImCallinDlg{
+	qproperty-layoutMargin: 30;
+	qproperty-layoutMarginBottom: 16;
+}
+
+/**********Meeting**********/
+MeetingMainDialog #bottomWidget{
+	background-color: #7D000000;
+}
+MeetingMainDialog #bottomWidget QAbstractButton{
+	background-color: transparent;
+	border: 0px;
+}
+MeetingMainDialog #btnExit{
+	qproperty-iconSize: 46px 46px;
+	qproperty-icon: url(:/Res/hangUp.svg);
+}
+#ImCalloutDlg #btnExit[isHover=true]{
+	qproperty-icon: url(:/Res/hangUp_hover.svg);
+}
+
+MeetingMainDialog #btnMic, MeetingMainDialog #btnVideo{
+	qproperty-iconSize: 36px 36px;
+}
