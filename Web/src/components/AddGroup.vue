@@ -79,7 +79,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { Empty, Avatar } from "~/components";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { GroupItem, IMSDK } from "~/utils/imsdk";
 import { formatString } from "~/utils/dayjs";
 import { useGroupStore } from "~/stores";
 import { ElMessage } from "element-plus";
@@ -87,10 +87,10 @@ import { ElMessage } from "element-plus";
 const input = ref("");
 const input2 = ref("");
 const $input = ref<HTMLElement | null>(null);
-type GroupItem = IMTYPE.GroupItem & {
+type MyGroupItem = GroupItem & {
   isJoin?: boolean;
 };
-const list = ref<GroupItem[]>([]);
+const list = ref<MyGroupItem[]>([]);
 const loading = ref(false);
 const groupStore = useGroupStore();
 
@@ -112,7 +112,7 @@ const search = async () => {
   } catch (error) {}
   loading.value = false;
 };
-const join = async (group: IMTYPE.GroupItem, val: "join" | "send") => {
+const join = async (group: GroupItem, val: "join" | "send") => {
   await IMSDK.joinGrp({
     groupID: group.groupID,
     reqMsg: input2.value,

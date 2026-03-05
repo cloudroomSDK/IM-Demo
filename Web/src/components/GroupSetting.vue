@@ -68,7 +68,12 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { clearConversationMsg, IMSDK } from "~/utils/imsdk";
+import {
+  clearConversationMsg,
+  GroupStatus,
+  IMSDK,
+  MessageReceiveOptType,
+} from "~/utils/imsdk";
 import { InputItem, MemberSelect } from ".";
 import { ElMessageBox } from "element-plus";
 import { useAppStore, useGroupStore, useConversationStore } from "~/stores";
@@ -79,10 +84,12 @@ const conversationStore = useConversationStore();
 const appStore = useAppStore();
 
 const MsgDisturbing = computed(
-  () => conversationStore.currentConversation?.recvMsgOpt === 2
+  () =>
+    conversationStore.currentConversation?.recvMsgOpt ===
+    MessageReceiveOptType.NotNotify,
 );
 const allBannedToPost = computed(
-  () => groupStore.currentGroupInfo?.status === 3
+  () => groupStore.currentGroupInfo?.status === GroupStatus.Muted,
 );
 
 const needVerificationList = ref([
@@ -107,7 +114,7 @@ const changeNeedVerification = (val: number) => {
   });
 };
 const lookMemberInfo = computed(() =>
-  Boolean(groupStore.currentGroupInfo!.lookMemberInfo)
+  Boolean(groupStore.currentGroupInfo!.lookMemberInfo),
 );
 const changeLookMemberInfo = (val: number) => {
   IMSDK.setGrpInfo({
@@ -117,7 +124,7 @@ const changeLookMemberInfo = (val: number) => {
 };
 
 const applyMemberFriend = computed(() =>
-  Boolean(groupStore.currentGroupInfo!.applyMemberFriend)
+  Boolean(groupStore.currentGroupInfo!.applyMemberFriend),
 );
 const changeApplyMemberFriend = (val: number) => {
   IMSDK.setGrpInfo({
@@ -134,15 +141,17 @@ const updateGroupName = (name: string) => {
 };
 
 const changePinned = (val: boolean) => {
-  IMSDK.pinConversation({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
     isPinned: val,
   });
 };
 const changeRecvMsgOpt = (val: boolean) => {
-  IMSDK.setConversationRecvMsgOpt({
+  IMSDK.setConversation({
     conversationID: conversationStore.currentConversation!.conversationID,
-    opt: val ? 2 : 0,
+    recvMsgOpt: val
+      ? MessageReceiveOptType.NotNotify
+      : MessageReceiveOptType.Normal,
   });
 };
 const changeGroupStatus = (val: boolean) => {
@@ -161,7 +170,7 @@ const clearHistory = async () => {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
-    }
+    },
   );
 
   clearConversationMsg(conversationStore.currentConversation!.conversationID);

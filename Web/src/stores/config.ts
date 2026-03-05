@@ -1,10 +1,9 @@
 import { defineStore } from "pinia";
 import { ConfigStore } from "./type";
-import { businessServer } from "~/config"; //获取默认值
 
 export const useConfigStore = defineStore("config", {
   state: (): ConfigStore => ({
-    businessServer,
+    businessServer: "默认服务器",
   }),
   actions: {
     change(config: ConfigStore) {

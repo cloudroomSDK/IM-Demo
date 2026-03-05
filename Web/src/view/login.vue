@@ -57,7 +57,7 @@
                   </template>
                 </el-input>
               </el-form-item>
-              <p class="toast" v-if="showCodeToast">私有云验证码用8888</p>
+              <p class="toast">私有云验证码用8888</p>
             </el-form>
           </template>
           <template v-else>
@@ -119,7 +119,7 @@ import { ElMessage } from "element-plus";
 import type { FormInstance, FormRules } from "element-plus";
 import loginApi from "~/api/login";
 import { API } from "~/api/typings";
-import { md5 } from "~/utils";
+import { md5, base64Parms } from "~/utils";
 import { LoginSetting } from "~/components";
 
 const configStore = useConfigStore();
@@ -134,9 +134,6 @@ const isLoading = ref(false);
 const accountFormRef = ref<FormInstance>();
 const phoneFormRef = ref<FormInstance>();
 const version = computed(() => __APP_VERSION__);
-const showCodeToast = computed(
-  () => configStore.businessServer.indexOf("demo.cloudroom.com") === -1
-);
 
 const accountForm = reactive({
   account: "",
@@ -235,14 +232,10 @@ const login = async () => {
               };
           console.log(obj);
           // 登录业务服务器
-          const { sdkSvr, sdkToken } = await userStore.businessLogin(obj);
-
+          const businessData = await userStore.businessLogin(obj);
           try {
             //登录SDK
-            await userStore.sdkLogin({
-              sdkServer: sdkSvr,
-              token: sdkToken,
-            });
+            await userStore.sdkLogin(businessData);
 
             router.replace({ name: "home" });
           } catch (err: any) {
@@ -253,7 +246,7 @@ const login = async () => {
 
         isLoading.value = false;
       }
-    }
+    },
   );
 };
 </script>

@@ -26,7 +26,7 @@
       <el-tooltip
         v-if="
           conversationStore.currentConversation?.groupID &&
-          groupStore.currentGroupInfo?.status !== 2
+          groupStore.currentGroupInfo?.status !== GroupStatus.Dismissed
         "
         content="邀请"
         placement="bottom"
@@ -45,7 +45,7 @@
         content="设置"
         placement="bottom"
         effect="light"
-        v-if="groupStore.currentGroupInfo?.status !== 2"
+        v-if="groupStore.currentGroupInfo?.status !== GroupStatus.Dismissed"
       >
         <div class="icon" @click="settingDrawer = true">
           <img :src="settingImg" alt="" />
@@ -90,7 +90,7 @@ import inviteImg from "~/assets/icons/invite.svg";
 import settingImg from "~/assets/icons/setting.svg";
 import { SettingInChat, GroupMemberDetailList } from "~/components";
 import { h, provide, ref, watch } from "vue";
-import { inviteFriendInGroup } from "~/utils/imsdk";
+import { GroupStatus, inviteFriendInGroup } from "~/utils/imsdk";
 import { ElMessageBox } from "element-plus";
 
 const conversationStore = useConversationStore();

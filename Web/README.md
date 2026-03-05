@@ -15,6 +15,7 @@ git clone git@github.com:cloudroomSDK/IM-Demo.git
 ```
 
 ### 运行
+首先需要修改`.env`文件中`VITE_DEFAULT_SERVER`的值，值表示默认服务器地址
 ```bash
 cd Web
 # 安装依赖

@@ -1,6 +1,11 @@
 import { defineStore } from "pinia";
 import { GroupStore } from "./type";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import {
+  GroupApplicationItem,
+  GroupItem,
+  GroupMemberItem,
+  IMSDK,
+} from "~/utils/imsdk";
 import { useUserStore } from ".";
 import $router from "~/router";
 
@@ -17,7 +22,7 @@ export const useGroupStore = defineStore("group", {
     async getList() {
       if (this.listPromise) {
         await this.listPromise;
-        return this.list as IMTYPE.GroupItem[];
+        return this.list as GroupItem[];
       }
 
       if (this.list) return this.list;
@@ -30,11 +35,11 @@ export const useGroupStore = defineStore("group", {
 
       return this.listPromise;
     },
-    onJoinedGrpAdded({ data }: { data: IMTYPE.GroupItem }) {
+    onJoinedGrpAdded({ data }: { data: GroupItem }) {
       if (!this.list) return;
       this.list.push(data);
     },
-    onGrpInfoChanged({ data }: { data: IMTYPE.GroupItem }) {
+    onGrpInfoChanged({ data }: { data: GroupItem }) {
       if (data.groupID === this.currentGroupInfo?.groupID) {
         this.currentGroupInfo = data;
       }
@@ -45,7 +50,7 @@ export const useGroupStore = defineStore("group", {
         this.list[idx] = data;
       }
     },
-    onGrpDismissed({ data }: { data: IMTYPE.GroupItem }) {
+    onGrpDismissed({ data }: { data: GroupItem }) {
       if (this.currentGroupInfo?.groupID === data.groupID) {
         this.currentGroupInfo = {
           ...data,
@@ -53,19 +58,19 @@ export const useGroupStore = defineStore("group", {
         };
       }
     },
-    onJoinedGrpDeleted({ data }: { data: IMTYPE.GroupItem }) {
+    onJoinedGrpDeleted({ data }: { data: GroupItem }) {
       if (!this.list) return;
       const idx = this.list.findIndex((item) => item.groupID === data.groupID);
       if (idx > -1) {
         this.list.splice(idx, 1);
       }
     },
-    onGrpReqAdded({ data }: { data: IMTYPE.GroupApplicationItem }) {
+    onGrpReqAdded({ data }: { data: GroupApplicationItem }) {
       if ($router.currentRoute.value.name !== "newGroups") {
         this.messageCount++;
       }
     },
-    onGrpMemberAdded({ data }: { data: IMTYPE.GroupMemberItem }) {
+    onGrpMemberAdded({ data }: { data: GroupMemberItem }) {
       if (
         this.currentGroupMemberList &&
         this.currentGroupInfo?.groupID === data.groupID
@@ -73,13 +78,13 @@ export const useGroupStore = defineStore("group", {
         this.currentGroupMemberList.push(data);
       }
     },
-    onGrpMemberDeleted({ data }: { data: IMTYPE.GroupMemberItem }) {
+    onGrpMemberDeleted({ data }: { data: GroupMemberItem }) {
       const userStore = useUserStore();
       if (data.userID === userStore.getMyUserID) {
         this.onJoinedGrpDeleted({
           data: {
             groupID: data.groupID,
-          } as IMTYPE.GroupItem,
+          } as GroupItem,
         });
       }
 
@@ -88,19 +93,19 @@ export const useGroupStore = defineStore("group", {
         this.currentGroupInfo?.groupID === data.groupID
       ) {
         const idx = this.currentGroupMemberList.findIndex(
-          (item) => item.userID === data.userID
+          (item) => item.userID === data.userID,
         );
         if (idx > -1) {
           this.currentGroupMemberList.splice(idx, 1);
         }
       }
     },
-    onGrpMemberInfoChanged({ data }: { data: IMTYPE.GroupMemberItem }) {
+    onGrpMemberInfoChanged({ data }: { data: GroupMemberItem }) {
       if (data.groupID === this.currentGroupInfo?.groupID) {
         if (this.currentGroupMemberList) {
           const idx =
             this.currentGroupMemberList.findIndex(
-              (item) => item.userID === data.userID
+              (item) => item.userID === data.userID,
             ) ?? -1;
           if (idx > -1) {
             this.currentGroupMemberList[idx] = data;

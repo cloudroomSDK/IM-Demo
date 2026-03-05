@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { ConversationStore, MsgItem } from "./type";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { ConversationItem, IMSDK, MessageItem, ViewType } from "~/utils/imsdk";
 import router from "~/router";
 import { useGroupStore } from ".";
 import { getSvrTime } from "~/api/login";
@@ -12,7 +12,6 @@ export const useConversationStore = defineStore("conversation", {
     conversationListPromise: undefined,
     currentQuoteMessage: undefined,
     msgList: [], //当前联系人消息列表
-    lastMinSeq: 0,
     multipleStatus: false, //多选状态
     multipleSelect: [],
     unreadMsgCount: 0, //未读消息数量
@@ -25,7 +24,7 @@ export const useConversationStore = defineStore("conversation", {
     async getList() {
       if (this.conversationListPromise) {
         await this.conversationListPromise;
-        return this.conversationList as IMTYPE.ConversationItem[];
+        return this.conversationList as ConversationItem[];
       }
       if (this.conversationList) return this.conversationList;
 
@@ -43,7 +42,7 @@ export const useConversationStore = defineStore("conversation", {
       conversationID,
       userID,
     }: {
-      conversationItem?: IMTYPE.ConversationItem;
+      conversationItem?: ConversationItem;
       conversationID?: string;
       userID?: string;
     }) {
@@ -77,7 +76,7 @@ export const useConversationStore = defineStore("conversation", {
         }
 
         const flag = this.conversationList?.find(
-          (item) => item.conversationID === conversationItem.conversationID
+          (item) => item.conversationID === conversationItem.conversationID,
         );
         if (!flag) {
           if (conversationItem.latestMsgSendTime === 0) {
@@ -97,11 +96,26 @@ export const useConversationStore = defineStore("conversation", {
         });
       }
     },
-    onNewConversation({ data }: { data: IMTYPE.ConversationItem[] }) {
-      if (this.conversationList)
-        this.conversationList = data.concat(this.conversationList);
+    onNewConversation({ data }: { data: ConversationItem[] }) {
+      if (!this.conversationList) return;
+      let flag = false;
+      data.forEach((item) => {
+        const exists = this.conversationList?.some((c, idx) => {
+          if (c.conversationID === item.conversationID) {
+            this.conversationList![idx] = item;
+            return true;
+          }
+        });
+        if (!exists && this.conversationList) {
+          flag = true;
+          this.conversationList.push(item);
+        }
+      });
+      if (flag) {
+        this.conversationList = this.conversationListSort();
+      }
     },
-    onConversationChanged({ data }: { data: IMTYPE.ConversationItem[] }) {
+    onConversationChanged({ data }: { data: ConversationItem[] }) {
       data.forEach((conversationItem) => {
         if (
           this.currentConversation?.conversationID ===
@@ -111,7 +125,7 @@ export const useConversationStore = defineStore("conversation", {
         }
         if (this.conversationList) {
           const idx = this.conversationList.findIndex(
-            (item) => item.conversationID === conversationItem.conversationID
+            (item) => item.conversationID === conversationItem.conversationID,
           );
 
           if (idx > -1) {
@@ -125,9 +139,7 @@ export const useConversationStore = defineStore("conversation", {
     onTotalUnreadMsgCountChanged({ data }: { data: number }) {
       this.unreadMsgCount = data;
     },
-    async changeConversation(
-      conversationItem?: IMTYPE.ConversationItem | null
-    ) {
+    async changeConversation(conversationItem?: ConversationItem | null) {
       this.resetConversation();
       if (!conversationItem) {
         return;
@@ -153,7 +165,6 @@ export const useConversationStore = defineStore("conversation", {
       this.currentConversation = undefined;
       this.currentQuoteMessage = undefined;
       this.msgList = [];
-      this.lastMinSeq = 0;
       this.multipleStatus = false;
       this.multipleSelect = [];
 
@@ -162,12 +173,11 @@ export const useConversationStore = defineStore("conversation", {
     },
     async refershMsgList(count: number): Promise<number> {
       const { data } = await IMSDK.getAdvancedHistoryMsgList({
-        lastMinSeq: this.lastMinSeq,
+        viewType: ViewType.History,
         count: count,
         startClientMsgID: this.msgList[0]?.clientMsgID ?? "",
         conversationID: this.currentConversation!.conversationID,
       });
-      this.lastMinSeq = data.lastMinSeq;
       let msgList = data.messageList;
 
       msgList = msgList.map((item, idx) => ({
@@ -180,7 +190,7 @@ export const useConversationStore = defineStore("conversation", {
 
       return data.messageList.length;
     },
-    pushMsg(msg: IMTYPE.MessageItem[]) {
+    pushMsg(msg: MessageItem[]) {
       const newMsg = msg.map((item, idx) => {
         let isShowTime = false;
         if (idx === 0) {
@@ -201,10 +211,10 @@ export const useConversationStore = defineStore("conversation", {
       });
       this.msgList = this.msgList.concat(newMsg);
     },
-    updateMsgList(msgList: IMTYPE.MessageItem[]) {
+    updateMsgList(msgList: MessageItem[]) {
       msgList.forEach((updateItem) => {
         const oldMsgIndex = this.msgList.findIndex(
-          (item) => item.clientMsgID === updateItem.clientMsgID
+          (item) => item.clientMsgID === updateItem.clientMsgID,
         );
         if (oldMsgIndex > -1) {
           this.msgList[oldMsgIndex] = {
@@ -218,19 +228,19 @@ export const useConversationStore = defineStore("conversation", {
     removeList(MsgIDs: string[]) {
       MsgIDs.forEach((clientMsgID) => {
         const idx = this.msgList.findIndex(
-          (item) => item.clientMsgID === clientMsgID
+          (item) => item.clientMsgID === clientMsgID,
         );
         if (idx > -1) {
           this.msgList.splice(idx, 1);
         }
       });
     },
-    conversationListSort(conversationList?: IMTYPE.ConversationItem[]) {
+    conversationListSort(conversationList?: ConversationItem[]) {
       const list = conversationList || this.conversationList;
       if (!list) return undefined;
       const arr: string[] = [];
       const filterArr = list.filter(
-        (c) => !arr.includes(c.conversationID) && arr.push(c.conversationID)
+        (c) => !arr.includes(c.conversationID) && arr.push(c.conversationID),
       );
       filterArr.sort((a, b) => {
         if (a.isPinned === b.isPinned) {

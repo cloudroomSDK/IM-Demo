@@ -79,7 +79,6 @@ const goFriendInfo = function (friendUserItem: listItem) {
 
 const list = computed(() => {
   if (!friendStore.list) return [];
-
   return friendStore.list
     .filter((item) => {
       if (searchText.value.trim()) {

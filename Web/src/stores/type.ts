@@ -1,5 +1,13 @@
 import { API } from "~/api/typings";
-import { IMTYPE } from "~/utils/imsdk";
+import {
+  BlackUserItem,
+  ConversationItem,
+  FriendUserItem,
+  GroupItem,
+  GroupMemberItem,
+  MessageItem,
+  SelfUserInfo,
+} from "~/utils/imsdk";
 import { Component } from "vue";
 
 export interface ConfigStore {
@@ -29,7 +37,9 @@ export interface SDKLoginInfo {
 
 export interface UserStore {
   businessData?: API.Login.LoginData;
-  userInfo?: IMTYPE.SelfUserInfo;
+  userInfo?: SelfUserInfo;
+  isSyncing: boolean; //正在同步数据库
+  syncProgress: number; //同步进度
 }
 
 export declare enum MessageReceiveOptType {
@@ -37,35 +47,34 @@ export declare enum MessageReceiveOptType {
   NotReceive = 1,
   NotNotify = 2,
 }
-export type MsgItem = IMTYPE.MessageItem & {
+export type MsgItem = MessageItem & {
   isShowTime?: boolean;
 };
 
 export interface ConversationStore {
-  currentConversation?: IMTYPE.ConversationItem;
-  conversationList?: IMTYPE.ConversationItem[];
-  conversationListPromise?: Promise<IMTYPE.ConversationItem[]>;
+  currentConversation?: ConversationItem;
+  conversationList?: ConversationItem[];
+  conversationListPromise?: Promise<ConversationItem[]>;
   currentQuoteMessage?: MsgItem;
   msgList: MsgItem[];
-  lastMinSeq: number;
   multipleStatus: boolean;
   multipleSelect: string[];
   unreadMsgCount: number;
 }
 
 export interface FriendStore {
-  list?: IMTYPE.FriendUserItem[];
+  list?: FriendUserItem[];
   newFriendCount: number; //有新的好友申请数量
-  listPromise?: Promise<IMTYPE.FriendUserItem[]>;
-  blackList?: IMTYPE.BlackUserItem[];
-  blackListPromise?: Promise<IMTYPE.BlackUserItem[]>;
+  listPromise?: Promise<FriendUserItem[]>;
+  blackList?: BlackUserItem[];
+  blackListPromise?: Promise<BlackUserItem[]>;
 }
 
 export interface GroupStore {
   messageCount: number;
-  list?: IMTYPE.GroupItem[];
-  listPromise?: Promise<IMTYPE.GroupItem[]>;
-  currentGroupInfo?: IMTYPE.GroupItem;
-  currentMemberInGroup?: IMTYPE.GroupMemberItem;
-  currentGroupMemberList?: IMTYPE.GroupMemberItem[];
+  list?: GroupItem[];
+  listPromise?: Promise<GroupItem[]>;
+  currentGroupInfo?: GroupItem;
+  currentMemberInGroup?: GroupMemberItem;
+  currentGroupMemberList?: GroupMemberItem[];
 }

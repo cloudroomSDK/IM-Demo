@@ -26,11 +26,11 @@
 </template>
 <script lang="ts" setup>
 import { computed, onBeforeMount, ref } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { FriendUserItem, IMSDK } from "~/utils/imsdk";
 import { Avatar, Search } from "~/components";
 
 const searchText = ref("");
-const list = ref<IMTYPE.FriendUserItem[]>([]);
+const list = ref<FriendUserItem[]>([]);
 
 const filterList = computed(() => {
   if (searchText.value === "") return list.value;
@@ -38,14 +38,12 @@ const filterList = computed(() => {
   return list.value.filter(
     (item) =>
       item.userID.toLocaleLowerCase().indexOf(str) > -1 ||
-      item.nickname.toLocaleLowerCase().indexOf(str) > -1
+      item.nickname.toLocaleLowerCase().indexOf(str) > -1,
   );
 });
 onBeforeMount(async () => {
   const { data: friendList } = await IMSDK.getFriendList();
-  list.value = friendList
-    .map((item) => item.friendInfo)
-    .filter(Boolean) as IMTYPE.FriendUserItem[];
+  list.value = friendList.filter(Boolean) as FriendUserItem[];
 });
 </script>
 <style lang="scss" scoped>

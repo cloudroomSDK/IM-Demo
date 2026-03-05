@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { IMTYPE } from "~/utils/imsdk";
+import { MessageReceiveOptType } from "~/utils/imsdk";
 import request from "~/utils/request";
 import { useUserStore } from "~/stores";
 import { API } from "~/api/typings";
@@ -24,7 +24,7 @@ export interface BusinessUserInfo {
   allowAddFriend: BusinessAllowType;
   allowBeep: BusinessAllowType;
   allowVibration: BusinessAllowType;
-  globalRecvMsgOpt: IMTYPE.MessageReceiveOptType;
+  globalRecvMsgOpt: MessageReceiveOptType;
 }
 
 export enum BusinessAllowType {
@@ -45,7 +45,7 @@ export default {
         headers: {
           operationID: uuidv4(),
         },
-      }
+      },
     );
   },
   login(params: API.Login.LoginParams) {
@@ -61,7 +61,7 @@ export default {
         headers: {
           operationID: uuidv4(),
         },
-      }
+      },
     );
   },
   loginByToken() {
@@ -87,7 +87,7 @@ export const searchBusinessUserInfo = async (keyword: string) => {
       headers: {
         operationID: uuidv4(),
       },
-    }
+    },
   );
 };
 
@@ -101,7 +101,7 @@ export const getBusinessUserInfo = async (userIDs: string[]) => {
       headers: {
         operationID: uuidv4(),
       },
-    }
+    },
   );
 };
 
@@ -118,7 +118,7 @@ interface UpdateBusinessUserInfoParams {
 }
 
 export const updateBusinessUserInfo = async (
-  params: Partial<UpdateBusinessUserInfoParams>
+  params: Partial<UpdateBusinessUserInfoParams>,
 ) => {
   if (Object.keys(params).length === 0) {
     return;
@@ -133,7 +133,7 @@ export const updateBusinessUserInfo = async (
       headers: {
         operationID: uuidv4(),
       },
-    }
+    },
   );
 };
 
@@ -147,7 +147,7 @@ export const getSvrTime: () => Promise<number> = (() => {
       timePromise = new Promise<void>(async (resolve) => {
         try {
           const { svrTime } = await request.get<unknown, { svrTime: number }>(
-            "/sys/time"
+            "/sys/time",
           );
           diffTime = Date.now() - svrTime;
         } catch (error) {

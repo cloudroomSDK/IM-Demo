@@ -40,7 +40,7 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { Search, Empty, MessageItem } from ".";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { IMSDK, MessageItem as MessageItemType } from "~/utils/imsdk";
 import { useConversationStore } from "~/stores";
 import { watch } from "vue";
 const searchText = ref("");
@@ -54,7 +54,7 @@ const typeObj = {
 
 const activeName = ref("文本");
 
-const list = ref<IMTYPE.MessageItem[] | undefined>([]);
+const list = ref<MessageItemType[] | undefined>([]);
 const conversationStore = useConversationStore();
 let text = "";
 let searchPage = 1;
@@ -64,7 +64,7 @@ watch(
   () => [searchText.value, activeName.value],
   () => {
     start();
-  }
+  },
 );
 
 const start = () => {

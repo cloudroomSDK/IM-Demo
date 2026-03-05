@@ -108,7 +108,7 @@ const deleteAllMsg = async () => {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
-    }
+    },
   );
   await IMSDK.deleteAllMsgFromLocalAndSvr();
   if (router.currentRoute.value.name === "conversation") {

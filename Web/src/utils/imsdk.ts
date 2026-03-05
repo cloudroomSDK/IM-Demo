@@ -1,25 +1,42 @@
-import { getSDK } from "@cloudroom/im-wasm-sdk";
-export type { IMTYPE } from "@cloudroom/im-wasm-sdk";
-import SDK_WASM_URL from "@cloudroom/im-wasm-sdk/dist/CRIM.wasm?url";
+import { CbEvents, getSDK, MessageItem } from "crim-wasm-sdk";
+export * from "crim-wasm-sdk";
+
+// vite里获取使用显示url引入wasm，webpack里需要使用url-loader解析
+import SDK_WASM_URL from "../../node_modules/crim-wasm-sdk/assets/CRIM.wasm?url";
+import SQL_WASM_URL from "../../node_modules/crim-wasm-sdk/assets/sql-wasm.wasm?url";
 
 import { getPicInfo } from ".";
 import { v4 as uuidV4 } from "uuid";
-import { useFriendStore, useAppStore, useConversationStore } from "~/stores";
+import {
+  useFriendStore,
+  useAppStore,
+  useConversationStore,
+  useUserStore,
+} from "~/stores";
 import { MemberSelect } from "~/components";
 
-// vite里获取使用显示url引入wasm，webpack里需要使用url-loader解析
-import SQL_WASM_URL from "@jlongster/sql.js/dist/sql-wasm.wasm?url";
 import { getSvrTime } from "~/api/login";
-
-// import { getSDK, IMTYPE } from "@/index";
-// export type { IMTYPE } from "@/index";
-// import SDK_WASM_URL from "@/assets/CRIM.wasm?url";
 
 export const IMSDK = getSDK({
   assetsUrl: {
     sdkWasm: SDK_WASM_URL,
     sqlWasm: SQL_WASM_URL,
   },
+});
+
+IMSDK.on(CbEvents.OnSyncServerStart, (e) => {
+  const userStore = useUserStore();
+  userStore.syncProgress = 0;
+  userStore.isSyncing = true;
+});
+IMSDK.on(CbEvents.OnSyncServerProgress, ({ data }) => {
+  const userStore = useUserStore();
+  userStore.syncProgress = data;
+});
+IMSDK.on(CbEvents.OnSyncServerFinish, (e) => {
+  const userStore = useUserStore();
+  userStore.syncProgress = 0;
+  userStore.isSyncing = false;
 });
 
 export const errorDesc: Record<number, string> = {
@@ -46,6 +63,7 @@ export const createImageMessage = async (file: File) => {
     size: file.size,
     width,
     height,
+    url: "",
   };
   const options = {
     sourcePicture: baseInfo,
@@ -146,16 +164,13 @@ export const clearConversationMsg = async (conversationID: string) => {
  */
 export const getPrivateExpirationMsgTime = (() => {
   let obj: Record<string, number> = {};
-  return async (
-    conversationID: string,
-    msg: IMTYPE.MessageItem
-  ): Promise<number> => {
+  return async (conversationID: string, msg: MessageItem): Promise<number> => {
     const svrTime = await getSvrTime();
     if (obj[msg.clientMsgID]) {
       return obj[msg.clientMsgID] - svrTime;
     }
-    const hasReadTime = msg.attachedInfoElem.hasReadTime || svrTime; //已读时间
-    const endTime = hasReadTime + msg.attachedInfoElem.burnDuration * 1e3; //到期时间
+    const hasReadTime = msg.attachedInfoElem!.hasReadTime || svrTime; //已读时间
+    const endTime = hasReadTime + msg.attachedInfoElem!.burnDuration * 1e3; //到期时间
     obj[msg.clientMsgID] = endTime; //存储到期时间
 
     const time = endTime - svrTime; //剩余时间

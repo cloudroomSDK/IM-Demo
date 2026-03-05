@@ -9,7 +9,24 @@ const request = axios.create({
 
 export const updateBaseURL = () => {
   const configStore = useConfigStore();
-  let baseUrl = configStore.businessServer;
+  let baseUrl;
+  if (configStore.businessServer === "默认服务器") {
+    if (import.meta.env.VITE_DEFAULT_SERVER) {
+      baseUrl = import.meta.env.VITE_DEFAULT_SERVER;
+    } else {
+      console.warn(
+        "默认服务器未配置，将使用当前域名+默认端口作为业务服务器地址",
+      );
+      const isHttps = location.protocol === "https:";
+
+      baseUrl = `${location.protocol}//${location.hostname}:${
+        isHttps ? 8218 : 8018
+      }`;
+    }
+  } else {
+    baseUrl = configStore.businessServer;
+  }
+
   if (!/^https?:\/\//.test(baseUrl)) {
     baseUrl = "http://" + baseUrl;
   }
@@ -29,7 +46,7 @@ request.interceptors.request.use(
     config.headers.token = config.headers.token ?? useUserStore().getChatToken;
     return config;
   },
-  (err) => Promise.reject(err)
+  (err) => Promise.reject(err),
 );
 
 request.interceptors.response.use(
@@ -53,6 +70,6 @@ request.interceptors.response.use(
     }
 
     return Promise.reject(err);
-  }
+  },
 );
 export default request;

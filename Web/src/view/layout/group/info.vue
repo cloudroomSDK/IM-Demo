@@ -75,7 +75,7 @@
 <script lang="ts" setup>
 import { onBeforeUnmount, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { GroupItem, IMSDK, CbEvents } from "~/utils/imsdk";
 import {
   CanEditAvatar,
   GroupMemberList,
@@ -107,16 +107,16 @@ const groupIDChange = async function (groupID: string) {
 groupIDChange($route.params.groupID as string);
 watch(() => $route.params.groupID as string, groupIDChange);
 
-const onJoinedGrpDeleted = ({ data }: { data: IMTYPE.GroupItem }) => {
+const onJoinedGrpDeleted = ({ data }: { data: GroupItem }) => {
   if (data.groupID === groupStore.currentGroupInfo?.groupID!) {
     $router.replace({ name: "group" });
   }
 };
 
-IMSDK.on("OnJoinedGrpDeleted", onJoinedGrpDeleted);
+IMSDK.on(CbEvents.OnJoinedGrpDeleted, onJoinedGrpDeleted);
 
 onBeforeUnmount(() => {
-  IMSDK.off("OnJoinedGrpDeleted", onJoinedGrpDeleted);
+  IMSDK.off(CbEvents.OnJoinedGrpDeleted, onJoinedGrpDeleted);
 });
 
 const updateAvatar = async (url: string) => {
@@ -134,7 +134,7 @@ const dissolutionHandle = async () => {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
-    }
+    },
   );
 
   await IMSDK.dismissGrp(groupStore.currentGroupInfo?.groupID!);
@@ -148,7 +148,7 @@ const exitHandle = async () => {
       confirmButtonText: "确定",
       cancelButtonText: "取消",
       type: "warning",
-    }
+    },
   );
 
   await IMSDK.quitGrp(groupStore.currentGroupInfo?.groupID!);

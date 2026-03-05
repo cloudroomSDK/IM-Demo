@@ -11,22 +11,26 @@ import vueDevTools from "vite-plugin-vue-devtools";
 
 export default defineConfig({
   base: process.env.NODE_ENV === "development" ? "/" : "/web/im/",
+  build: {
+    outDir: "im_wasm",
+  },
   resolve: {
     alias: {
       "~": path.resolve("src"),
     },
     extensions: [".js", ".ts", ".json", ".vue"],
+    preserveSymlinks: true,
   },
   css: {
     preprocessorOptions: {
       scss: {
-        silenceDeprecations: ['legacy-js-api'],
+        silenceDeprecations: ["legacy-js-api"],
         additionalData: `@use "~/element.scss" as *;`,
       },
     },
   },
   optimizeDeps: {
-    exclude: ["@cloudroom/im-wasm-sdk"],
+    exclude: ["crim-wasm-sdk"],
   },
   plugins: [
     vue(),
@@ -62,29 +66,6 @@ export default defineConfig({
       useSource: true,
     }),
   ],
-  build: {
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, "index.html"),
-      },
-      output: {
-        // entryFileNames: "[name].js",
-        manualChunks(id) {
-          if (id.includes("indexeddb-main-thread-worker-b24e7a21.js")) {
-            return "DBWorker";
-          }
-        },
-      },
-    },
-    sourcemap: true,
-  },
-  worker: {
-    rollupOptions: {
-      output: {
-        entryFileNames: "IMWorker-[hash].js",
-      },
-    },
-  },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
   },

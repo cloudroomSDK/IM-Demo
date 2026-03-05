@@ -38,9 +38,6 @@
 <script lang="ts" setup>
 import { onMounted, reactive, ref } from "vue";
 import { useConfigStore } from "~/stores";
-
-import { businessServer as defaultBusinessServer } from "~/config"; //获取默认值
-
 import { updateBaseURL } from "~/utils/request";
 import type { FormInstance, FormRules } from "element-plus";
 
@@ -51,17 +48,43 @@ const emit = defineEmits(["close"]);
 const ruleFormRef = ref<FormInstance>();
 
 const form = reactive({
-  businessServer: defaultBusinessServer,
+  businessServer: "默认服务器",
 });
 
 onMounted(() => {
   form.businessServer = configStore.businessServer;
 });
 
+const checkAddr = (rule: any, value: any, callback: any) => {
+  console.log(value);
+  if (value === "默认服务器") {
+    return callback();
+  }
+  let newValue = value.trim();
+  if (!newValue) {
+    return callback(new Error("请输入服务器地址"));
+  }
+  if (window.location.protocol === "https:" && !newValue.startsWith("https")) {
+    return callback(new Error("https协议页面禁止使用http服务器地址"));
+  }
+
+  if (
+    /^((https?):\/\/)?([^!@#$%^&*?.\s-]([^!@#$%^&*?.\s]{0,63}[^!@#$%^&*?.\s])?\.)+[a-z]{2,6}\/?/.test(
+      newValue,
+    )
+  ) {
+    return callback();
+  }
+
+  if (/^((https?):\/\/)?((\d{1,3}\.){3}\d{1,3})(:\d+)?\/?/.test(newValue)) {
+    return callback();
+  }
+
+  return callback(new Error("请输入有效的服务器地址"));
+};
+
 const rules = reactive<FormRules<typeof form>>({
-  businessServer: [
-    { required: true, message: "请输入服务器地址", trigger: "blur" },
-  ],
+  businessServer: [{ validator: checkAddr, trigger: "blur" }],
 });
 
 const submitForm = () => {

@@ -51,7 +51,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { ApplicationHandleResult, IMSDK } from "~/utils/imsdk";
 import { Avatar, Empty } from "~/components";
 import { useFriendStore } from "~/stores";
 
@@ -64,7 +64,7 @@ interface Member {
   nickname: string;
   imgSrc?: string;
   reqMsg?: string;
-  handleResult: IMTYPE.ApplicationHandleResult;
+  handleResult: ApplicationHandleResult;
 }
 const list = ref<Member[]>([]);
 
@@ -96,7 +96,7 @@ const refersh = async () => {
         imgSrc: item.fromFaceURL,
         handleResult: item.handleResult,
         reqMsg: item.reqMsg,
-      })
+      }),
     );
     friendStore.newFriendCount = 0;
   } else {
@@ -107,7 +107,7 @@ const refersh = async () => {
         imgSrc: item.toFaceURL,
         handleResult: item.handleResult,
         reqMsg: item.reqMsg,
-      })
+      }),
     );
   }
 

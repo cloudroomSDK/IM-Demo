@@ -63,7 +63,7 @@
                     </el-link>
                   </el-descriptions-item>
                   <el-descriptions-item label="申请信息" :span="3">
-                    <span style="word-break: break-all;">{{ item.reqMsg }}</span>
+                    <span style="word-break: break-all">{{ item.reqMsg }}</span>
                   </el-descriptions-item>
                   <el-descriptions-item
                     label="操作"
@@ -96,7 +96,7 @@
 
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
-import { IMSDK, IMTYPE } from "~/utils/imsdk";
+import { GroupApplicationItem, IMSDK } from "~/utils/imsdk";
 import { formatString } from "~/utils/dayjs";
 import { Avatar, Empty } from "~/components";
 import { openUserInfo } from "~/utils";
@@ -106,10 +106,10 @@ const groupStore = useGroupStore();
 const selectValue = ref(1);
 const loading = ref(true);
 
-const list = ref<IMTYPE.GroupApplicationItem[]>([]);
+const list = ref<GroupApplicationItem[]>([]);
 
 // 拒绝别人的好友申请
-const refuse = (item: IMTYPE.GroupApplicationItem) => {
+const refuse = (item: GroupApplicationItem) => {
   IMSDK.refuseGrpReq({
     groupID: item.groupID,
     fromUserID: item.userID,
@@ -119,7 +119,7 @@ const refuse = (item: IMTYPE.GroupApplicationItem) => {
 };
 
 // 同意别人的好友申请
-const accept = (item: IMTYPE.GroupApplicationItem) => {
+const accept = (item: GroupApplicationItem) => {
   IMSDK.acceptGrpReq({
     groupID: item.groupID,
     fromUserID: item.userID,

@@ -20,10 +20,10 @@
 </template>
 
 <script lang="ts" setup>
-import { IMTYPE } from "~/utils/imsdk";
+import { MessageItem as MessageItemType } from "~/utils/imsdk";
 import { Empty, MessageItem } from ".";
 defineProps<{
-  list: IMTYPE.MessageItem[];
+  list: MessageItemType[];
 }>();
 </script>
 <style lang="scss" scoped>

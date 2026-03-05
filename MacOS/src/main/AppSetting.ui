@@ -1,0 +1,23 @@
+<UI version="4.0" >
+ <class>AppSetting</class>
+ <widget class="QWidget" name="AppSetting" >
+  <property name="objectName" >
+   <string notr="true">AppSetting</string>
+  </property>
+  <property name="geometry" >
+   <rect>
+	<x>0</x>
+	<y>0</y>
+	<width>400</width>
+	<height>300</height>
+   </rect>
+  </property>
+  <property name="windowTitle" >
+   <string>AppSetting</string>
+  </property>  
+ </widget>
+ <layoutDefault spacing="6" margin="11" />
+ <pixmapfunction></pixmapfunction>
+ <resources/>
+ <connections/>
+</UI>

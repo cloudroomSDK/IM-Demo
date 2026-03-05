@@ -9,21 +9,22 @@
 </template>
 <script lang="ts" setup>
 import { onBeforeMount, ref } from "vue";
-import { IMTYPE } from "~/utils/imsdk";
+import { MessageItem } from "~/utils/imsdk";
 import { downloadUrl } from "~/utils";
 
-const props = defineProps<{
-  chat: IMTYPE.MessageItem;
-}>();
+const props =
+  defineProps<{
+    chat: MessageItem;
+  }>();
 
 const src = ref("");
 onBeforeMount(() => {
   switch (props.chat.contentType) {
     case 102:
-      src.value = props.chat.pictureElem.sourcePicture.url;
+      src.value = props.chat.pictureElem!.sourcePicture.url;
       break;
     case 104:
-      src.value = props.chat.videoElem.videoUrl;
+      src.value = props.chat.videoElem!.videoUrl;
       break;
 
     default:

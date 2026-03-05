@@ -1,0 +1,104 @@
+1. demo中的呼叫是利用”自定义消息“实现；
+
+2. demo中CRIMCustomElem中data字符串内部定义为：
+	{
+		"customType": CRIM_CustomMsgType,
+		"data": {} //业务自定义对象（非字符串）
+	}
+	
+	
+	//自定义消息类型
+	enum CRIM_CustomMsgType
+	{
+		CRCUSTOMMSG_Unknow = 0,
+
+		CRCUSTOMMSG_NewInvitation = 300,                /// 新邀请
+		CRCUSTOMMSG_InviteeAccept = 301,                /// 邀请接受
+		CRCUSTOMMSG_InviteeReject = 302,                /// 邀请拒绝
+		CRCUSTOMMSG_InvitationCancel = 303,             /// 邀请取消
+		CRCUSTOMMSG_InvitationHangUp = 304,             /// 邀请挂断
+	};
+
+3. 呼叫自定义对象定义为：
+	{
+		"invitationMsgId": "xxx",	//邀请的唯一标识，拒绝/接受/取消/挂断时应填写对应的邀请标识
+		"inviterUserID": "xxx",		//邀请的初始发起者
+		"groupID": "",				//被邀请的群id，单聊时为空
+		"inviteeUserIDList": [		//被邀请者UserID列表, 如果目标是群且为全部成员，列表可为空
+			"xxx",
+			"yyy"
+		],	
+		"roomID": "xxx",			//会议号
+		"mediaType": "xxx", 		//video/audio
+		"initiateTime": n,			//发起时间（秒）
+		"timeout": n,				//邀请超时时间（秒）
+
+		"acceptTime": n,			//接受邀请的时间（秒）
+		"duration": n,				//通话时长（秒） ，通话接通后挂断者，依据acceptTime计算此值；
+	
+		"opType": n,				//操作类型：CRInvitationOpType
+		"opDesc": "xxx"				//操作附加描述
+	}
+
+	//呼叫操作类型
+	enum CRInvitationOpType
+	{
+		CRIVT_OP_Undef = 0,		//无特殊定义
+		CRIVT_OP_Timeout,		//超时无应答
+		CRIVT_OP_Busy,			//被叫忙
+		CRIVT_OP_Reject,		//被叫拒接
+
+		CRIVT_OP_BUTT
+	};
+	
+4. 呼叫中的一些提示串处理：
+	static QString reasonForCaller[CRIVT_OP_BUTT] = {
+		QObject::tr("呼叫已取消"),
+		QObject::tr("呼叫未应答"),
+		QObject::tr("呼叫未接听(忙)"),
+		QObject::tr("呼叫被拒绝"),
+	};
+	static QString reasonForCalled[CRIVT_OP_BUTT] = {
+		QObject::tr("呼入已取消"),
+		QObject::tr("呼入未应答"),
+		QObject::tr("呼入未接听(忙)"),
+		QObject::tr("呼入已拒绝"),
+	};
+
+5. 多端同时在线的处理：
+   a. 收到CRCUSTOMMSG_NewInvitation
+      if( msg.sendID==自已 )
+	  {
+		//丢弃不用处理
+	  }
+	  else
+	  {
+		//按有呼入处理
+		notifyCallIn(CRIMInvitationInfo);
+	  }
+   
+   b. 收到CRCUSTOMMSG_InviteeAccept
+      if( msg.sendID==自已 )
+	  {
+		//通知呼入在其它设备上接听
+		notifyCallAcceptedByOtherDevice(CRIMInvitationInfo);
+	  }
+	  else
+	  {
+		//通知呼出被接听
+		notifyCallAccepted(CRIMInvitationInfo);
+	  }
+
+   c. 收到CRCUSTOMMSG_InviteeReject
+      if( msg.sendID==自已 )
+	  {
+		//通知呼入在其它设备上拒绝
+		notifyCallRejectedByOtherDevice(CRIMInvitationInfo);
+	  }
+	  else
+	  {
+		//通知呼出被拒绝
+		notifyCallRejected(CRIMInvitationInfo);
+	  }
+
+	其它CRCUSTOMMSG_InvitationCancel， CRCUSTOMMSG_InvitationHangUp按正常处理， 在ui上产生一条通话记录

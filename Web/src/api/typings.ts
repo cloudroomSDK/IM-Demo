@@ -6,6 +6,7 @@ export namespace API {
       Login = 3,
     }
     export type LoginParams = {
+      appID?: string; //如果不使用默认appID，需要传此参数
       verifyCode?: string;
       deviceID?: string;
       phoneNumber?: string;
@@ -13,6 +14,7 @@ export namespace API {
       password?: string;
       account?: string;
     };
+
     export type LoginData = {
       chatToken: string;
       imToken: string;
@@ -21,6 +23,8 @@ export namespace API {
       sdkAppId: string;
       sdkSvr: string;
       sdkToken: string;
+      sdkAuthType: "0" | "1"; // 0: 密钥模式 1: Token模式
+      sdkSecret: string;
     };
     export type SendSmsParams = {
       phoneNumber: string;
