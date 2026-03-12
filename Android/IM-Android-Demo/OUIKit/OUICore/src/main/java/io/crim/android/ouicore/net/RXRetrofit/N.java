@@ -3,10 +3,19 @@ package io.crim.android.ouicore.net.RXRetrofit;
 
 import android.content.Context;
 
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
+import io.crim.android.ouicore.base.BaseApp;
+import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.L;
+import io.crim.android.ouicore.utils.SPUtil;
 import io.reactivex.ObservableTransformer;
 import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.Disposable;
@@ -34,26 +43,63 @@ public class N {
     }
 
     private N(HttpConfig httpConfig) {
-        initMap();
-        OkHttpClient.Builder build = new OkHttpClient.Builder()
-            .connectTimeout(httpConfig.connectTimeOut, TimeUnit.SECONDS)
-            .readTimeout(httpConfig.readTimeOut, TimeUnit.SECONDS)
-            .writeTimeout(httpConfig.writeTimeOut, TimeUnit.SECONDS);
+        try {
+            // 创建一个信任所有证书的 TrustManager
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                        // 不做任何检查
+                    }
 
-        if (null != httpConfig.interceptors) {
-            for (Interceptor interceptor : httpConfig.interceptors) {
-                build.addInterceptor(interceptor);
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                        // 不做任何检查
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+                }
+            };
+
+            // 安装信任所有证书的 SSLContext
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+
+            // 创建一个允许所有主机名的 HostnameVerifier
+            final HostnameVerifier allHostsValid = (hostname, session) -> true;
+
+            initMap();
+            OkHttpClient.Builder build = new OkHttpClient.Builder()
+                .connectTimeout(httpConfig.connectTimeOut, TimeUnit.SECONDS)
+                .readTimeout(httpConfig.readTimeOut, TimeUnit.SECONDS)
+                .writeTimeout(httpConfig.writeTimeOut, TimeUnit.SECONDS);
+
+            if (httpConfig.baseUrl.startsWith("https") &&
+                SPUtil.get(BaseApp.inst()).getBoolean(Constant.HTTPS_IGNORE)) {
+                build.sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0])
+                    .hostnameVerifier(allHostsValid);
             }
-        }
-        if (HttpConfig.isDebug)
-            build.addInterceptor(LogInterceptor());//添加日志拦截器
 
-        mRetrofit = new Retrofit.Builder()
-            .baseUrl(httpConfig.baseUrl)
-            .addConverterFactory(GsonConverterFactory.create())//添加gson转换器
-            .addCallAdapterFactory(RxJava2CallAdapterFactory.create())//添加rxjava转换器
-            .client(build.build())
-            .build();
+            if (null != httpConfig.interceptors) {
+                for (Interceptor interceptor : httpConfig.interceptors) {
+                    build.addInterceptor(interceptor);
+                }
+            }
+            if (HttpConfig.isDebug)
+                build.addInterceptor(LogInterceptor());//添加日志拦截器
+
+            mRetrofit = new Retrofit.Builder()
+                .baseUrl(httpConfig.baseUrl)
+                .addConverterFactory(GsonConverterFactory.create())//添加gson转换器
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())//添加rxjava转换器
+                .client(build.build())
+                .build();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static <T> T API(Class<T> service) {

@@ -94,7 +94,7 @@ public class PersonalVM extends BaseViewModel {
         setSelfInfo(null, faceURL, 0, 0, null, 0, null, null);
     }
 
-    public void setGender(int gender) {
+    /*public void setGender(int gender) {
         userInfo.getValue().setGender(gender);
         setSelfInfo(null, null, gender, 0, null, 0, null, null);
     }
@@ -102,5 +102,5 @@ public class PersonalVM extends BaseViewModel {
     public void setBirthday(long birth) {
         userInfo.getValue().setBirth(birth);
         setSelfInfo(null, null, 0, 0, null, birth, null, null);
-    }
+    }*/
 }

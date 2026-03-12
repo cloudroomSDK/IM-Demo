@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
 
     <LinearLayout xmlns:tools="http://schemas.android.com/tools"
@@ -10,12 +11,31 @@
         android:orientation="vertical"
         tools:context=".ui.group.CreateGroupActivityV3">
 
-        <ImageView
-            android:onClick="toBack"
-            android:layout_width="wrap_content"
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="15dp"
-            android:src="@mipmap/ic_back2" />
+            android:background="@color/white"
+           >
+
+            <ImageView
+                android:onClick="toBack"
+                android:layout_alignParentLeft="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:padding="15dp"
+                android:src="@mipmap/ic_back2" />
+
+            <TextView
+                android:id="@+id/title"
+                android:textColor="#000"
+                android:text="@string/create_group"
+                android:visibility="gone"
+                android:layout_centerInParent="true"
+                android:textSize="24sp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </RelativeLayout>
 
         <io.crim.android.ouicore.widget.SearchView
             android:id="@+id/searchView"
@@ -25,10 +45,10 @@
             android:clickable="false"
             android:hint="@string/search" />
 
-        <include
+        <!--<include
             layout="@layout/view_dividing_line"
             android:layout_width="match_parent"
-            android:layout_height="10dp" />
+            android:layout_height="10dp" />-->
 
         <io.crim.android.ouicore.widget.InterceptLinearLayout
             android:id="@+id/myFriends"
@@ -36,6 +56,7 @@
             android:layout_height="55dp"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            android:visibility="gone"
             android:paddingLeft="15dp"
             android:paddingRight="15dp">
 
@@ -46,7 +67,6 @@
                 android:text="@string/my_good_friend"
                 android:textColor="#ff333333"
                 android:textSize="18sp" />
-
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -98,10 +118,49 @@
                 android:textSize="12sp" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerView"
+                android:id="@+id/recyclerViewRect"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
         </LinearLayout>
+
+        <RelativeLayout
+            android:id="@+id/rlFriends"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            tools:context=".ui.SelectTargetActivityV3">
+
+
+            <com.yanzhenjie.recyclerview.widget.StickyNestedScrollView
+                android:id="@+id/scroll_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+                <com.yanzhenjie.recyclerview.SwipeRecyclerView
+                    android:id="@+id/recycler_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:overScrollMode="never" />
+
+            </com.yanzhenjie.recyclerview.widget.StickyNestedScrollView>
+
+            <com.mao.sortletterlib.SortLetterView
+                android:id="@+id/sort_view"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_centerVertical="true"
+                app:iconHeight="49dp"
+                app:iconWidth="58dp"
+                app:leftBigText="26sp"
+                app:letterColor="#5496EB"
+                app:letterSize="15sp"
+                app:paddingRight="20dp"
+                app:selectBackgroundColor="#000093"
+                app:selectLetterColor="@color/white"
+                app:selectbigtTextColor="#000093" />
+        </RelativeLayout>
 
         <include
             android:id="@+id/divider2"

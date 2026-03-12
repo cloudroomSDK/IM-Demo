@@ -1,10 +1,14 @@
 package io.crim.android.ouicontact.vm;
 
-import android.util.Log;
-
 import java.util.List;
 
 import androidx.lifecycle.MutableLiveData;
+import io.crim.android.ouicore.base.BaseApp;
+import io.crim.android.ouicore.base.BaseViewModel;
+import io.crim.android.ouicore.base.vm.State;
+import io.crim.android.ouicore.im.IMEvent;
+import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.SPUtil;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.sdk.listener.OnFriendshipListener;
@@ -16,13 +20,6 @@ import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.sdk.models.GrpInfo;
 import io.crim.android.sdk.models.GrpReqInfo;
 import io.crim.android.sdk.models.UserInfo;
-import io.crim.android.ouicore.base.BaseApp;
-import io.crim.android.ouicore.base.BaseViewModel;
-import io.crim.android.ouicore.base.vm.State;
-import io.crim.android.ouicore.im.IMEvent;
-import io.crim.android.ouicore.utils.Constant;
-import io.crim.android.ouicore.utils.L;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
 
 public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriendshipListener {
     //群红点数量
@@ -46,8 +43,8 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
         super.viewCreate();
         IMEvent.getInstance().addGroupListener(this);
         IMEvent.getInstance().addFriendListener(this);
-        int requestNum = SharedPreferencesUtil.get(getContext()).getInteger(Constant.K_FRIEND_NUM);
-        int groupNum = SharedPreferencesUtil.get(getContext()).getInteger(Constant.K_GROUP_NUM);
+        int requestNum = SPUtil.get(getContext()).getInteger(Constant.K_FRIEND_NUM);
+        int groupNum = SPUtil.get(getContext()).getInteger(Constant.K_GROUP_NUM);
         friendDotNum.setValue(requestNum);
         groupDotNum.setValue(groupNum);
     }
@@ -64,11 +61,12 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
         CRIMClient.getInstance().friendshipManager.getFriendReqListAsRecipient(new OnBase<List<FriendReqInfo>>() {
             @Override
             public void onError(int code, String error) {
-
+                logcat("getRecvFriendApplicationList onError:code:"+code+"-error:"+error);
             }
 
             @Override
             public void onSuccess(List<FriendReqInfo> data) {
+                logcat("getRecvFriendApplicationList onSuccess: size=:"+data.size());
                 if (data.isEmpty()) return;
                 friendApply.setValue(data);
             }
@@ -80,12 +78,10 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
         CRIMClient.getInstance().groupManager.getGrpReqListAsRecipient(new OnBase<List<GrpReqInfo>>() {
             @Override
             public void onError(int code, String error) {
-                L.e("");
             }
 
             @Override
             public void onSuccess(List<GrpReqInfo> data) {
-                L.e("");
                 if (!data.isEmpty())
                     groupApply.setValue(data);
             }
@@ -185,7 +181,7 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
             && !info.getUserID().equals(BaseApp.inst().loginCertificate.userID)) {
 //            Log.d("eeeeeee","contact vm=cacheGroupDot=="+friendDotNum.getValue());
             groupDotNum.setValue(friendDotNum.getValue() + 1);
-            SharedPreferencesUtil.get(getContext()).setCache(Constant.K_GROUP_NUM,
+            SPUtil.get(getContext()).setCache(Constant.K_GROUP_NUM,
                 groupDotNum.getValue());
         }
     }
@@ -195,7 +191,7 @@ public class ContactVM extends BaseViewModel implements OnGrpListener, OnFriends
             && !u.getFromUserID().equals(BaseApp.inst().loginCertificate.userID)) {
 //            Log.d("eeeeeee","contact vm=cacheFriendDot=="+friendDotNum.getValue());
             friendDotNum.setValue(friendDotNum.getValue() + 1);
-            SharedPreferencesUtil.get(getContext()).setCache(Constant.K_FRIEND_NUM,
+            SPUtil.get(getContext()).setCache(Constant.K_FRIEND_NUM,
                 friendDotNum.getValue());
         }
     }

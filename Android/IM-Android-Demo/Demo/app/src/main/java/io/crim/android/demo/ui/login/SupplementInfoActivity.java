@@ -57,4 +57,9 @@ public class SupplementInfoActivity extends BaseActivity<LoginVM, ActivitySupple
     public void initDate() {
 
     }
+
+    @Override
+    public void initSdk(String url) {
+
+    }
 }

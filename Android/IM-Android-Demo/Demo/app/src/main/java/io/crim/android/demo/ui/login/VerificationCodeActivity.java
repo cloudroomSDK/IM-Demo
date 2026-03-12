@@ -71,4 +71,9 @@ public class VerificationCodeActivity extends BaseActivity<LoginVM, ActivityVeri
     public void initDate() {
 
     }
+
+    @Override
+    public void initSdk(String url) {
+
+    }
 }

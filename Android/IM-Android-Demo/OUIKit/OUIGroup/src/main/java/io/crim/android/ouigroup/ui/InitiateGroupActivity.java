@@ -18,9 +18,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.crim.android.sdk.models.FriendInfo;
-import io.crim.android.sdk.models.GroupMembersInfo;
-import io.crim.android.sdk.models.UserInfo;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.adapter.ViewHol;
 import io.crim.android.ouicore.base.BaseActivity;
@@ -36,6 +33,8 @@ import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.vm.MultipleChoiceVM;
 import io.crim.android.ouigroup.databinding.ActivityInitiateGroupBinding;
+import io.crim.android.sdk.models.GroupMembersInfo;
+import io.crim.android.sdk.models.UserInfo;
 
 /**
  * 发起群聊/邀请入群/移除群聊/选择群成员
@@ -43,22 +42,20 @@ import io.crim.android.ouigroup.databinding.ActivityInitiateGroupBinding;
 @Route(path = Routes.Group.CREATE_GROUP)
 public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiateGroupBinding> {
 
+    private static final String TAG = "InitiateGroupActivity";
     private RecyclerViewAdapter<ExUserInfo, RecyclerView.ViewHolder> adapter;
-
-
     private boolean isInviteToGroup = false;
     private boolean isRemoveGroup = false;
     private boolean isSelectMember = false;
     private boolean isSelectFriend = false;
     private boolean fromSelectTarget = false;
+    private boolean isCreateGroup = false;
     private int maxNum;
-
     //选择的人数
     private int selectMemberNum;
     private String title;
     //默认已选择的id
     private String defSelectId;
-
     private MultipleChoiceVM multipleChoiceVM;
 
     @Override
@@ -66,6 +63,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
         isInviteToGroup = getIntent().getBooleanExtra(Constant.IS_INVITE_TO_GROUP, false);
         isRemoveGroup = getIntent().getBooleanExtra(Constant.IS_REMOVE_GROUP, false);
         isSelectMember = getIntent().getBooleanExtra(Constant.IS_SELECT_MEMBER, false);
+        isCreateGroup = getIntent().getBooleanExtra(Constant.IS_CREATE_GROUP, false);
         isSelectFriend = getIntent().getBooleanExtra(Constant.IS_SELECT_FRIEND, false);
         fromSelectTarget = getIntent().getBooleanExtra("fromSelectTarget", false);
         maxNum = getIntent().getIntExtra(Constant.K_SIZE, 0);
@@ -73,6 +71,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
         title = getIntent().getStringExtra(Constant.K_NAME);
         defSelectId = getIntent().getStringExtra(Constant.K_ID);
 
+        logcat("isCreateGroup= "+isCreateGroup);
         if (isInviteToGroup || isRemoveGroup)
             bindVMByCache(GroupVM.class);
         else
@@ -84,30 +83,29 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
         buildSelectFriendsVM();
         initView();
 
-        if (isSelectMember) {
+        listener();
+        if (isRemoveGroup || isSelectMember) {
             vm.groupId = groupId;
             vm.getGroupMemberList();
-        } else
+        } else{
             vm.getAllFriend();
-        listener();
+        }
     }
 
     private void buildSelectFriendsVM() {
         try {
+            Easy.installVM(MultipleChoiceVM.class);
             multipleChoiceVM = Easy.find(MultipleChoiceVM.class);
+            multipleChoiceVM.isCreateGroup = isCreateGroup;
             selectMemberNum= multipleChoiceVM.metaData.getValue().size();
             multipleChoiceVM.bindDataToView(view.bottom);
             multipleChoiceVM.showPopAllSelectFriends(view.bottom, LayoutPopSelectedFriendsBinding.inflate(getLayoutInflater()));
             multipleChoiceVM.submitTap(view.bottom.submit);
 
             multipleChoiceVM.metaData.observe(this,v->adapter.notifyDataSetChanged());
-        } catch (Exception ignored) {}
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (!isInviteToGroup && !isRemoveGroup) removeCacheVM();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     private void initView() {
@@ -179,11 +177,15 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
                         itemViewHo.view.avatar.load(memberInfo.groupMembersInfo.getFaceURL());
                         itemViewHo.view.nickName.setText(memberInfo.groupMembersInfo.getNickname());
                     } else {
-                        FriendInfo friendInfo = data.userInfo.getFriendInfo();
+                        UserInfo friendInfo = data.userInfo;
                         itemViewHo.view.avatar.load(friendInfo.getFaceURL());
                         itemViewHo.view.nickName.setText(friendInfo.getNickname());
                     }
-                    itemViewHo.view.select.setVisibility(View.VISIBLE);
+                    if (data.isEnabled){
+                        itemViewHo.view.select.setVisibility(View.VISIBLE);
+                    }else {
+                        itemViewHo.view.select.setVisibility(View.INVISIBLE);
+                    }
                     itemViewHo.view.select.setChecked(data.isSelect);
                     if (!data.isEnabled) itemViewHo.view.item.setOnClickListener(null);
                     else itemViewHo.view.item.setOnClickListener(v -> {
@@ -219,27 +221,27 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
         /*if (isSelectMember)
             view.bottom.submit.setText("确定（" + selectMemberNum + "/" + maxNum + "）");
         else view.bottom.submit.setText("确定（" + selectMemberNum + "/999）");*/
-        view.bottom.submit.setText("确定");
+        view.bottom.submit.setText(getString(io.crim.android.ouicore.R.string.sure));
         view.bottom.submit.setEnabled(selectMemberNum > 0);
     }
 
     private int getSelectNum() {
-        List<FriendInfo> friendInfos = new ArrayList<>();
+        List<UserInfo> friendInfos = new ArrayList<>();
         vm.selectedFriendInfoV3.clear();
         int num = 0;
         for (ExUserInfo item : adapter.getItems()) {
             if (item.isSelect) {
                 num++;
                 if (isRemoveGroup || isSelectMember) {
-                    FriendInfo friendInfo = new FriendInfo();
+                    UserInfo friendInfo = new UserInfo();
                     friendInfo.setUserID(item.exGroupMemberInfo.groupMembersInfo.getUserID());
                     friendInfos.add(friendInfo);
                     continue;
                 }
-                friendInfos.add(item.userInfo.getFriendInfo());
+                friendInfos.add(item.userInfo);
 
                 if (item.isEnabled)
-                    vm.selectedFriendInfoV3.add(item.userInfo.getFriendInfo());
+                    vm.selectedFriendInfoV3.add(item.userInfo);
             }
         }
         vm.selectedFriendInfo.setValue(friendInfos);
@@ -279,6 +281,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
                         }
                     }
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
 
                 List<ExUserInfo> exUserInfos = new ArrayList<>();
@@ -310,7 +313,7 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
                 for (ExUserInfo exUserInfo : exUserInfos) {
                     ExGroupMemberInfo exGroupMemberInfo = new ExGroupMemberInfo();
                     exGroupMemberInfo.groupMembersInfo = new GroupMembersInfo();
-                    exGroupMemberInfo.groupMembersInfo.setUserID(exUserInfo.userInfo.getFriendInfo().getUserID());
+                    exGroupMemberInfo.groupMembersInfo.setUserID(exUserInfo.userInfo.getUserID());
 
                     if (vm.exGroupMembers.getValue().contains(exGroupMemberInfo)
                         || vm.exGroupManagement.getValue().contains(exGroupMemberInfo)
@@ -343,41 +346,44 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
                 }
             }
         });
-        view.bottom.submit.setOnClickListener(new OnDedrepClickListener(850) {
-            @Override
-            public void click(View v) {
-                try {
-                    if (isInviteToGroup) {
-                        vm.inviteUserToGroup(vm.selectedFriendInfoV3);
-                        return;
-                    }
-                    if (isRemoveGroup) {
-                        vm.kickGroupMember(vm.selectedFriendInfo.getValue());
-                        return;
-                    }
-                    if (isSelectMember) {
-                        ArrayList<String> ids = new ArrayList<>();
-                        for (FriendInfo friendInfo : vm.selectedFriendInfo.getValue()) {
-                            ids.add(friendInfo.getUserID());
+
+        if (!isCreateGroup){
+            view.bottom.submit.setOnClickListener(new OnDedrepClickListener(850) {
+                @Override
+                public void click(View v) {
+                    try {
+                        if (isInviteToGroup) {
+                            vm.inviteUserToGroup(vm.selectedFriendInfoV3);
+                            return;
                         }
-                        setResult(RESULT_OK, new Intent().putStringArrayListExtra(Constant.K_RESULT,
-                            ids));
-                        finish();
-                        return;
-                    }
-                    if (isSelectFriend) {
-                        setResult(RESULT_OK, new Intent().putExtra(Constant.K_RESULT,
-                            GsonHel.toJson(vm.selectedFriendInfo.getValue())));
-                        finish();
-                        return;
-                    }
-                    multipleChoiceVM.showConfirmDialog(InitiateGroupActivity.this, Routes.Group.CREATE_GROUP);
+                        if (isRemoveGroup) {
+                            vm.kickGroupMember(vm.selectedFriendInfo.getValue());
+                            return;
+                        }
+                        if (isSelectMember) {
+                            ArrayList<String> ids = new ArrayList<>();
+                            for (UserInfo friendInfo : vm.selectedFriendInfo.getValue()) {
+                                ids.add(friendInfo.getUserID());
+                            }
+                            setResult(RESULT_OK, new Intent().putStringArrayListExtra(Constant.K_RESULT,
+                                ids));
+                            finish();
+                            return;
+                        }
+                        if (isSelectFriend) {
+                            setResult(RESULT_OK, new Intent().putExtra(Constant.K_RESULT,
+                                GsonHel.toJson(vm.selectedFriendInfo.getValue())));
+                            finish();
+                            return;
+                        }
+                        multipleChoiceVM.showConfirmDialog(InitiateGroupActivity.this, Routes.Group.CREATE_GROUP);
 //                    createLauncher.launch(getIntent().setClass(InitiateGroupActivity.this,
 //                        CreateGroupActivity.class));
-                } catch (Exception ignored) {
+                    } catch (Exception ignored) {
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -394,4 +400,11 @@ public class InitiateGroupActivity extends BaseActivity<GroupVM, ActivityInitiat
             }
         });
 
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        multipleChoiceVM.metaData.setValue(new ArrayList<>());
+        if (!isInviteToGroup && !isRemoveGroup) removeCacheVM();
+    }
 }

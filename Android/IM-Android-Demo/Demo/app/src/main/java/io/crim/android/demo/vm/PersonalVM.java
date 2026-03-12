@@ -53,10 +53,10 @@ public class PersonalVM extends BaseViewModel {
         certificate.nickName = userInfo.getNickname();
         certificate.faceURL = userInfo.getFaceURL();
 
-        certificate.globalRecvMsgOpt = userInfo.getGlobalRecvMsgOpt();
+        /*certificate.globalRecvMsgOpt = userInfo.getGlobalRecvMsgOpt();
         certificate.allowAddFriend = userInfo.getAllowAddFriend() == 1;
         certificate.allowBeep = userInfo.getAllowBeep() == 1;
-        certificate.allowVibration = userInfo.getAllowVibration() == 1;
+        certificate.allowVibration = userInfo.getAllowVibration() == 1;*/
 
         BaseApp.inst().loginCertificate.cache(BaseApp.inst());
     }
@@ -132,18 +132,18 @@ public class PersonalVM extends BaseViewModel {
     }
 
     public void setGender(int gender) {
-        userInfo.val().setGender(gender);
-        setSelfInfo(new Parameter().add("gender",gender).add("userID", BaseApp.inst().loginCertificate.userID));
+//        userInfo.val().setGender(gender);
+//        setSelfInfo(new Parameter().add("gender",gender).add("userID", BaseApp.inst().loginCertificate.userID));
     }
 
     public void setBirthday(long birth) {
-        userInfo.val().setBirth(birth);
-        setSelfInfo(new Parameter().add("birth",birth).add("userID", BaseApp.inst().loginCertificate.userID));
+//        userInfo.val().setBirth(birth);
+//        setSelfInfo(new Parameter().add("birth",birth).add("userID", BaseApp.inst().loginCertificate.userID));
     }
 
     public void setEmail(String email) {
-        userInfo.val().setEmail(email);
-        setSelfInfo(new Parameter().add("email",email).add("userID", BaseApp.inst().loginCertificate.userID));
+//        userInfo.val().setEmail(email);
+//        setSelfInfo(new Parameter().add("email",email).add("userID", BaseApp.inst().loginCertificate.userID));
     }
 
 }

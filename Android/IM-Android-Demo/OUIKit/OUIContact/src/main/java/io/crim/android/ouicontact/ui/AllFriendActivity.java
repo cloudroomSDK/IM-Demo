@@ -34,9 +34,9 @@ import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.listener.OnMsgSendCallback;
 import io.crim.android.sdk.models.CardElem;
-import io.crim.android.sdk.models.FriendInfo;
 import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.OfflinePushInfo;
+import io.crim.android.sdk.models.UserInfo;
 
 @Route(path = Routes.Contact.ALL_FRIEND)
 public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFriendBinding> {
@@ -117,9 +117,10 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
             public void onBindView(@NonNull RecyclerView.ViewHolder holder, ExUserInfo data, int position) {
                 if (getItemViewType(position) == ITEM) {
                     ViewHol.ItemViewHo itemViewHo = (ViewHol.ItemViewHo) holder;
-                    FriendInfo friendInfo = data.userInfo.getFriendInfo();
-                    itemViewHo.view.avatar.load(friendInfo.getFaceURL());
-                    itemViewHo.view.nickName.setText(friendInfo.getNickname());
+                    UserInfo userInfo = data.userInfo;
+                    logcat("userInfo="+userInfo);
+                    itemViewHo.view.avatar.load(userInfo.getFaceURL());
+                    itemViewHo.view.nickName.setText(userInfo.getNickname());
                     itemViewHo.view.select.setVisibility(View.GONE);
                     itemViewHo.view.getRoot().setOnClickListener(v -> {
                         if (null != recommend) {
@@ -127,20 +128,20 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
                             commonDialog.show();
                             LayoutCommonDialogBinding mainView = commonDialog.getMainView();
                             mainView.tips.setText(String.format(getString(io.crim.android.ouicore.R.string.recommend_who)
-                                , friendInfo.getNickname()));
+                                , userInfo.getNickname()));
                             mainView.cancel.setOnClickListener(v1 -> commonDialog.dismiss());
                             mainView.confirm.setOnClickListener(v1 -> {
                                 commonDialog.dismiss();
-                                sendCardMessage(friendInfo.getUserID(), null, recommend.key, recommend.getName(), recommend.getFaceUrl());
+                                sendCardMessage(userInfo.getUserID(), null, recommend.key, recommend.getName(), recommend.getFaceUrl());
                             });
                             return;
                         }
                         if (formChat) {
-                            sendChatWindow(friendInfo);
+                            sendChatWindow(userInfo);
                             return;
                         }
                         ARouter.getInstance().build(Routes.Main.PERSON_DETAIL)
-                            .withString(Constant.K_ID, friendInfo.getUserID()).navigation(AllFriendActivity.this, 1001);
+                            .withString(Constant.K_ID, userInfo.getUserID()).navigation(AllFriendActivity.this, 1001);
                     });
                 } else {
                     ViewHol.StickyViewHo stickyViewHo = (ViewHol.StickyViewHo) holder;
@@ -151,9 +152,9 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
         view.recyclerView.setAdapter(adapter);
     }
 
-    private void sendChatWindow(FriendInfo friendInfo) {
+    private void sendChatWindow(UserInfo userInfo) {
         setResult(RESULT_OK, new Intent().putExtra(Constant.K_RESULT,
-            GsonHel.toJson(friendInfo)));
+            GsonHel.toJson(userInfo)));
         finish();
         /*CommonDialog commonDialog = new CommonDialog(AllFriendActivity.this);
         commonDialog.show();
@@ -211,7 +212,7 @@ public class AllFriendActivity extends BaseActivity<SocialityVM, ActivityAllFrie
                 if (formChat) {
                     for (ExUserInfo item : adapter.getItems()) {
                         if (null != item.userInfo && item.userInfo.getUserID().equals(uid)) {
-                            sendChatWindow(item.userInfo.getFriendInfo());
+                            sendChatWindow(item.userInfo);
                             return;
                         }
                     }

@@ -83,4 +83,9 @@ public class ResetPasswordActivity extends BaseActivity<LoginVM, ActivityResetPa
     public void initDate() {
 
     }
+
+    @Override
+    public void initSdk(String url) {
+
+    }
 }

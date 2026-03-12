@@ -58,7 +58,6 @@ import io.crim.android.ouicore.utils.TimeUtil;
 import io.crim.android.ouicore.vm.ContactListVM;
 import io.crim.android.ouicore.vm.MultipleChoiceVM;
 import io.crim.android.ouicore.vm.UserLogic;
-import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.enums.ConversationType;
 import io.crim.android.sdk.enums.GrpAtType;
 
@@ -81,9 +80,7 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
     }
 
     public static ContactListFragment newInstance() {
-
         Bundle args = new Bundle();
-
         ContactListFragment fragment = new ContactListFragment();
         fragment.setArguments(args);
         return fragment;
@@ -145,8 +142,8 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
         startActivity(intent);
 
         //重置强提醒
-        CRIMClient.getInstance().conversationManager.resetConversationGrpAtType(null,
-            msgConversation.conversationInfo.getConversationID());
+//        CRIMClient.getInstance().conversationManager.resetConversationGrpAtType(null,
+//            msgConversation.conversationInfo.getConversationID());
     };
 
     @SuppressLint("NewApi")
@@ -339,6 +336,13 @@ public class ContactListFragment extends BaseFragment<ContactListVM> implements 
         public void onBindViewHolder(ViewHol.ContactItemHolder viewHolder, int position) {
             final int index = position;
             viewHolder.viewBinding.getRoot().setOnClickListener(new OnDedrepClickListener() {
+                @Override
+                public void click(View v) {
+                    if (null != itemClickListener)
+                        itemClickListener.onItemClick(v, index);
+                }
+            });
+            viewHolder.viewBinding.lastMsg.setOnClickListener(new OnDedrepClickListener() {
                 @Override
                 public void click(View v) {
                     if (null != itemClickListener)

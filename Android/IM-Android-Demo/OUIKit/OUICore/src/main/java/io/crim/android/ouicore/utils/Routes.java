@@ -37,6 +37,8 @@ public class Routes {
         //聊天页
         public final static String CHAT = "/conversation/ChatActivity";
 
+        public final static String CALL = "/conversation/CallActivity";
+
         public final static String CHAT_SETTING = "/conversation/ChatSettingActivity";
 
         public static final String CHAT_HISTORY = "/conversation/ChatHistorySearchActivity";

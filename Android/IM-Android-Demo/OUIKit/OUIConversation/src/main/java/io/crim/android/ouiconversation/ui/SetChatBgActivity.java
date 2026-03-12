@@ -1,12 +1,5 @@
 package io.crim.android.ouiconversation.ui;
 
-import static android.os.Environment.DIRECTORY_PICTURES;
-
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.FileProvider;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
@@ -27,18 +20,19 @@ import com.zhihu.matisse.engine.impl.GlideEngine;
 import java.io.File;
 import java.util.List;
 
-import io.crim.android.ouiconversation.R;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.core.content.FileProvider;
 import io.crim.android.ouiconversation.databinding.ActivitySetChatBgBinding;
-import io.crim.android.ouiconversation.databinding.ActivitySetChatBgBindingImpl;
 import io.crim.android.ouiconversation.vm.ChatVM;
 import io.crim.android.ouicore.base.BaseActivity;
-import io.crim.android.ouicore.base.BaseViewModel;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.GetFilePathFromUri;
 import io.crim.android.ouicore.utils.Obs;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
-import io.crim.android.ouicore.widget.BottomPopDialog;
-import io.crim.android.ouicore.widget.PhotographAlbumDialog;
+import io.crim.android.ouicore.utils.PermissionUtil;
+import io.crim.android.ouicore.utils.SPUtil;
+
+import static android.os.Environment.DIRECTORY_PICTURES;
 
 public class SetChatBgActivity extends BaseActivity<ChatVM, ActivitySetChatBgBinding>implements ChatVM.ViewAction {
 
@@ -81,14 +75,14 @@ public class SetChatBgActivity extends BaseActivity<ChatVM, ActivitySetChatBgBin
 
     private void cachePath(Uri uri) {
         String path = GetFilePathFromUri.getFileAbsolutePath(this, uri);
-        SharedPreferencesUtil.get(this).setCache(Constant.K_SET_BACKGROUND + id, path);
+        SPUtil.get(this).setCache(Constant.K_SET_BACKGROUND + id, path);
         Obs.newMessage(Constant.Event.SET_BACKGROUND, path);
         toast(getString(io.crim.android.ouicore.R.string.set_succ));
     }
 
     private void listener() {
         view.reduction.setOnClickListener(view1 -> {
-            SharedPreferencesUtil.remove(this, Constant.K_SET_BACKGROUND + id);
+            SPUtil.remove(this, Constant.K_SET_BACKGROUND + id);
             Obs.newMessage(Constant.Event.SET_BACKGROUND, "");
             toast(getString(io.crim.android.ouicore.R.string.set_succ));
         });
@@ -147,12 +141,13 @@ public class SetChatBgActivity extends BaseActivity<ChatVM, ActivitySetChatBgBin
 
     @SuppressLint("WrongConstant")
     private void showMediaPicker() {
-        if (hasStorage)
+        if (hasStorage){
             goMediaPicker();
-        else
+        }
+        else{
             AndPermission.with(this)
                 .runtime()
-                .permission(Permission.Group.STORAGE)
+                .permission(PermissionUtil.getReadImgPermission())
                 .onGranted(permissions -> {
                     // Storage permission are allowed.
                     hasStorage = true;
@@ -162,6 +157,7 @@ public class SetChatBgActivity extends BaseActivity<ChatVM, ActivitySetChatBgBin
                     // Storage permission are not allowed.
                 })
                 .start();
+        }
     }
 
     private void goMediaPicker() {

@@ -3,13 +3,12 @@ package io.crim.android.ouicore.base.vm.injection;
 import android.widget.Toast;
 
 import androidx.lifecycle.LifecycleOwner;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModel;
-
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.vm.ISubscribe;
 import io.crim.android.ouicore.base.vm.State;
 import io.crim.android.ouicore.base.vm.Subject;
+import io.crim.android.ouicore.utils.LogUtil;
 
 public class BaseVM extends ViewModel {
     private final State<Subject> channel = new State<>();
@@ -53,8 +52,16 @@ public class BaseVM extends ViewModel {
         channel.removeObserver(subscribe::onSubject);
     }
 
-    protected  String tag(){
+    protected String tag() {
         return getClass().getSimpleName();
+    }
+
+    public void logcat(String content) {
+        LogUtil.INSTANCE.logcat(content);
+    }
+
+    public void writeLog(String content) {
+        LogUtil.INSTANCE.writeLog(content);
     }
 
 }

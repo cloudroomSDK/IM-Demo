@@ -1,10 +1,13 @@
 package io.crim.android.demo.vm;
 
+import android.text.TextUtils;
+import android.util.Base64;
 import android.view.View;
 
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.igexin.sdk.PushManager;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,9 +27,9 @@ import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.net.RXRetrofit.NetObserver;
 import io.crim.android.ouicore.services.CallingService;
 import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.MD5Util;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
 import io.crim.android.ouicore.vm.NotificationVM;
 import io.crim.android.ouicore.vm.UserLogic;
 import io.crim.android.sdk.CRIMClient;
@@ -35,12 +38,9 @@ import io.crim.android.sdk.listener.OnConversationListener;
 import io.crim.android.sdk.models.ConversationInfo;
 import io.crim.android.sdk.models.UserInfo;
 
-import static io.crim.android.ouicore.utils.Common.md5;
+public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnListener, OnConversationListener {
 
-public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnListener,
-    OnConversationListener {
-
-    private static final String TAG = "App";
+    private static final String TAG = "MainVM";
     public MutableLiveData<String> nickname = new MutableLiveData<>("");
     public MutableLiveData<Integer> visibility = new MutableLiveData<>(View.INVISIBLE);
     public boolean fromLogin, isInitDate;
@@ -50,70 +50,78 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
 
     @Override
     protected void viewCreate() {
+        BaseApp.inst().loginCertificate = LoginCertificate.getCache(getContext());
+        boolean logged = IMUtil.isLogged();
+        if (fromLogin || logged) {
+            initDate();
+        } else {
+            String loginType = BaseApp.inst().loginCertificate.sdkAuthType;
+            getIView().initSdk(BaseApp.inst().loginCertificate.sdkSvr);
+            if (loginType.equals("0")) {
+                sdkLoginByAppId(BaseApp.inst().loginCertificate);
+            } else {
+                sdkLoginByToken(BaseApp.inst().loginCertificate);
+            }
+        }
         IMEvent.getInstance().addConnListener(this);
         IMEvent.getInstance().addConversationListener(this);
 
         callingService =
             (CallingService) ARouter.getInstance().build(Routes.Service.CALLING).navigation();
         if (null != callingService) callingService.setOnServicePriorLoginCallBack(this::initDate);
-
-        BaseApp.inst().loginCertificate = LoginCertificate.getCache(getContext());
-        boolean logged = IMUtil.isLogged();
-        if (fromLogin || logged) {
-            initDate();
-        } else {
-            int loginType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("LOGIN_TYPE");
-            if (loginType <= 0) {
-                loginType = 1;
-            }
-            String appID = "";
-            String token = "";
-            String appSecret = "";
-            if (loginType == 1) {
-                appID = Constant.getAppID();
-                appSecret = md5(Constant.getAppSecret());
-                sdkLoginByAppId(BaseApp.inst().loginCertificate, appID, appSecret);
-            } else {
-                token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
-                sdkLoginByToken(BaseApp.inst().loginCertificate, token);
-            }
-        }
         if (null != BaseApp.inst().loginCertificate.nickName)
             nickname.setValue(BaseApp.inst().loginCertificate.nickName);
     }
 
-    private void sdkLoginByAppId(LoginCertificate loginCertificate, String appId, String appSecret) {
+    private void sdkLoginByAppId(LoginCertificate loginCertificate) {
+        writeLog(TAG + ":sdkLoginByAppId");
+        logcat("sdkLoginByAppId==sdkSecret=" + loginCertificate.sdkSecret);
+        String appSecret = loginCertificate.sdkSecret;
+        if (appSecret != null && !TextUtils.isEmpty(appSecret)) {
+            byte[] decode = Base64.decode(appSecret, Base64.NO_WRAP);
+            appSecret = MD5Util.MD5(new String(decode, StandardCharsets.UTF_8));
+        }
         try {
             CRIMClient.getInstance().login(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
+                    writeLog("sdkLoginByAppId onError:code:" + code + " error:" + error);
+                    logcat("sdkLoginByAppId onError:code:" + code + " error:" + error);
                     sdkLoginOnError(code, error);
                 }
 
                 @Override
                 public void onSuccess(String data) {
+                    writeLog("sdkLoginByAppId onSuccess");
+                    logcat("sdkLoginByAppId onSuccess");
                     initDate();
                 }
-            }, loginCertificate.userID, appId, appSecret);
+            }, loginCertificate.userID, loginCertificate.sdkAppId, appSecret);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void sdkLoginByToken(LoginCertificate loginCertificate, String token) {
+    private void sdkLoginByToken(LoginCertificate loginCertificate) {
+        writeLog(TAG + ":sdkLoginByToken");
+        logcat("sdkLoginByToken==token===" + loginCertificate.sdkToken);
         try {
             CRIMClient.getInstance().login(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
+                    writeLog("sdkLoginByToken onError:code:" + code + "-error:" + error);
+                    logcat("sdkLoginByToken onError:code:" + code + "-error:" + error);
                     sdkLoginOnError(code, error);
                 }
 
                 @Override
                 public void onSuccess(String data) {
+                    writeLog("sdkLoginByToken onSuccess");
+                    logcat("sdkLoginByToken onSuccess");
                     initDate();
                 }
-            }, loginCertificate.userID, token);
+            }, loginCertificate.userID, loginCertificate.sdkToken);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -144,7 +152,11 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
     }
 
     private void getClientConfig() {
-        N.API(NiService.class).CommNI(Constant.getAppAuthUrl() + "client_config/get",
+        String appAuthUrl = Constant.getAppAuthUrl();
+        if (!appAuthUrl.endsWith("/")) {
+            appAuthUrl += "/";
+        }
+        N.API(NiService.class).CommNI(appAuthUrl + "client_config/get",
             BaseApp.inst().loginCertificate.chatToken,
             NiService.buildParameter().buildJsonBody()).compose(N.IOMain()).map(OneselfService.turn(Map.class)).subscribe(new NetObserver<Map>(getContext()) {
             @Override
@@ -153,14 +165,15 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
                     HashMap<String, Object> map = (HashMap) m.get("config");
                     int allowSendMsgNotFriend = Integer.valueOf((String) map.get("allowSendMsgNotFriend"));
                     BaseApp.inst().loginCertificate.allowSendMsgNotFriend = allowSendMsgNotFriend == 1;
-
                     BaseApp.inst().loginCertificate.cache(BaseApp.inst());
                 } catch (Exception ignored) {
+                    ignored.printStackTrace();
                 }
             }
 
             @Override
             protected void onFailure(Throwable e) {
+                logcat("getClientConfig onFailure: :" + e.getMessage());
                 toast(e.getMessage());
             }
         });
@@ -171,6 +184,7 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
             @Override
             public void onError(int code, String error) {
                 getIView().toast(error + code);
+                logcat("getSelfUserInfo onError: :" + error);
             }
 
             @Override
@@ -216,6 +230,11 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
     }
 
     @Override
+    public void onUserTokenInvalid(String s) {
+
+    }
+
+    @Override
     public void onConversationChanged(List<ConversationInfo> list) {
 
     }
@@ -226,18 +245,23 @@ public class MainVM extends BaseViewModel<LoginVM.ViewAction> implements OnConnL
     }
 
     @Override
-    public void onSyncServerFailed() {
+    public void onSyncServerFailed(boolean b) {
         userLogic.connectStatus.setValue(UserLogic.ConnectStatus.SYNC_ERR);
     }
 
     @Override
-    public void onSyncServerFinish() {
+    public void onSyncServerFinish(boolean b) {
         userLogic.connectStatus.setValue(UserLogic.ConnectStatus.DEFAULT);
     }
 
     @Override
-    public void onSyncServerStart() {
+    public void onSyncServerStart(boolean b) {
         userLogic.connectStatus.setValue(UserLogic.ConnectStatus.SYNCING);
+    }
+
+    @Override
+    public void onSyncServerProgress(long l) {
+
     }
 
     @Override

@@ -51,6 +51,11 @@
         <activity
             android:name=".ui.ChatActivity"
             android:exported="false" />
+        <activity
+            android:name=".ui.CallActivity"
+            android:hardwareAccelerated="true"
+            android:launchMode="singleTop"
+            android:exported="false" />
         <activity android:name=".ui.emoji.CustomEmojiManageActivity"
             android:exported="false"/>
         <activity android:name="io.crim.android.ouiconversation.io.crim.android.ouicore.widget.AMapWebViewActivity"
@@ -58,6 +63,7 @@
         <receiver android:name="com.huawei.hms.support.api.push.PushMsgReceiver"
             android:exported="true"
             />
-    </application>
+
+</application>
 
 </manifest>

@@ -124,6 +124,7 @@
     <string name="girl">女</string>
     <string name="chat_setting">聊天设置</string>
     <string name="search">搜索</string>
+    <string name="create_grp_chat">创建群聊</string>
     <string name="person_info">个人资料</string>
     <string name="remark">备注</string>
     <string name="join_the_blacklist">加入黑名单</string>
@@ -231,7 +232,7 @@
     <string name="blackList">通讯黑名单</string>
     <string name="select_tips">最多选择 %1$d 个人</string>
     <string name="selected_tips">已选择：%1$d人</string>
-    <string name="selected_tips2">已选择（%1$d）</string>
+    <string name="selected_tips2">已选：%1$d人</string>
     <string name="selected_group_tips">已选择：%1$d个群</string>
     <string name="save_photo_album">图片已保存至相册</string>
     <string name="vc_login">用短信验证码登录</string>

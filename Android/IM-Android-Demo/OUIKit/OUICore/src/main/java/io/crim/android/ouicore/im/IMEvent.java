@@ -6,10 +6,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.List;
 
+import crim_sdk_callback.OnConnListener;
 import crim_sdk_callback.OnSignalingListener;
+import io.crim.android.ouicore.base.BaseApp;
+import io.crim.android.ouicore.base.vm.injection.Easy;
+import io.crim.android.ouicore.net.bage.GsonHel;
+import io.crim.android.ouicore.utils.L;
+import io.crim.android.ouicore.vm.UserLogic;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.listener.OnAdvanceMsgListener;
-import crim_sdk_callback.OnConnListener;
 import io.crim.android.sdk.listener.OnConversationListener;
 import io.crim.android.sdk.listener.OnFriendshipListener;
 import io.crim.android.sdk.listener.OnGrpListener;
@@ -26,11 +31,6 @@ import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.ReadReceiptInfo;
 import io.crim.android.sdk.models.RevokedInfo;
 import io.crim.android.sdk.models.UserInfo;
-import io.crim.android.ouicore.base.BaseApp;
-import io.crim.android.ouicore.base.vm.injection.Easy;
-import io.crim.android.ouicore.net.bage.GsonHel;
-import io.crim.android.ouicore.utils.L;
-import io.crim.android.ouicore.vm.UserLogic;
 
 ///im事件 统一处理
 public class IMEvent {
@@ -232,7 +232,8 @@ public class IMEvent {
 
     //连接事件
     public OnConnListener connListener = new OnConnListener() {
-        private UserLogic userLogic=Easy.find(UserLogic.class);
+        private UserLogic userLogic = Easy.find(UserLogic.class);
+
         @Override
         public void onConnectFailed(int code, String error) {
             // 连接服务器失败，可以提示用户当前网络连接不可用
@@ -281,6 +282,17 @@ public class IMEvent {
                 Toast.LENGTH_SHORT).show();
             for (OnConnListener onConnListener : connListeners) {
                 onConnListener.onUserTokenExpired();
+            }
+        }
+
+        @Override
+        public void onUserTokenInvalid(String s) {
+            L.d("onUserTokenInvalid");
+            Toast.makeText(BaseApp.inst(),
+                "User Token Invalid",
+                Toast.LENGTH_SHORT).show();
+            for (OnConnListener onConnListener : connListeners) {
+                onConnListener.onUserTokenInvalid(s);
             }
         }
     };
@@ -395,24 +407,30 @@ public class IMEvent {
             }
 
             @Override
-            public void onSyncServerFailed() {
+            public void onSyncServerFailed(boolean var1) {
                 for (OnConversationListener onConversationListener : conversationListeners) {
-                    onConversationListener.onSyncServerFailed();
+                    onConversationListener.onSyncServerFailed(var1);
                 }
             }
 
             @Override
-            public void onSyncServerFinish() {
+            public void onSyncServerFinish(boolean var1) {
                 for (OnConversationListener onConversationListener : conversationListeners) {
-                    onConversationListener.onSyncServerFinish();
+                    onConversationListener.onSyncServerFinish(var1);
                 }
-
             }
 
             @Override
-            public void onSyncServerStart() {
+            public void onSyncServerStart(boolean var1) {
                 for (OnConversationListener onConversationListener : conversationListeners) {
-                    onConversationListener.onSyncServerStart();
+                    onConversationListener.onSyncServerStart(var1);
+                }
+            }
+
+            @Override
+            public void onSyncServerProgress(long l) {
+                for (OnConversationListener onConversationListener : conversationListeners) {
+                    onConversationListener.onSyncServerProgress(l);
                 }
             }
 
@@ -429,7 +447,7 @@ public class IMEvent {
     private void promptSoundOrNotification(ConversationInfo conversationInfo) {
         try {
             if (BaseApp.inst().loginCertificate.globalRecvMsgOpt == 2) return;
-            Message msg= GsonHel.fromJson(conversationInfo.getLatestMsg(),Message.class);
+            Message msg = GsonHel.fromJson(conversationInfo.getLatestMsg(), Message.class);
             if (conversationInfo.getRecvMsgOpt() == 0
                 && conversationInfo.getUnreadCount() != 0) {
                 if (BaseApp.inst().isBackground())
@@ -553,12 +571,23 @@ public class IMEvent {
 
             @Override
             public void onMsgDeleted(Message message) {
-
+                for (OnAdvanceMsgListener onAdvanceMsgListener : advanceMsgListeners) {
+                    onAdvanceMsgListener.onMsgDeleted(message);
+                }
             }
 
             @Override
             public void onRecvOfflineNewMessage(List<Message> msg) {
+                for (OnAdvanceMsgListener onAdvanceMsgListener : advanceMsgListeners) {
+                    onAdvanceMsgListener.onRecvOfflineNewMessage(msg);
+                }
+            }
 
+            @Override
+            public void onRecvOnlineOnlyMsg(List<Message> list) {
+                for (OnAdvanceMsgListener onAdvanceMsgListener : advanceMsgListeners) {
+                    onAdvanceMsgListener.onRecvOnlineOnlyMsg(list);
+                }
             }
 
             @Override
@@ -582,6 +611,21 @@ public class IMEvent {
 
             @Override
             public void onUserStatusChanged(String var1) {
+
+            }
+
+            @Override
+            public void onUserCommandAdd(String s) {
+
+            }
+
+            @Override
+            public void onUserCommandDelete(String s) {
+
+            }
+
+            @Override
+            public void onUserCommandUpdate(String s) {
 
             }
         });

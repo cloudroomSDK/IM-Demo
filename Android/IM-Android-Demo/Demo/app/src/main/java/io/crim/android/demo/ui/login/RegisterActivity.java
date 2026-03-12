@@ -82,6 +82,11 @@ public class RegisterActivity extends BaseActivity<LoginVM, ActivityRegisterBind
     public void initDate() {
     }
 
+    @Override
+    public void initSdk(String url) {
+
+    }
+
 
     @Override
     protected void onDestroy() {

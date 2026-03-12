@@ -42,8 +42,6 @@ import io.crim.android.ouiconversation.widget.LocationConfirmDialog;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.BaseFragment;
-import io.crim.android.ouicore.im.IMUtil;
-import io.crim.android.ouicore.services.CallingService;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.GetFilePathFromUri;
@@ -55,21 +53,22 @@ import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.widget.AMapWebViewActivity;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.models.Message;
-import io.crim.android.sdk.models.SignalingInfo;
 
 
 public class InputExpandFragment extends BaseFragment<ChatVM> {
-    public static List<Integer> menuIcons = Arrays.asList(
+    public List<Integer> menuIcons = Arrays.asList(
         io.crim.android.ouicore.R.mipmap.ic_chat_photo
         , io.crim.android.ouicore.R.mipmap.ic_chat_shoot
+        , io.crim.android.ouicore.R.mipmap.ic_chat_call
         , io.crim.android.ouicore.R.mipmap.ic_chat_file
         , io.crim.android.ouicore.R.mipmap.ic_chat_location
         , io.crim.android.ouicore.R.mipmap.ic_chat_card
 //        ,R.mipmap.ic_tools_video_call
     );
-    public static List<String> menuTitles = Arrays.asList(BaseApp.inst().getString(
+    public List<String> menuTitles = Arrays.asList(BaseApp.inst().getString(
             io.crim.android.ouicore.R.string.album)
         , BaseApp.inst().getString(io.crim.android.ouicore.R.string.shoot)
+        , BaseApp.inst().getString(io.crim.android.ouicore.R.string.video_calls)
         , BaseApp.inst().getString(io.crim.android.ouicore.R.string.file)
         , BaseApp.inst().getString(io.crim.android.ouicore.R.string.location)
         , BaseApp.inst().getString(io.crim.android.ouicore.R.string.business_card)
@@ -88,7 +87,22 @@ public class InputExpandFragment extends BaseFragment<ChatVM> {
             hasShoot = AndPermission.hasPermissions(getActivity(), Permission.CAMERA, Permission.RECORD_AUDIO);
             hasLocation = AndPermission.hasPermissions(getActivity(), Permission.ACCESS_FINE_LOCATION, Permission.ACCESS_COARSE_LOCATION);
         });
-
+        if (!vm.isSingleChat){
+             menuIcons = Arrays.asList(
+                io.crim.android.ouicore.R.mipmap.ic_chat_photo
+                , io.crim.android.ouicore.R.mipmap.ic_chat_shoot
+                , io.crim.android.ouicore.R.mipmap.ic_chat_file
+                , io.crim.android.ouicore.R.mipmap.ic_chat_location
+                , io.crim.android.ouicore.R.mipmap.ic_chat_card
+            );
+            menuTitles = Arrays.asList(BaseApp.inst().getString(
+                    io.crim.android.ouicore.R.string.album)
+                , BaseApp.inst().getString(io.crim.android.ouicore.R.string.shoot)
+                , BaseApp.inst().getString(io.crim.android.ouicore.R.string.file)
+                , BaseApp.inst().getString(io.crim.android.ouicore.R.string.location)
+                , BaseApp.inst().getString(io.crim.android.ouicore.R.string.business_card)
+            );
+        }
     }
 
     @Nullable
@@ -118,13 +132,27 @@ public class InputExpandFragment extends BaseFragment<ChatVM> {
                             goToShoot();
                             break;
                         case 2:
-                            selectFile();
+                            if (vm.isSingleChat){
+                                goToCall();
+                            }else {
+                                selectFile();
+                            }
                             break;
                         case 3:
-//                            goToCall();
-                            sendLocation();
+                            if (vm.isSingleChat){
+                                selectFile();
+                            }else {
+//                                sendLocation();
+                            }
                             break;
                         case 4:
+                            if (vm.isSingleChat){
+//                                sendLocation();
+                            }else {
+                                recommend();
+                            }
+                            break;
+                        case 5:
                             recommend();
                             break;
                     }
@@ -137,7 +165,15 @@ public class InputExpandFragment extends BaseFragment<ChatVM> {
 
     @SuppressLint("WrongConstant")
     private void goToCall() {
-        Common.permission(getContext(), () -> {
+        ARouter.getInstance().build(Routes.Conversation.CALL)
+            .withString(Constant.K_ID, vm.userID)
+            .withString(Constant.K_NAME, vm.conversationInfo.getValue().getShowName())
+            .withString(Constant.K_FACE_URL, vm.conversationInfo.getValue().getFaceURL())
+            .withString(Constant.K_GROUP_ID, vm.groupID)
+            .withString(Constant.K_MEDIA_TYPE, Constant.MediaType.VIDEO)
+            .withBoolean(Constant.CALL_INCOMING, false)
+            .navigation();
+        /*Common.permission(getContext(), () -> {
             hasStorage = true;
             CallingService callingService = (CallingService) ARouter.getInstance().build(Routes.Service.CALLING).navigation();
             if (null == callingService) return;
@@ -153,7 +189,7 @@ public class InputExpandFragment extends BaseFragment<ChatVM> {
                 }
                 return false;
             });
-        }, hasStorage, PermissionUtil.getReadImgPermission());
+        }, hasStorage, PermissionUtil.getReadImgPermission());*/
     }
 
     private void sendLocation() {

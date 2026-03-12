@@ -1,12 +1,14 @@
 package io.crim.android.ouiconversation.ui;
 
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.LinearLayout;
@@ -15,6 +17,7 @@ import android.widget.RelativeLayout;
 import com.alibaba.android.arouter.facade.annotation.Route;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.bumptech.glide.Glide;
+import com.yanzhenjie.permission.AndPermission;
 import com.yanzhenjie.recyclerview.widget.DefaultItemDecoration;
 
 import java.util.ArrayList;
@@ -53,13 +56,12 @@ import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
 import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
+import io.crim.android.ouicore.utils.SPUtil;
 import io.crim.android.ouicore.vm.ForwardVM;
 import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.vm.MultipleChoiceVM;
 import io.crim.android.ouicore.voice.SPlayer;
 import io.crim.android.ouicore.widget.AMapWebViewActivity;
-import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.ouicore.widget.CustomItemAnimator;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.models.CardElem;
@@ -109,7 +111,8 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         NotificationMsg notificationMsg =
             (NotificationMsg) getIntent().getSerializableExtra(Constant.K_NOTICE);
 
-        bindVM(ChatVM.class, !fromChatHistory);
+//        bindVM(ChatVM.class, !fromChatHistory);
+        bindVM(ChatVM.class, true);
         if (null != userId) vm.userID = userId;
         if (null != groupId) {
             vm.isSingleChat = false;
@@ -182,7 +185,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         bottomInputCote.setEmojiClickListener(new EmojiFragment.EmojiClickListener() {
             @Override
             public void click(String name) {
-                String input = view.layoutInputCote.chatInput.getText() + name;
+                String input = view.layoutInputCote.chatInput.getText() + new String(Character.toChars(Integer.parseInt(name,16)));
                 EmojiUtil.showSpanTextview(view.layoutInputCote.chatInput, input);
             }
         });
@@ -207,11 +210,12 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
         vm.setMessageAdapter(messageAdapter);
         view.recyclerView.setAdapter(messageAdapter);
         vm.messages.observe(this, v -> {
-//            Log.d("eeeeee", "messages.observe=====" + v);
             if (null == v) return;
             messageAdapter.setMessages(v);
             messageAdapter.notifyDataSetChanged();
-            if (!vm.fromChatHistory) scrollToPosition(0);
+            if (!vm.fromChatHistory) {
+                scrollToPosition(0);
+            }
         });
         view.recyclerView.setOnTouchListener((v, event) -> {
             bottomInputCote.clearFocus();
@@ -241,7 +245,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
 
 
         String chatBg =
-            SharedPreferencesUtil.get(this).getString(Constant.K_SET_BACKGROUND + (vm.isSingleChat ? vm.userID : vm.groupID));
+            SPUtil.get(this).getString(Constant.K_SET_BACKGROUND + (vm.isSingleChat ? vm.userID : vm.groupID));
         if (!chatBg.isEmpty()) Glide.with(this).load(chatBg).into(view.chatBg);
 
 
@@ -291,7 +295,18 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
     private void listener() {
         Obs.inst().addObserver(this);
         view.call.setOnClickListener(v -> {
-            if (null == callingService) return;
+            boolean hasPermissions = AndPermission.hasPermissions(ChatActivity.this, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE);
+            Common.permission(this, () -> {
+                ARouter.getInstance().build(Routes.Conversation.CALL)
+                    .withString(Constant.K_ID, vm.userID)
+                    .withString(Constant.K_NAME, vm.conversationInfo.getValue().getShowName())
+                    .withString(Constant.K_FACE_URL, vm.conversationInfo.getValue().getFaceURL())
+                    .withString(Constant.K_GROUP_ID, vm.groupID)
+                    .withString(Constant.K_MEDIA_TYPE, Constant.MediaType.AUDIO)
+                    .withBoolean(Constant.CALL_INCOMING, false)
+                    .navigation();
+            }, hasPermissions, Manifest.permission.RECORD_AUDIO, Manifest.permission.READ_PHONE_STATE);
+            /*if (null == callingService) return;
             if (null != vm.roomCallingInfo.getValue()
                 && null != vm.roomCallingInfo.getValue().getParticipant()
                 && !vm.roomCallingInfo.getValue().getParticipant().isEmpty()) {
@@ -320,7 +335,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
                     toSelectMember();
                 }
                 return false;
-            });
+            });*/
         });
         view.join.setOnClickListener(v -> vm.signalingGetTokenByRoomID(vm.getRoomCallingInfoRoomID()));
         view.delete.setOnClickListener(v -> {
@@ -393,7 +408,6 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
 //                if (vm.fromChatHistory && firstVisiblePosition < 2) {
 //                    vm.loadHistoryMessageReverse();
 //                }
-//                Log.d("eeeeee","==onScrolled====");
                 vm.sendMsgReadReceipt(firstVisiblePosition, lastVisiblePosition);
             }
         });
@@ -530,7 +544,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
                     String extra = data.getStringExtra(AMapWebViewActivity.LOCATION_INFO);
                     if (extra != null) {
                         LocationInfo info = GsonHel.fromJson(extra, LocationInfo.class);
-                        Message msg = CRIMClient.getInstance().messageManager.createLocationMsg(info.latitude, info.longitude, extra);
+                        Message msg = CRIMClient.getInstance().messageManager.createLocationMsg(info.longitude, info.latitude, extra);
                         vm.sendMsg(msg);
                     }
                 }
@@ -562,7 +576,7 @@ public class ChatActivity extends BaseActivity<ChatVM, ActivityChatBinding> impl
                     path = (String) message.object;
                 } else {
                     path =
-                        SharedPreferencesUtil.get(this).getString(Constant.K_SET_BACKGROUND + (vm.isSingleChat ? vm.userID : vm.groupID));
+                        SPUtil.get(this).getString(Constant.K_SET_BACKGROUND + (vm.isSingleChat ? vm.userID : vm.groupID));
                 }
                 if (path.isEmpty()) view.chatBg.setVisibility(View.GONE);
                 else Glide.with(this).load(path).into(view.chatBg);

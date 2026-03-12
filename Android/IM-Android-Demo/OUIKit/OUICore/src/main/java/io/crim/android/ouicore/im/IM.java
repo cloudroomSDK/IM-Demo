@@ -12,16 +12,20 @@ import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.enums.Platform;
 
 public class IM {
-    public static void initSdk(Application app) {
-        L.e("App", "---IM--initSdk==getSdkServerUrl=" + Constant.getSdkServerUrl());
+
+    public static void setContext(Application application) {
+        CRIMClient.getInstance().setContext(application);
+    }
+
+    public static void initSdk(String url) {
+        L.e("App", "---IM--initSdk==getSdkServerUrl=" + url);
         ///IM 初始化
-        CRIMClient.getInstance().initSDKWithConfig(app,
+        CRIMClient.getInstance().initSDKWithConfig(
             Platform.ANDROID,
-            Constant.getSdkServerUrl(),
-            getStorageDir(), 6,
+            url,
+            getStorageDir(), Constant.LOG_LEVEL,
             true,
-            Constant.File_DIR,
-            false);
+            Constant.File_DIR);
         IMEvent.getInstance().init();
         CRIMClient.getInstance().setConnListener(IMEvent.getInstance().connListener);
     }

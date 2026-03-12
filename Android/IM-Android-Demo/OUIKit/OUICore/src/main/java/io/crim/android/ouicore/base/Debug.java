@@ -1,7 +1,6 @@
 package io.crim.android.ouicore.base;
 
 import io.crim.android.ouicore.entity.LoginCertificate;
-import io.crim.android.ouicore.im.IM;
 import io.crim.android.ouicore.net.RXRetrofit.HttpConfig;
 import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.utils.Constant;
@@ -31,7 +30,7 @@ public class Debug extends BaseApp {
                     token).build());
             }));
 
-        IM.initSdk(this);
+//        IM.initSdk();
         /*CRIMClient.getInstance().login(new OnBase<String>() {
             @Override
             public void onError(int code, String error) {

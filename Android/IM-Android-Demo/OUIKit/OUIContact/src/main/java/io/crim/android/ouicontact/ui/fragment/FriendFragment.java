@@ -12,7 +12,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import io.crim.android.sdk.models.FriendInfo;
 import io.crim.android.ouicontact.databinding.FragmentForwardFriendBinding;
 import io.crim.android.ouicontact.ui.ForwardToActivity;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
@@ -21,6 +20,7 @@ import io.crim.android.ouicore.base.BaseFragment;
 import io.crim.android.ouicore.entity.ExUserInfo;
 import io.crim.android.ouicore.vm.SocialityVM;
 import io.crim.android.ouicore.widget.CommonDialog;
+import io.crim.android.sdk.models.UserInfo;
 
 public class FriendFragment extends BaseFragment<SocialityVM> {
     private ForwardToActivity.ConfirmListener confirmListener;
@@ -106,7 +106,7 @@ public class FriendFragment extends BaseFragment<SocialityVM> {
             public void onBindView(@NonNull RecyclerView.ViewHolder holder, ExUserInfo data, int position) {
                 if (getItemViewType(position) == ITEM) {
                     ViewHol.ItemViewHo itemViewHo = (ViewHol.ItemViewHo) holder;
-                    FriendInfo friendInfo = data.userInfo.getFriendInfo();
+                    UserInfo friendInfo = data.userInfo;
                     itemViewHo.view.avatar.load(friendInfo.getFaceURL());
                     itemViewHo.view.nickName.setText(friendInfo.getNickname());
                     itemViewHo.view.select.setVisibility(View.GONE);

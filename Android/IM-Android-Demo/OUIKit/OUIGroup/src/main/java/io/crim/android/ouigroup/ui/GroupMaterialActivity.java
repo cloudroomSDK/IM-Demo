@@ -57,13 +57,10 @@ public class GroupMaterialActivity extends BaseActivity<GroupVM, ActivityGroupMa
         bindViewDataBinding(ActivityGroupMaterialBinding.inflate(getLayoutInflater()));
         view.setGroupVM(vm);
         vm.getGroupsInfo();
-
         sink();
-
         init();
         initView();
         click();
-
         infoModifyLauncher =
             registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -177,9 +174,11 @@ public class GroupMaterialActivity extends BaseActivity<GroupVM, ActivityGroupMa
                         io.crim.android.ouicore.R.string.add :
                         io.crim.android.ouicore.R.string.remove);
                     holder.view.getRoot().setOnClickListener(v -> {
-                        startActivity(new Intent(GroupMaterialActivity.this,
+                        Intent intent = new Intent(GroupMaterialActivity.this,
                             InitiateGroupActivity.class).putExtra(reId == R.mipmap.ic_group_add ?
-                            Constant.IS_INVITE_TO_GROUP : Constant.IS_REMOVE_GROUP, true));
+                            Constant.IS_INVITE_TO_GROUP : Constant.IS_REMOVE_GROUP, true)
+                            .putExtra(Constant.K_GROUP_ID, vm.groupId);
+                        startActivity(intent);
                     });
                 } else {
                     holder.view.img.load(data.getFaceURL(), data.getNickname());

@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
@@ -163,7 +162,7 @@ public class PhotographAlbumDialog extends BaseDialog {
 
         // 7.0 使用 FileProvider 并赋予临时权限
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+            intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION/* | Intent.FLAG_GRANT_WRITE_URI_PERMISSION*/);
         }
         File temporaryFile = buildTemporaryFile();
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -236,7 +235,6 @@ public class PhotographAlbumDialog extends BaseDialog {
             intent.putExtra(MediaStore.EXTRA_OUTPUT, fileUri); //设置拍照后图片保存的位置
         }
         intent.putExtra("outputFormat", Bitmap.CompressFormat.JPEG.toString()); //设置图片保存的格式
-        Log.d("eeeeee","goTakePhoto====="+fileUri.toString());
         takePhotoLauncher.launch(intent);
     }
 

@@ -24,7 +24,7 @@ import io.crim.android.ouicore.ex.MultipleChoice;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.widget.BottomPopDialog;
 import io.crim.android.ouicore.widget.ForwardDialog;
-import io.crim.android.sdk.models.FriendInfo;
+import io.crim.android.sdk.models.UserInfo;
 
 public class MultipleChoiceVM extends BaseVM {
     /**
@@ -72,18 +72,18 @@ public class MultipleChoiceVM extends BaseVM {
         metaData.observe((LifecycleOwner) context, userInfos -> {
             if (!userInfos.isEmpty()) {
                 view.more2.setVisibility(View.VISIBLE);
-                view.content.setVisibility(View.VISIBLE);
+//                view.content.setVisibility(View.VISIBLE);
             } else {
-                view.content.setVisibility(View.GONE);
+//                view.content.setVisibility(View.GONE);
                 view.more2.setVisibility(View.GONE);
             }
             view.selectNum.setText(String.format(context.getString(io.crim.android.ouicore.R.string.selected_tips2), userInfos.size()));
-            StringBuilder builder = new StringBuilder();
+            /*StringBuilder builder = new StringBuilder();
             for (int i = 0; i < userInfos.size(); i++) {
                 builder.append(userInfos.get(i).name);
                 if (i != userInfos.size() - 1) builder.append("、");
             }
-            view.content.setText(builder.toString());
+            view.content.setText(builder.toString());*/
             view.submit.setEnabled(userInfos.size() > 0);
 //            view.submit.setText(context.getString(io.crim.android.ouicore.R.string.sure) + "（" + userInfos.size() + "/999）");
         });
@@ -130,7 +130,7 @@ public class MultipleChoiceVM extends BaseVM {
                 List<MultipleChoice> multipleChoices = this.metaData.getValue();
                 for (int i = 0; i < multipleChoices.size(); i++) {
                     MultipleChoice us = multipleChoices.get(i);
-                    FriendInfo friendInfo = new FriendInfo();
+                    UserInfo friendInfo = new UserInfo();
                     friendInfo.setUserID(us.key);
                     friendInfo.setNickname(us.name);
                     friendInfo.setFaceURL(us.icon);

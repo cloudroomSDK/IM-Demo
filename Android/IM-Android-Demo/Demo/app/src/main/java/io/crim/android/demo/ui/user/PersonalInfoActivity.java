@@ -4,7 +4,6 @@ package io.crim.android.demo.ui.user;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 
 import com.alibaba.android.arouter.launcher.ARouter;
@@ -18,7 +17,6 @@ import java.util.Map;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import io.crim.android.demo.R;
 import io.crim.android.demo.databinding.ActivityPersonalInfoBinding;
 import io.crim.android.demo.ui.main.EditTextActivity;
 import io.crim.android.demo.vm.PersonalVM;
@@ -27,7 +25,6 @@ import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.utils.TimeUtil;
 import io.crim.android.ouicore.widget.BottomPopDialog;
 import io.crim.android.ouicore.widget.PhotographAlbumDialog;
 import io.crim.android.sdk.CRIMClient;
@@ -108,12 +105,12 @@ public class PersonalInfoActivity extends BaseActivity<PersonalVM, ActivityPerso
             }).build();
             pvTime.show(v);
         });
-        view.email.setOnClickListener(v -> {
+        /*view.email.setOnClickListener(v -> {
             emailLauncher.launch(new Intent(this, EditTextActivity.class)
                 .putExtra(EditTextActivity.INIT_TXT, vm.userInfo.val().getEmail())
                 .putExtra(EditTextActivity.TITLE,
                     getString(R.string.mail)));
-        });
+        });*/
         view.IDNum.setOnClickListener(v -> {
             Intent intent = new Intent(this, IDActivity.class);
             intent.putExtra("ID", view.tvIDNum.getText().toString());
@@ -142,7 +139,7 @@ public class PersonalInfoActivity extends BaseActivity<PersonalVM, ActivityPerso
             if (null == v) return;
             view.avatar.load(v.getFaceURL(), v.getNickname());
             view.nickName.setText(v.getNickname());
-            String gender = "";
+            /*String gender = "";
             int genderInt = v.getGender();
             if (genderInt == 1) {
                 gender = getString(io.crim.android.ouicore.R.string.male);
@@ -154,10 +151,8 @@ public class PersonalInfoActivity extends BaseActivity<PersonalVM, ActivityPerso
                 view.birthday.setText(TimeUtil.getTime(v.getBirth(),
                     TimeUtil.yearMonthDayFormat));
             }
-            Log.d("eeeee","getBirth===="+v.getBirth());
-            Log.d("eeeee","getPhoneNumber===="+v.getPhoneNumber());
             view.phoneNumTv.setText(v.getPhoneNumber());
-            view.emailTV.setText(v.getEmail());
+            view.emailTV.setText(v.getEmail());*/
             view.tvIDNum.setText(v.getUserID());
         });
     }

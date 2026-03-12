@@ -310,6 +310,7 @@
 
                     <LinearLayout
                         android:id="@+id/genderLy"
+                        android:visibility="gone"
                         android:layout_width="match_parent"
                         android:layout_height="58dp"
                         android:background="@color/white"
@@ -334,10 +335,12 @@
 
                     </LinearLayout>
 
-                    <include layout="@layout/view_dividing_line" />
+                    <include layout="@layout/view_dividing_line"
+                        android:visibility="gone" />
 
                     <LinearLayout
                         android:id="@+id/birthdayLy"
+                        android:visibility="gone"
                         android:layout_width="match_parent"
                         android:layout_height="58dp"
                         android:background="@color/white"
@@ -365,6 +368,7 @@
 
                     <LinearLayout
                         android:id="@+id/qrCode"
+                        android:visibility="gone"
                         android:layout_width="match_parent"
                         android:layout_height="58dp"
                         android:background="@color/white"

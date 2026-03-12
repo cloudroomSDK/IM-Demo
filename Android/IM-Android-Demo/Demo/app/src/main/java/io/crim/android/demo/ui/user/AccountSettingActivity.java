@@ -7,9 +7,7 @@ import io.crim.android.demo.databinding.ActivityAccountSettingBinding;
 import io.crim.android.demo.vm.PersonalVM;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.widget.CommonDialog;
-import io.crim.android.ouicore.widget.WaitDialog;
 import io.crim.android.sdk.CRIMClient;
-import io.crim.android.sdk.listener.OnBase;
 
 public class AccountSettingActivity extends BaseActivity<PersonalVM, ActivityAccountSettingBinding> {
 
@@ -24,12 +22,12 @@ public class AccountSettingActivity extends BaseActivity<PersonalVM, ActivityAcc
     }
 
     private void listener() {
-        vm.userInfo.observe(this, extendUserInfo -> {
+        /*vm.userInfo.observe(this, extendUserInfo -> {
             if (null == extendUserInfo) return;
             view.slideButton.setCheckedWithAnimation(extendUserInfo.getGlobalRecvMsgOpt() == 2);
-        });
-        WaitDialog waitDialog = new WaitDialog(this);
-        view.slideButton.setOnSlideButtonClickListener(isChecked -> {
+        });*/
+//        WaitDialog waitDialog = new WaitDialog(this);
+        /*view.slideButton.setOnSlideButtonClickListener(isChecked -> {
             waitDialog.show();
             CRIMClient.getInstance().conversationManager.setGlobalRecvMsgOpt(new OnBase<String>() {
                 @Override
@@ -44,7 +42,7 @@ public class AccountSettingActivity extends BaseActivity<PersonalVM, ActivityAcc
                     view.slideButton.setCheckedWithAnimation(isChecked);
                 }
             }, isChecked ? 2 : 0);
-        });
+        });*/
         view.clearRecord.setOnClickListener(v -> {
             CommonDialog commonDialog = new CommonDialog(this);
             commonDialog.getMainView().tips.setText(io.crim.android.ouicore.R.string.clear_chat_all_record);

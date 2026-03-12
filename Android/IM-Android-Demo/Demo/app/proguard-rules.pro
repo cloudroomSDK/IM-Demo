@@ -46,3 +46,21 @@
 #    导航
     -keep class com.amap.api.navi.**{*;}
     -keep class com.autonavi.**{*;}
+############RTCSDK begin############
+-dontshrink
+-dontoptimize
+-ignorewarnings
+-dontskipnonpubliclibraryclassmembers
+
+-keep class * { native <methods>; }
+-keep class com.RTC.videosdk.** { *; }
+-keep class com.RTC.videosdk.model.** { *; }
+-keep class com.RTC.screencapture.** { *; }
+-keep class com.rtc.tool.** { *; }
+-keep class com.rtc.screencapture.** { *; }
+-keep class com.rtc.usbcamera.** { *; }
+-keep class org.crmedia.** { *; }
+-keep class org.crmedia.clearvoice.** { *; }
+-keep class org.crmedia.crvedemo.** { *; }
+
+############RTCVideoSDK end############

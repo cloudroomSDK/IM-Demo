@@ -27,12 +27,13 @@ import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.widget.CommonDialog;
 import io.crim.android.ouicore.widget.WaitDialog;
 import io.crim.android.sdk.CRIMClient;
+import io.crim.android.sdk.enums.GroupMemberFilter;
 import io.crim.android.sdk.enums.GrpRole;
 import io.crim.android.sdk.enums.GrpType;
 import io.crim.android.sdk.listener.OnBase;
-import io.crim.android.sdk.models.FriendInfo;
 import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.sdk.models.GrpInfo;
+import io.crim.android.sdk.models.UserInfo;
 
 public class GroupVM extends SocialityVM {
     //禁言状态
@@ -57,11 +58,11 @@ public class GroupVM extends SocialityVM {
     public MutableLiveData<List<String>> groupLetters = new MutableLiveData<>(new ArrayList<>());
     //封装过的好友信息 用于字母导航
     public String groupId;
-    public MutableLiveData<List<FriendInfo>> selectedFriendInfo =
+    public MutableLiveData<List<UserInfo>> selectedFriendInfo =
             new MutableLiveData<>(new ArrayList<>());
     public LoginCertificate loginCertificate;
 
-    public List<FriendInfo> selectedFriendInfoV3=new ArrayList<>();
+    public List<UserInfo> selectedFriendInfoV3=new ArrayList<>();
 
     public int page = 0;
     public int pageSize = 20;
@@ -105,7 +106,7 @@ public class GroupVM extends SocialityVM {
 
         LoginCertificate loginCertificate = LoginCertificate.getCache(getContext());
         List<String> memberUserIDs = new ArrayList<>();
-        for (FriendInfo friendInfo : selectedFriendInfo.getValue()) {
+        for (UserInfo friendInfo : selectedFriendInfo.getValue()) {
             if (!friendInfo.getUserID().equals(loginCertificate.userID)) {
                 memberUserIDs.add(friendInfo.getUserID());
             }
@@ -113,6 +114,7 @@ public class GroupVM extends SocialityVM {
         GrpInfo groupInfo = new GrpInfo();
         groupInfo.setGroupName(groupName.getValue());
         groupInfo.setGroupType(GrpType.WORK);
+        groupInfo.setNeedVerification(Constant.GroupVerification.directly);
         CRIMClient.getInstance().groupManager.createGrp(memberUserIDs, null, groupInfo,
                 loginCertificate.userID, new OnBase<GrpInfo>() {
             @Override
@@ -123,15 +125,6 @@ public class GroupVM extends SocialityVM {
 
             @Override
             public void onSuccess(GrpInfo data) {
-                CRIMClient.getInstance().groupManager.setGrpVerification(new OnBase<String>() {
-                    @Override
-                    public void onError(int code, String error) {
-                    }
-
-                    @Override
-                    public void onSuccess(String data) {
-                    }
-                },data.getGroupID(),2);
                 Easy.delete(MultipleChoiceVM.class);
                 getIView().onSuccess(data);
                 Common.UIHandler.postDelayed(waitDialog::dismiss, 200);
@@ -207,7 +200,6 @@ public class GroupVM extends SocialityVM {
     }
 
     public void getSuperGroupMemberList() {
-        int start = page * pageSize;
         CRIMClient.getInstance().groupManager.getGrpMemberList(new OnBase<List<GroupMembersInfo>>() {
             @Override
             public void onError(int code, String error) {
@@ -233,7 +225,7 @@ public class GroupVM extends SocialityVM {
                     exGroupMemberInfo.isEnabled = false;
                 }
             }
-        }, groupId, 0, start, pageSize);
+        }, groupId, GroupMemberFilter.ALL);
     }
 
     @NonNull
@@ -278,9 +270,11 @@ public class GroupVM extends SocialityVM {
             }
         }, groupId, ids);
     }
+
     public void getGroupMemberList(){
         getGroupMemberList(0);
     }
+
     /**
      * 获取群成员信息
      */
@@ -342,15 +336,15 @@ public class GroupVM extends SocialityVM {
                 });
                 exGroupMembers.setValue(exGroupMembers.getValue());
             }
-        }, groupId, 0, 0, 0);
+        }, groupId, GroupMemberFilter.ALL);
     }
 
     /**
      * 邀请入群
      */
-    public void inviteUserToGroup(List<FriendInfo> friendInfos) {
+    public void inviteUserToGroup(List<UserInfo> friendInfos) {
         List<String> userIds = new ArrayList<>();
-        for (FriendInfo friendInfo : friendInfos) {
+        for (UserInfo friendInfo : friendInfos) {
             userIds.add(friendInfo.getUserID());
         }
         CRIMClient.getInstance().groupManager
@@ -374,9 +368,9 @@ public class GroupVM extends SocialityVM {
     /**
      * 踢出群
      */
-    public void kickGroupMember(List<FriendInfo> friendInfos) {
+    public void kickGroupMember(List<UserInfo> friendInfos) {
         List<String> userIds = new ArrayList<>();
-        for (FriendInfo friendInfo : friendInfos) {
+        for (UserInfo friendInfo : friendInfos) {
             userIds.add(friendInfo.getUserID());
         }
         CRIMClient.getInstance().groupManager.kickGrpMember(new OnBase<String>() {
