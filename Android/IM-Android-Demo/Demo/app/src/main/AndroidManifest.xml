@@ -22,10 +22,7 @@
         <meta-data
             android:name="com.amap.api.v2.apikey"
             android:value=""/>
-        <service android:name="com.amap.api.location.APSService"></service>
-        <activity
-            android:name=".ui.user.UserDetailActivityV3"
-            android:exported="false" />
+        <service android:name="com.amap.api.location.APSService"/>
         <activity
             android:name=".ui.login.ResetPasswordActivity"
             android:exported="false">
@@ -42,7 +39,7 @@
         </activity>
         <activity
             android:name=".ui.user.AccountSettingActivity"
-            android:exported="true"></activity>
+            android:exported="true"/>
         <service
             android:name="io.crim.android.demo.services.DemoIntentService" />
 

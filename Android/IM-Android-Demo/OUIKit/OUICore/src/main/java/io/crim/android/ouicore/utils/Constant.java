@@ -5,93 +5,37 @@ import android.text.TextUtils;
 import io.crim.android.ouicore.AccountConfig;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.im.IM;
+import io.crim.android.sdk.enums.CRIMLogLevel;
 
 public class Constant {
 
-    public static final String DEFAULT_IP = "demo.cloudroom.com";
-    private static final String SERVER_IP = "sdk.cloudroom.com";
+    public static final String DEFAULT_IP = AccountConfig.DEFAULT_IP;
+
+    public static final String HTTPS_IGNORE = "HTTPS_IGNORE";
 
     //--------IP----------
-    private static String PROTOCOL = "http";
-    private static String APP_AUTH_PORT = "8018";
-    private static String IM_API_PORT = "8002";
+    private static final String PROTOCOL = "http";
+    private static final String APP_AUTH_PORT = "8018";
     //--------------------
 
+    public static int LOG_LEVEL = CRIMLogLevel.Debug.value();
+
     public static String getBusinessServer() {
-        String ip = SharedPreferencesUtil.get(BaseApp.inst()).getString("DEFAULT_IP");
+        String ip = SPUtil.get(BaseApp.inst()).getString("DEFAULT_IP");
         if (!TextUtils.isEmpty(ip)) {
             return ip;
         }
         return DEFAULT_IP;
     }
 
-    public static String getSdkServer() {
-        String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("SERVER_IP");
-        if (!TextUtils.isEmpty(url)) {
-            return url;
-        }
-        return SERVER_IP;
-    }
-
-    public static void getProtocol() {
-        int httpType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("HTTP_TYPE");
-        if (httpType < 2) {
-            PROTOCOL = "http";
-            APP_AUTH_PORT = "8018";
-            IM_API_PORT = "8002";
-        } else {
-            PROTOCOL = "https";
-            APP_AUTH_PORT = "8218";
-            IM_API_PORT = "8443";
-        }
-    }
-
-    public static String getSdkServerUrl() {
-        return PROTOCOL + "://" + getSdkServer();
-    }
-
-    public static String getAppID() {
-        String appId = SharedPreferencesUtil.get(BaseApp.inst()).getString("APP_ID");
-        if (!TextUtils.isEmpty(appId)) {
-            return appId;
-        }
-        return AccountConfig.APP_ID;
-    }
-
-    public static String getAppSecret() {
-        String appSecret = SharedPreferencesUtil.get(BaseApp.inst()).getString("APP_SECRET");
-        if (!TextUtils.isEmpty(appSecret)) {
-            return appSecret;
-        }
-        return AccountConfig.APP_SECRET;
-    }
-
-    public static String getImApiUrl() {
-        String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("IM_API_URL");
-        if (TextUtils.isEmpty(url)) return PROTOCOL + "://" + DEFAULT_IP + ":" + IM_API_PORT;
-        return url;
-    }
-
     public static String getAppAuthUrl() {
-        String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("APP_AUTH_URL");
+        String url = SPUtil.get(BaseApp.inst()).getString("APP_AUTH_URL");
         if (TextUtils.isEmpty(url)) return PROTOCOL + "://" + DEFAULT_IP + ":" + APP_AUTH_PORT + "/";
         return url;
     }
 
-    public static String getStorageType() {
-        String url = SharedPreferencesUtil.get(BaseApp.inst()).getString("STORAGE_TYPE");
-        if (TextUtils.isEmpty(url)) return "minio";
-        return url;
-    }
-
-    public static void saveUrl() {
-        String imApi = "";
-        String appAuth = "";
-        String businessServer = getBusinessServer();
-        appAuth = PROTOCOL + "://" + businessServer + ":" + APP_AUTH_PORT + "/";
-        imApi = PROTOCOL + "://" + businessServer + ":" + IM_API_PORT;
-        SharedPreferencesUtil.get(BaseApp.inst()).setCache("IM_API_URL", imApi);
-        SharedPreferencesUtil.get(BaseApp.inst()).setCache("APP_AUTH_URL", appAuth);
+    public static String getDefaultAppAuthUrl() {
+        return PROTOCOL + "://" + DEFAULT_IP + ":" + APP_AUTH_PORT + "/";
     }
 
     //存储音频的文件夹
@@ -132,6 +76,8 @@ public class Constant {
     }
 
     public static final String K_ID = "Id";
+    public static final String K_ROOM_ID = "K_ROOM_ID";
+    public static final String K_INVITATION_MSG_ID = "K_INVITATION_MSG_ID";
     public static final String K_GROUP_ID = "group_id";
     public static final String K_IS_PERSON = "is_person";
     public static final String K_NOTICE = "notice";
@@ -141,6 +87,9 @@ public class Constant {
     public static final String K_FROM = "from";
     public static final String K_SIZE = "size";
     public static final String NOTICE_TAG = "msg_notification";
+    public static final String CALL_INCOMING = "CALL_INCOMING";
+    public static final String K_MEDIA_TYPE = "MEDIA_TYPE";
+    public static final String K_FACE_URL = "K_FACE_URL";
 
 
     //最大通话人数
@@ -155,6 +104,7 @@ public class Constant {
     public static final String IS_INVITE_TO_GROUP = "isInviteToGroup";
     //移除群聊
     public static final String IS_REMOVE_GROUP = "isRemoveGroup";
+    public static final String IS_CREATE_GROUP = "isCreateGroup";
     //选择群成员
     public static final String IS_SELECT_MEMBER = "isSelectMember";
     //选择好友

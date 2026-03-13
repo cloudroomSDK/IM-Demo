@@ -10,12 +10,6 @@
             android:name=".ui.search.SearchGroupAndFriendsActivity"
             android:exported="false" />
         <activity
-            android:name=".ui.CreateLabelActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.LabelActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.search.SearchFriendsActivity"
             android:exported="false" />
         <activity

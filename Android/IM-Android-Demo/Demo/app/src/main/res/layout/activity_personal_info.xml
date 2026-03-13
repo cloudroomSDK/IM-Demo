@@ -130,6 +130,7 @@
 
                 <LinearLayout
                     android:id="@+id/genderLy"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:background="@color/white"
@@ -161,6 +162,7 @@
                 </LinearLayout>
 
                 <View
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginStart="20dp"
@@ -169,6 +171,7 @@
 
                 <LinearLayout
                     android:id="@+id/birthdayLy"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:background="@drawable/sty_radius_6_white"
@@ -200,6 +203,7 @@
                 </LinearLayout>
 
                 <View
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginStart="20dp"
@@ -208,6 +212,7 @@
 
                 <LinearLayout
                     android:id="@+id/phoneNum"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="58dp"
                     android:background="@drawable/sty_radius_6_white"

@@ -135,19 +135,6 @@ public class SuperGroupMemberActivity extends BaseActivity<GroupVM,
             LogisticsCenter.completion(postcard);
             searchFriendLauncher.launch(new Intent(this, postcard.getDestination()).putExtra(Constant.K_GROUP_ID, vm.groupId));
         });
-        view.recyclerview.addOnScrollListener(new RecyclerView.OnScrollListener() {
-            @Override
-            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
-                LinearLayoutManager linearLayoutManager =
-                    (LinearLayoutManager) view.recyclerview.getLayoutManager();
-                int lastVisiblePosition =
-                    linearLayoutManager.findLastCompletelyVisibleItemPosition();
-                if (lastVisiblePosition == adapter.getItems().size() - 1 && adapter.getItems().size() >= vm.pageSize) {
-                    vm.page++;
-                    loadMember();
-                }
-            }
-        });
         view.more.setOnClickListener(v -> {
             PopupWindow popupWindow = new PopupWindow(ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
@@ -155,11 +142,15 @@ public class SuperGroupMemberActivity extends BaseActivity<GroupVM,
             view.deleteFriend.setVisibility(vm.isOwner() ? View.VISIBLE : View.GONE);
             view.addFriend.setOnClickListener(v1 -> {
                 popupWindow.dismiss();
-                startActivity(new Intent(this, InitiateGroupActivity.class).putExtra(Constant.IS_INVITE_TO_GROUP, true));
+                startActivity(new Intent(this, InitiateGroupActivity.class)
+                    .putExtra(Constant.IS_INVITE_TO_GROUP, true)
+                    .putExtra(Constant.K_GROUP_ID, vm.groupId));
             });
             view.deleteFriend.setOnClickListener(v1 -> {
                 popupWindow.dismiss();
-                startActivity(new Intent(this, InitiateGroupActivity.class).putExtra(Constant.IS_REMOVE_GROUP, true));
+                startActivity(new Intent(this, InitiateGroupActivity.class)
+                    .putExtra(Constant.IS_REMOVE_GROUP, true)
+                    .putExtra(Constant.K_GROUP_ID, vm.groupId));
             });
             //设置PopupWindow的视图内容
             popupWindow.setContentView(view.getRoot());
@@ -196,7 +187,6 @@ public class SuperGroupMemberActivity extends BaseActivity<GroupVM,
         view.bottomLayout.getRoot().setVisibility(isSelectMember ? View.VISIBLE : View.GONE);
         view.recyclerview.setLayoutManager(new WrapContentLinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         adapter = new RecyclerViewAdapter<ExGroupMemberInfo, RecyclerView.ViewHolder>() {
-
 
             @NonNull
             @Override

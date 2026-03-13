@@ -60,8 +60,8 @@ import io.crim.android.ouicore.entity.QuitGroupNotification;
 import io.crim.android.ouicore.ex.MultipleChoice;
 import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.services.CallingService;
+import io.crim.android.ouicore.utils.BeanUtil;
 import io.crim.android.ouicore.utils.Constant;
-import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.MediaPlayerUtil;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.utils.TimeUtil;
@@ -73,6 +73,7 @@ import io.crim.android.sdk.enums.MsgType;
 import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.sdk.models.AtUserInfo;
 import io.crim.android.sdk.models.ConversationInfo;
+import io.crim.android.sdk.models.CustomElemData;
 import io.crim.android.sdk.models.GroupMembersInfo;
 import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.NotificationElem;
@@ -159,8 +160,6 @@ public class IMUtil {
                 if (map.containsKey(Constant.K_CUSTOM_TYPE)) {
                     int customType = (int) map.get(Constant.K_CUSTOM_TYPE);
                     Object result = map.get(Constant.K_RESULT);
-                    msg.setContentType(customType);
-
                     if (customType == Constant.MsgType.CUSTOMIZE_MEETING) {
                         MeetingInfo meetingInfo = GsonHel.fromJson(JSONObject.toJSONString(result),
                             MeetingInfo.class);
@@ -174,13 +173,12 @@ public class IMUtil {
                         msgExpand.meetingInfo = meetingInfo;
                         return msg;
                     }
-
                     if (customType == Constant.MsgType.LOCAL_CALL_HISTORY) {
                         msgExpand.callHistory = GsonHel.fromJson(JSONObject.toJSONString(result),
                             CallHistory.class);
                         if (TextUtils.isEmpty(msgExpand.callHistory.getId())) return msg;
                         //当callHistory.getRoomID 不null 表示我们本地插入的呼叫记录
-                        msg.setContentType(Constant.MsgType.LOCAL_CALL_HISTORY);
+//                        msg.setContentType(Constant.MsgType.LOCAL_CALL_HISTORY);
 
                         int second = msgExpand.callHistory.getDuration() / 1000;
                         String secondFormat = TimeUtil.secondFormat(second, TimeUtil.secondFormat);
@@ -555,7 +553,7 @@ public class IMUtil {
             spannableString.setSpan(clickableSpan, start, end, Spannable.SPAN_EXCLUSIVE_INCLUSIVE);
         }
         spannableString.setSpan(colorSpan, start, end, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-        EmojiUtil.setEmojiSapn(spannableString, spannableString.toString());
+//        EmojiUtil.setEmojiSapn(spannableString, spannableString.toString());
         return spannableString;
     }
 
@@ -627,10 +625,16 @@ public class IMUtil {
                         IMUtil.buildClickAndColorSpannable(new SpannableStringBuilder(lastMsg),
                             target, android.R.color.holo_red_dark, null);
                     break;
-                case Constant.MsgType.LOCAL_CALL_HISTORY:
-                    boolean isAudio = msgExpand.callHistory.getType().equals("audio");
-                    lastMsg = "[" + (isAudio ? BaseApp.inst().getString(R.string.voice_calls) :
-                        BaseApp.inst().getString(R.string.video_calls)) + "]";
+                case MsgType.CUSTOM:
+                    CustomElemData signalingInvitationInfo = BeanUtil.getCustomElemData(msg);
+                    if (signalingInvitationInfo!=null){
+                        String mediaType = signalingInvitationInfo.getData().getMediaType();
+                        boolean isAudio = Constant.MediaType.AUDIO.equals(mediaType);
+                        lastMsg = "[" + (isAudio ? BaseApp.inst().getString(R.string.voice_calls) :
+                            BaseApp.inst().getString(R.string.video_calls)) + "]";
+                    }else {
+                        lastMsg = "[自定义消息]";
+                    }
                     break;
                 case Constant.MsgType.CUSTOMIZE_MEETING:
                     lastMsg = "[" + BaseApp.inst().getString(R.string.video_meeting) + "]";
@@ -790,6 +794,24 @@ public class IMUtil {
             e.printStackTrace();
         }
         return path;
+    }
+
+    public static SignalingInvitationInfo getInvitationInfo(String userID, String groupID, String roomID,
+                                                            String mediaType ,boolean callIncoming, String invitationMsgId) {
+        SignalingInvitationInfo info = new SignalingInvitationInfo();
+        info.setInvitationMsgID(invitationMsgId);
+        info.setRoomID(roomID);
+        info.setMediaType(mediaType);
+        info.setTimeout(60);
+        String id = BaseApp.inst().loginCertificate.userID;
+        if (callIncoming) {
+            id = userID;
+        }
+        info.setInviterUserID(id);
+        if (!TextUtils.isEmpty(groupID)) {
+            info.setGroupID(groupID);
+        }
+        return info;
     }
 
 

@@ -52,8 +52,10 @@ public class ChatSettingActivity extends BaseActivity<ChatVM, ActivityChatSettin
 
     private void click() {
         view.addChat.setOnClickListener(v -> {
-            ARouter.getInstance().build(Routes.Group.CREATE_GROUP).withString(Constant.K_ID,
-                vm.userID).withBoolean(Constant.K_RESULT, true).navigation();
+            ARouter.getInstance().build(Routes.Group.CREATE_GROUP)
+                .withString(Constant.K_ID, vm.userID)
+                .withBoolean(Constant.IS_CREATE_GROUP, true)
+                .withBoolean(Constant.K_RESULT, true).navigation();
             /*BottomPopDialog dialog = new BottomPopDialog(this);
             dialog.show();
             dialog.getMainView().menu3.setOnClickListener(v1 -> dialog.dismiss());

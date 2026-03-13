@@ -47,6 +47,7 @@ import io.crim.android.ouicore.api.OneselfService;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.widget.AMapWebViewActivity;
+import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.PictureElem;
 import io.crim.android.sdk.models.VideoElem;
@@ -340,8 +341,8 @@ public class Common {
      */
     public static void toMap(Message message, View v) {
         v.getContext().startActivity(new Intent(v.getContext(), AMapWebViewActivity.class)
-            .putExtra(AMapWebViewActivity.LATITUDE,message.getLocationElem().getLatitude())
-            .putExtra(AMapWebViewActivity.LONGITUDE,message.getLocationElem().getLongitude()));
+            .putExtra(AMapWebViewActivity.LATITUDE, message.getLocationElem().getLatitude())
+            .putExtra(AMapWebViewActivity.LONGITUDE, message.getLocationElem().getLongitude()));
 //            .putExtra(WebViewActivity.LOAD_URL,
 //                "https://apis.map.qq.com/uri/v1/geocoder?coord=" + message.getLocationElem().getLatitude() + "," + message.getLocationElem().getLongitude() + "&referer=" + WebViewActivity.mapAppKey));
     }

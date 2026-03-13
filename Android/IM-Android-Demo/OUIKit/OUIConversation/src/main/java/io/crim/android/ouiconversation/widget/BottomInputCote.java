@@ -75,6 +75,7 @@ public class BottomInputCote {
         Common.UIHandler.postDelayed(() -> hasMicrophone = AndPermission.hasPermissions(context,
             Permission.Group.MICROPHONE), 300);
         view.tvSend.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
                 if (!isSend) {

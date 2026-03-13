@@ -35,7 +35,7 @@ import io.crim.android.ouicore.services.MomentsBridge;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.Obs;
 import io.crim.android.ouicore.utils.Routes;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
+import io.crim.android.ouicore.utils.SPUtil;
 import io.crim.android.ouicore.utils.SinkHelper;
 import io.crim.android.ouicore.vm.ContactListVM;
 import io.crim.android.sdk.enums.ConversationType;
@@ -89,13 +89,13 @@ public class ContactFragment extends BaseFragment<ContactVM> implements Observer
         });
         header.groupNotice.setOnClickListener(v -> {
             vm.groupDotNum.setValue(0);
-            SharedPreferencesUtil.remove(getContext(), Constant.K_GROUP_NUM);
+            SPUtil.remove(getContext(), Constant.K_GROUP_NUM);
             startActivity(new Intent(getActivity(), GroupNoticeListActivity.class));
         });
 
         header.newFriendNotice.setOnClickListener(v -> {
             vm.friendDotNum.setValue(0);
-            SharedPreferencesUtil.remove(getContext(), Constant.K_FRIEND_NUM);
+            SPUtil.remove(getContext(), Constant.K_FRIEND_NUM);
             startActivity(new Intent(getActivity(), NewFriendActivity.class));
         });
 

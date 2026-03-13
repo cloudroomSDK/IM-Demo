@@ -4,7 +4,8 @@ import android.content.Context;
 
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.net.bage.GsonHel;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
+import io.crim.android.ouicore.utils.LogUtil;
+import io.crim.android.ouicore.utils.SPUtil;
 
 public class LoginCertificate {
     public String nickName;
@@ -12,6 +13,11 @@ public class LoginCertificate {
     public String userID;
     public String imToken;
     public String chatToken;
+    public String sdkToken;
+    public String sdkSvr;
+    public String sdkAppId;
+    public String sdkAuthType;
+    public String sdkSecret;
 
     public boolean allowSendMsgNotFriend;
     public boolean allowAddFriend;
@@ -24,18 +30,19 @@ public class LoginCertificate {
     public int globalRecvMsgOpt;
 
     public void cache(Context context) {
-        SharedPreferencesUtil.get(context).setCache("user.LoginCertificate",
+        SPUtil.get(context).setCache("user.LoginCertificate",
             GsonHel.toJson(this));
     }
 
     public static LoginCertificate getCache(Context context) {
-        String u = SharedPreferencesUtil.get(context).getString("user.LoginCertificate");
+        String u = SPUtil.get(context).getString("user.LoginCertificate");
+        LogUtil.INSTANCE.logcat("LoginCertificate getCache:"+u);
         if (u.isEmpty()) return null;
         return GsonHel.fromJson(u, LoginCertificate.class);
     }
 
     public static void clear() {
-        SharedPreferencesUtil.remove(BaseApp.inst(),
+        SPUtil.remove(BaseApp.inst(),
             "user.LoginCertificate");
     }
 

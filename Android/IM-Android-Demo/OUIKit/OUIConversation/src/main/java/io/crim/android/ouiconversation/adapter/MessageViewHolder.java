@@ -35,6 +35,7 @@ import com.amap.api.maps.model.Marker;
 import com.amap.api.maps.model.MarkerOptions;
 import com.bumptech.glide.Glide;
 import com.liulishuo.okdownload.core.cause.EndCause;
+import com.vanniktech.emoji.EmojiTextView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,17 +80,20 @@ import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.vm.injection.Easy;
 import io.crim.android.ouicore.entity.CallHistory;
+import io.crim.android.ouicore.entity.LoginCertificate;
 import io.crim.android.ouicore.entity.MeetingInfo;
 import io.crim.android.ouicore.entity.MsgExpand;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.net.bage.GsonHel;
 import io.crim.android.ouicore.services.IMeetingBridge;
 import io.crim.android.ouicore.utils.AndroidTool;
+import io.crim.android.ouicore.utils.BeanUtil;
 import io.crim.android.ouicore.utils.ByteUtil;
 import io.crim.android.ouicore.utils.Common;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.EmojiUtil;
 import io.crim.android.ouicore.utils.GetFilePathFromUri;
+import io.crim.android.ouicore.utils.LogUtil;
 import io.crim.android.ouicore.utils.OnDedrepClickListener;
 import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.ouicore.utils.TimeUtil;
@@ -101,9 +105,11 @@ import io.crim.android.ouicore.voice.player.SMediaPlayer;
 import io.crim.android.ouicore.widget.AvatarImage;
 import io.crim.android.ouicore.widget.FileDownloadView;
 import io.crim.android.sdk.enums.ConversationType;
+import io.crim.android.sdk.enums.CustomMsgType;
 import io.crim.android.sdk.enums.MsgStatus;
 import io.crim.android.sdk.enums.MsgType;
 import io.crim.android.sdk.models.CardElem;
+import io.crim.android.sdk.models.CustomElemData;
 import io.crim.android.sdk.models.MergeElem;
 import io.crim.android.sdk.models.Message;
 import io.crim.android.sdk.models.QuoteElem;
@@ -134,6 +140,7 @@ public class MessageViewHolder {
         if (viewType == MsgType.QUOTE) return new QuoteTXTView(parent);
         if (viewType == Constant.MsgType.LOCAL_CALL_HISTORY) return new CallHistoryView(parent);
         if (viewType == Constant.MsgType.CUSTOMIZE_MEETING) return new MeetingInviteView(parent);
+        if (viewType == MsgType.CUSTOM) return new CustomView(parent);
 
         return new TXTView(parent);
     }
@@ -179,9 +186,35 @@ public class MessageViewHolder {
 
         //绑定数据
         public void bindData(Message message, int position) {
+            LoginCertificate loginCertificate = BaseApp.inst().loginCertificate;
+            String sendID = message.getSendID();
+            CustomElemData invitationInfo = BeanUtil.getCustomElemData(message);
+            String myID = loginCertificate.userID;
+            if (invitationInfo != null) {
+                switch (invitationInfo.getCustomType()) {
+                    case CustomMsgType.Unknow:
+                    case CustomMsgType.NewInvitation:
+                    case CustomMsgType.InviteeAccept:
+                        break;
+                    case CustomMsgType.InviteeReject:
+                    case CustomMsgType.InvitationCancel:
+                    case CustomMsgType.InvitationHangUp:
+                        LogUtil.INSTANCE.logcat("bindData==getCustomType="+invitationInfo.getCustomType());
+                        LogUtil.INSTANCE.logcat("getInviterUserID="+invitationInfo.getData().getInviterUserID());
+                        LogUtil.INSTANCE.logcat("myID="+myID);
+                        LogUtil.INSTANCE.logcat("sendID="+sendID);
+                        if (!invitationInfo.getData().getInviterUserID().equals(myID)
+                        && sendID.equals(myID)) {
+//                            message.setSendID(myID);
+                            message.setRecvID(sendID);
+                            message.setSenderFaceUrl(loginCertificate.faceURL);
+                        }
+                        break;
+                }
+            }
             this.message = message;
             try {
-                isOwn = message.getSendID().equals(BaseApp.inst().loginCertificate.userID);
+                isOwn = message.getSendID().equals(loginCertificate.userID);
                 if (isOwn) {
                     if (leftIsInflated) left.setVisibility(View.GONE);
                     if (rightIsInflated) right.setVisibility(View.VISIBLE);
@@ -230,7 +263,9 @@ public class MessageViewHolder {
             hAvatar();
             hName(isOwn);
             hContentView(isOwn);
-            readVanishShow(msgExpand);
+            if (message.getContentType()!=MsgType.FILE){
+                readVanishShow(msgExpand);
+            }
             showTime(msgExpand);
             hUnRead();
 
@@ -380,7 +415,7 @@ public class MessageViewHolder {
 
         private void hContentView(boolean isOwn) {
             View contentView = itemView.findViewById(R.id.content);
-            if (isOwn){
+            if (isOwn) {
                 contentView = itemView.findViewById(R.id.content2);
             }
             if (null == contentView) return;
@@ -502,12 +537,15 @@ public class MessageViewHolder {
                 } else if (message.getSendID().equals(BaseApp.inst().loginCertificate.userID)) {
                     //5分钟内可以撤回
                     if (System.currentTimeMillis() -
-                        message.getSendTime() < (1000 * 60 * 5)) {
+                        message.getSendTime() < (1000 * 60 * 2)) {
                         menuIcons.add(R.mipmap.ic_withdraw);
                         menuTitles.add(v.getContext().getString(io.crim.android.ouicore.R.string.withdraw));
                     }
                 }
-                if (message.getContentType() != Constant.MsgType.CUSTOMIZE_MEETING) {
+
+                CustomElemData customElemData = BeanUtil.getCustomElemData(message);
+                if (message.getContentType() != Constant.MsgType.CUSTOMIZE_MEETING
+                    && message.getContentType() != MsgType.VOICE && customElemData.getData() == null) {
                     menuIcons.add(R.mipmap.ic_forward);
                     menuTitles.add(v.getContext().getString(io.crim.android.ouicore.R.string.forward));
                 }
@@ -761,6 +799,89 @@ public class MessageViewHolder {
                 String content = message.getTextElem().getContent();
 //                v.content2.setText(content);
                 EmojiUtil.showSpanTextview(v.content2, content);
+            }
+        }
+
+    }
+
+    public static class CustomView extends MessageViewHolder.MsgViewHolder {
+
+        public CustomView(ViewGroup parent) {
+            super(parent);
+        }
+
+        @Override
+        protected int getLeftInflatedId() {
+            return R.layout.layout_msg_txt_left;
+        }
+
+        @Override
+        protected int getRightInflatedId() {
+            return R.layout.layout_msg_txt_right;
+        }
+
+        @Override
+        protected void bindLeft(View itemView, Message message) {
+            LayoutMsgTxtLeftBinding v = LayoutMsgTxtLeftBinding.bind(itemView);
+            setCustomContent(v.content, message, true);
+        }
+
+        @Override
+        protected void bindRight(View itemView, Message message) {
+            LayoutMsgTxtRightBinding v = LayoutMsgTxtRightBinding.bind(itemView);
+            v.avatar2.load(message.getSenderFaceUrl(), message.getSenderNickname());
+            v.sendState2.setSendState(message.getStatus());
+            setCustomContent(v.content2, message, false);
+        }
+
+        private void setCustomContent(EmojiTextView tv, Message message, boolean left) {
+            CustomElemData info = BeanUtil.getCustomElemData(message);
+            String content = "";
+            if (info != null) {
+                switch (info.getCustomType()) {
+                    case CustomMsgType.InviteeReject:
+                        if (left) {
+                            content = "[对方已拒绝]";
+                        } else {
+                            content = "[已拒绝]";
+                        }
+                        break;
+                    case CustomMsgType.InvitationCancel:
+                        if (left) {
+                            content = "[对方已取消]";
+                        } else {
+                            content = "[已取消]";
+                        }
+                        break;
+                    case CustomMsgType.InvitationHangUp:
+                        int duration = info.getData().getDuration();
+                        int minute = duration / 60;
+                        int second = duration % 60;
+                        String sec = String.valueOf(second);
+                        String min = String.valueOf(minute);
+                        if (sec.length()==1){
+                            sec="0"+sec;
+                        }
+                        if (min.length()==1){
+                            min="0"+min;
+                        }
+                        content = "通话时长 "+min+":"+sec;
+                        break;
+                }
+                tv.setText(content);
+                /*int callIconID = io.crim.android.ouicore.R.mipmap.ic_voice_call;
+                if (info.getMediaType().equals(Constant.MediaType.VIDEO)){
+                    callIconID = io.crim.android.ouicore.R.mipmap.ic_video_call;
+                }
+                Drawable drawable=tv.getContext().getResources().getDrawable(callIconID);
+                drawable.setBounds(0,0,25,25);//值的单位是px
+                tv.setCompoundDrawablePadding(32);
+                if (left){
+                    tv.setCompoundDrawables(drawable,null,null,null);
+                }else {
+                    tv.setCompoundDrawables(null,null,drawable,null);
+                }*/
+
             }
         }
 

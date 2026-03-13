@@ -12,8 +12,6 @@ import com.alibaba.android.arouter.launcher.ARouter;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
-import io.crim.android.sdk.models.FriendInfo;
-import io.crim.android.sdk.models.GrpInfo;
 import io.crim.android.ouicore.adapter.RecyclerViewAdapter;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.base.BaseApp;
@@ -26,6 +24,8 @@ import io.crim.android.ouicore.vm.GroupVM;
 import io.crim.android.ouicore.widget.ImageTxtViewHolder;
 import io.crim.android.ouigroup.R;
 import io.crim.android.ouigroup.databinding.ActivityCreateGroupBinding;
+import io.crim.android.sdk.models.GrpInfo;
+import io.crim.android.sdk.models.UserInfo;
 
 @Route(path = Routes.Group.CREATE_GROUP2)
 public class CreateGroupActivity extends BaseActivity<GroupVM, ActivityCreateGroupBinding> {
@@ -46,7 +46,7 @@ public class CreateGroupActivity extends BaseActivity<GroupVM, ActivityCreateGro
     }
 
     private void initView() {
-        FriendInfo friendInfo = new FriendInfo();
+        UserInfo friendInfo = new UserInfo();
         LoginCertificate loginCertificate = LoginCertificate.getCache(this);
         friendInfo.setUserID(loginCertificate.userID);
         friendInfo.setNickname(loginCertificate.nickName);
@@ -56,10 +56,10 @@ public class CreateGroupActivity extends BaseActivity<GroupVM, ActivityCreateGro
         }
         view.selectNum.setText(vm.selectedFriendInfo.getValue().size() + "人");
         view.recyclerview.setLayoutManager(new GridLayoutManager(this, 5));
-        RecyclerViewAdapter adapter = new RecyclerViewAdapter<FriendInfo, ImageTxtViewHolder>(ImageTxtViewHolder.class) {
+        RecyclerViewAdapter adapter = new RecyclerViewAdapter<UserInfo, ImageTxtViewHolder>(ImageTxtViewHolder.class) {
 
             @Override
-            public void onBindView(@NonNull ImageTxtViewHolder holder, FriendInfo data, int position) {
+            public void onBindView(@NonNull ImageTxtViewHolder holder, UserInfo data, int position) {
                 holder.view.img.load(data.getFaceURL(),data.getNickname());
                 holder.view.txt.setText(data.getNickname());
             }

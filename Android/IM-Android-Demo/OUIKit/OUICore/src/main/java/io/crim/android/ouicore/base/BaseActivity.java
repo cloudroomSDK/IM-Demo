@@ -7,6 +7,8 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
@@ -19,6 +21,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.databinding.ViewDataBinding;
 import androidx.lifecycle.ViewModelProvider;
+import io.crim.android.ouicore.BuildConfig;
 import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.utils.ActivityManager;
 import io.crim.android.ouicore.utils.SinkHelper;
@@ -67,6 +70,7 @@ public class BaseActivity<T extends BaseViewModel, A extends ViewDataBinding> ex
         vmCanonicalName = this.vm.getClass().getCanonicalName();
         bind();
     }
+
     @Deprecated
     protected void bindVM(Class<T> vm, boolean shareVM) {
         bindVM(vm);
@@ -114,6 +118,7 @@ public class BaseActivity<T extends BaseViewModel, A extends ViewDataBinding> ex
             bind();
         }
     }
+
     @Deprecated
     public void removeCacheVM() {
         String key = vm.getClass().getCanonicalName();
@@ -153,6 +158,11 @@ public class BaseActivity<T extends BaseViewModel, A extends ViewDataBinding> ex
         if (isFinishing() && isRelease && !released) {
             released = true;
             vm.releaseRes();
+        }
+    }
+    public void logcat(String content) {
+        if (BuildConfig.DEBUG) {
+            Log.d("eeeeeee", content);
         }
     }
 
@@ -211,7 +221,9 @@ public class BaseActivity<T extends BaseViewModel, A extends ViewDataBinding> ex
 
     @Override
     public void toast(String tips) {
-        Toast.makeText(this, tips, Toast.LENGTH_LONG).show();
+        if (!TextUtils.isEmpty(tips)){
+            Toast.makeText(this, tips, Toast.LENGTH_LONG).show();
+        }
     }
 
     @Override

@@ -3,8 +3,6 @@ package io.crim.android.demo.vm;
 import android.text.TextUtils;
 import android.util.Base64;
 
-import org.json.JSONObject;
-
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,9 +18,8 @@ import io.crim.android.ouicore.entity.LoginCertificate;
 import io.crim.android.ouicore.net.RXRetrofit.N;
 import io.crim.android.ouicore.net.RXRetrofit.NetObserver;
 import io.crim.android.ouicore.net.RXRetrofit.Parameter;
-import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.utils.ErrUtil;
-import io.crim.android.ouicore.utils.SharedPreferencesUtil;
+import io.crim.android.ouicore.utils.MD5Util;
 import io.crim.android.ouicore.widget.WaitDialog;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.enums.Platform;
@@ -35,6 +32,7 @@ import static io.crim.android.ouicore.utils.Common.md5;
  * Created by zjw on 2023/9/21.
  */
 public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
+    public static final String TAG = "LoginVM";
     public static final int MAX_COUNTDOWN = 60;
 
     public MutableLiveData<String> phoneNum = new MutableLiveData<>("");
@@ -50,6 +48,7 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
     public boolean isFindPassword = false;
 
     public void login(String verificationCode, int usedFor) {
+        writeLog(TAG +":login");
         Parameter parameter = getParameter(verificationCode, usedFor);
         N.API(CRIMService.class)
             .login(parameter.buildJsonBody())
@@ -59,63 +58,73 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
 
                 @Override
                 public void onSuccess(LoginCertificate loginCertificate) {
-                    int loginType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("LOGIN_TYPE");
-                    if (loginType <= 0) {
-                        loginType = 1;
-                    }
-                    String appID = "";
-                    String token = "";
-                    String appSecret = "";
-                    if (loginType == 1) {
-                        appID = Constant.getAppID();
-                        appSecret = md5(Constant.getAppSecret());
-                        sdkLoginByAppId(loginCertificate, appID, appSecret);
+                    String loginType = loginCertificate.sdkAuthType;
+                    getIView().initSdk(loginCertificate.sdkSvr);
+                    if (loginType.equals("0")) {
+                        sdkLoginByAppId(loginCertificate);
                     } else {
-                        token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
-                        sdkLoginByToken(loginCertificate, token);
+                        sdkLoginByToken(loginCertificate);
                     }
-
                 }
 
                 @Override
                 protected void onFailure(Throwable e) {
+                    writeLog(TAG +":onFailure:"+e.getMessage());
+                    logcat("login onFailure::"+e.getMessage());
                     getIView().err(e.getMessage());
                 }
             });
     }
 
-    private void sdkLoginByAppId(LoginCertificate loginCertificate, String appId, String appSecret) {
+    private void sdkLoginByAppId(LoginCertificate loginCertificate) {
+        writeLog(TAG +":sdkLoginByAppId");
+        logcat("sdkLoginByAppId==sdkSecret="+loginCertificate.sdkSecret);
         try {
+            String appSecret = loginCertificate.sdkSecret;
+            if (appSecret != null && !TextUtils.isEmpty(appSecret)) {
+                byte[] decode = Base64.decode(appSecret, Base64.NO_WRAP);
+                appSecret = MD5Util.MD5(new String(decode, StandardCharsets.UTF_8));
+            }
             CRIMClient.getInstance().login(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
+                    writeLog("sdkLoginByAppId onError:code:"+code+" error:"+error);
+                    logcat("sdkLoginByAppId onError:code:"+code+" error:"+error);
                     getIView().err(ErrUtil.getErrTip(code, error));
                 }
 
                 @Override
                 public void onSuccess(String data) {
+                    writeLog("sdkLoginByAppId onSuccess");
+                    logcat("sdkLoginByAppId onSuccess");
                     sdkLoginSuccess(loginCertificate);
                 }
-            }, loginCertificate.userID, appId, appSecret);
+            }, loginCertificate.userID, loginCertificate.sdkAppId, appSecret);
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private void sdkLoginByToken(LoginCertificate loginCertificate, String token) {
+    private void sdkLoginByToken(LoginCertificate loginCertificate) {
+        writeLog(TAG +":sdkLoginByToken");
+        logcat("sdkLoginByToken==token==="+loginCertificate.sdkToken);
         try {
             CRIMClient.getInstance().login(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
+                    writeLog("sdkLoginByToken onError:code:"+code+"-error:"+error);
+                    logcat("sdkLoginByToken onError:code:"+code+"-error:"+error);
                     getIView().err(ErrUtil.getErrTip(code, error));
                 }
 
                 @Override
                 public void onSuccess(String data) {
+                    writeLog("sdkLoginByToken onSuccess");
+                    logcat("sdkLoginByToken onSuccess");
                     sdkLoginSuccess(loginCertificate);
                 }
-            }, loginCertificate.userID, token);
+            }, loginCertificate.userID, loginCertificate.sdkToken);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -148,24 +157,6 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
             .add("verifyCode", verificationCode)
             .add("phoneNumber", phoneNum.getValue())
             .add("areaCode", "+86");
-        String appID = Constant.getAppID();
-        int loginType = SharedPreferencesUtil.get(BaseApp.inst()).getInteger("LOGIN_TYPE");
-        if (loginType == 2) {
-            try {
-                String token = SharedPreferencesUtil.get(BaseApp.inst()).getString("LOGIN_TOKEN");
-                String[] split = token.split(".");
-                if (split.length > 1) {
-                    token = split[1];
-                    byte[] decode = Base64.decode(token.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
-                    String jsonString = new String(decode, StandardCharsets.UTF_8);
-                    JSONObject jsonObject = new JSONObject(jsonString);
-                    appID = jsonObject.optString("appID");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        parameter.add("appID", appID);
         return parameter;
     }
 
@@ -338,6 +329,8 @@ public class LoginVM extends BaseViewModel<LoginVM.ViewAction> {
         void succ(Object o);
 
         void initDate();
+
+        void initSdk(String url);
 
     }
 }

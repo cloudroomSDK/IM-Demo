@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import androidx.fragment.app.FragmentActivity;
 import io.crim.android.ouicore.entity.LoginCertificate;
-import io.crim.android.ouicore.im.IM;
 import io.crim.android.ouicore.utils.L;
 import io.crim.android.sdk.listener.OnBase;
 
@@ -16,7 +15,7 @@ public class DebugActivity extends FragmentActivity implements OnBase<String> {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        IM.initSdk(getApplication());
+//        IM.initSdk();
 
         LoginCertificate loginCertificate = new LoginCertificate();
         loginCertificate.userID = "a@qq.com";

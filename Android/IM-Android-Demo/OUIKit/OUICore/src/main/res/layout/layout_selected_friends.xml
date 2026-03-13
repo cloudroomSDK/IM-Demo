@@ -7,7 +7,8 @@
     android:gravity="center_vertical"
     android:minHeight="48dp"
     android:paddingLeft="17dp"
-    android:paddingRight="17dp">
+    android:paddingRight="17dp"
+    android:paddingBottom="20dp">
 
 
     <LinearLayout
@@ -49,11 +50,11 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:ellipsize="end"
-            android:visibility="gone"
             android:gravity="center_vertical"
             android:maxLines="1"
             android:textColor="@color/txt_shallow"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:visibility="gone" />
     </LinearLayout>
 
     <Button

@@ -7,6 +7,8 @@ import android.text.TextUtils;
 
 import com.alibaba.android.arouter.launcher.ARouter;
 
+import java.util.ArrayList;
+
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import io.crim.android.sdk.CRIMClient;
@@ -104,7 +106,7 @@ public class PersonDataActivity extends BaseActivity<PersonalVM, ActivityPersonI
             if (null == vm.userInfo.getValue()) return;
             String remark = "";
             try {
-                remark = vm.userInfo.val().getFriendInfo().getRemark();
+                remark = vm.userInfo.val().getRemark();
             } catch (Exception e) {
             }
             resultLauncher.launch(new Intent(this, EditTextActivity.class).putExtra(EditTextActivity.TITLE, getString(io.crim.android.ouicore.R.string.remark)).putExtra(EditTextActivity.INIT_TXT, remark));
@@ -154,7 +156,9 @@ public class PersonDataActivity extends BaseActivity<PersonalVM, ActivityPersonI
             String resultStr = result.getData().getStringExtra(Constant.K_RESULT);
 
             waitDialog.show();
-            CRIMClient.getInstance().friendshipManager.setFriendRemark(new OnBase<String>() {
+            ArrayList<String> ids = new ArrayList<>();
+            ids.add(uid);
+            CRIMClient.getInstance().friendshipManager.updateFriendsReq(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
                     waitDialog.dismiss();
@@ -167,6 +171,6 @@ public class PersonDataActivity extends BaseActivity<PersonalVM, ActivityPersonI
                     vm.userInfo.val().setRemark(resultStr);
                     Obs.newMessage(Constant.Event.USER_INFO_UPDATE);
                 }
-            }, uid, resultStr);
+            }, ids, resultStr);
         });
 }

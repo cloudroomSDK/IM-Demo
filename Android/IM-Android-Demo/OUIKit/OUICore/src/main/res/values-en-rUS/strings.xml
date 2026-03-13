@@ -121,6 +121,7 @@
     <string name="girl">女</string>
     <string name="chat_setting">聊天设置</string>
     <string name="search">搜索</string>
+    <string name="create_grp_chat">创建群聊</string>
     <string name="person_info">个人资料</string>
     <string name="remark">备注</string>
     <string name="join_the_blacklist">加入黑名单</string>
@@ -365,7 +366,7 @@
     <string name="mute_tips">输入或选择禁言时间</string>
     <string name="who_talk">%1$s讲话中...</string>
     <string name="meeting">会议中...</string>
-    <string name="selected_tips2">已选择（%1$d）</string>
+    <string name="selected_tips2">已选：%1$d人</string>
     <string name="recent_contact">最近会话</string>
     <string name="account">账号</string>
     <string name="please_input_account">请输入账号</string>

@@ -1,10 +1,13 @@
 package io.crim.android.ouicore.vm;
 
+import com.alibaba.android.arouter.launcher.ARouter;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import io.crim.android.ouicore.base.BaseApp;
 import io.crim.android.ouicore.base.BaseViewModel;
 import io.crim.android.ouicore.base.IView;
 import io.crim.android.ouicore.base.vm.State;
@@ -12,24 +15,36 @@ import io.crim.android.ouicore.entity.MsgConversation;
 import io.crim.android.ouicore.im.IMEvent;
 import io.crim.android.ouicore.im.IMUtil;
 import io.crim.android.ouicore.net.bage.GsonHel;
+import io.crim.android.ouicore.utils.BeanUtil;
+import io.crim.android.ouicore.utils.Constant;
+import io.crim.android.ouicore.utils.Routes;
 import io.crim.android.sdk.CRIMClient;
 import io.crim.android.sdk.enums.ConversationType;
+import io.crim.android.sdk.enums.CustomMsgType;
+import io.crim.android.sdk.enums.InvitationOpType;
 import io.crim.android.sdk.listener.OnAdvanceMsgListener;
 import io.crim.android.sdk.listener.OnBase;
 import io.crim.android.sdk.listener.OnConversationListener;
+import io.crim.android.sdk.listener.OnMsgSendCallback;
 import io.crim.android.sdk.models.ConversationInfo;
+import io.crim.android.sdk.models.CustomElemData;
 import io.crim.android.sdk.models.KeyValue;
 import io.crim.android.sdk.models.Message;
+import io.crim.android.sdk.models.OfflinePushInfo;
 import io.crim.android.sdk.models.ReadReceiptInfo;
 import io.crim.android.sdk.models.RevokedInfo;
 import io.crim.android.sdk.models.UserInfo;
+import io.crim.android.sdk.utils.JsonUtil;
 
 public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> implements OnConversationListener, OnAdvanceMsgListener {
-    public static final String NOTIFY_ITEM_CHANGED = "notify_item_changed";
 
+    public static final String TAG = "ContactListVM";
+    public static final String NOTIFY_ITEM_CHANGED = "notify_item_changed";
     public State<List<MsgConversation>> conversations = new State<>(new ArrayList<>());
     public State<List<UserInfo>> frequentContacts = new State<>(new ArrayList<>());
     public State<String> nickName = new State<>();
+    public boolean isCalling = false;
+    public Message newInvitationMsg;
 
 
     @Override
@@ -42,16 +57,16 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     public void deleteConversationAndDeleteAllMsg(String conversationId) {
         CRIMClient.getInstance().conversationManager
             .deleteConversationAndDeleteAllMsg(new OnBase<String>() {
-            @Override
-            public void onError(int code, String error) {
+                @Override
+                public void onError(int code, String error) {
 
-            }
+                }
 
-            @Override
-            public void onSuccess(String data) {
-                updateConversation();
-            }
-        }, conversationId);
+                @Override
+                public void onSuccess(String data) {
+                    updateConversation();
+                }
+            }, conversationId);
     }
 
     private void updateConversation() {
@@ -66,7 +81,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
                 conversations.val().clear();
                 for (ConversationInfo datum : data) {
                     Message msg = null;
-                    if (null!=datum.getLatestMsg()){
+                    if (null != datum.getLatestMsg()) {
                         msg = GsonHel.fromJson(datum.getLatestMsg(), Message.class);
                     }
                     conversations.val().add(new MsgConversation(msg, datum));
@@ -78,7 +93,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
 
     public void setOneConversationPrivateChat(IMUtil.OnSuccessListener<String> OnSuccessListener,
                                               String cid, boolean isChecked) {
-        CRIMClient.getInstance().conversationManager.setConversationPrivateChat(new OnBase<String>() {
+        /*CRIMClient.getInstance().conversationManager.setConversationPrivateChat(new OnBase<String>() {
             @Override
             public void onError(int code, String error) {
                 getIView().onErr(error);
@@ -88,7 +103,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
             public void onSuccess(String data) {
                 OnSuccessListener.onSuccess(data);
             }
-        }, cid, isChecked);
+        }, cid, isChecked);*/
     }
 
     /**
@@ -147,7 +162,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     @Override
     public void onConversationChanged(List<ConversationInfo> list) {
         for (ConversationInfo info : list) {
-            Message message=GsonHel.fromJson(info.getLatestMsg(),
+            Message message = GsonHel.fromJson(info.getLatestMsg(),
                 Message.class);
             MsgConversation msgConversation =
                 new MsgConversation(message, info);
@@ -161,13 +176,13 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
         sortConversation(list);
     }
 
-
     private void sortConversation(List<ConversationInfo> list) {
         List<MsgConversation> msgConversations = new ArrayList<>();
         for (ConversationInfo info : list) {
             Iterator<MsgConversation> iterator = conversations.val().iterator();
-            msgConversations.add(new MsgConversation(GsonHel.fromJson(info.getLatestMsg(),
-                Message.class), info));
+            Message message = GsonHel.fromJson(info.getLatestMsg(),
+                Message.class);
+            msgConversations.add(new MsgConversation(message, info));
             while (iterator.hasNext()) {
                 if (iterator.next().conversationInfo.getConversationID()
                     .equals(info.getConversationID()))
@@ -179,7 +194,7 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
         conversations.setValue(conversations.val());
     }
 
-    public void getSelfUserInfo(){
+    public void getSelfUserInfo() {
         CRIMClient.getInstance().userInfoManager.getSelfInfo(new OnBase<UserInfo>() {
             @Override
             public void onError(int code, String error) {
@@ -199,19 +214,25 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
     }
 
     @Override
-    public void onSyncServerFailed() {
+    public void onSyncServerFailed(boolean b) {
 
     }
 
     @Override
-    public void onSyncServerFinish() {
+    public void onSyncServerFinish(boolean b) {
 
     }
 
     @Override
-    public void onSyncServerStart() {
+    public void onSyncServerStart(boolean b) {
 
     }
+
+    @Override
+    public void onSyncServerProgress(long l) {
+
+    }
+
 
     @Override
     public void onTotalUnreadMessageCountChanged(int i) {
@@ -220,7 +241,55 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
 
     @Override
     public void onRecvNewMsg(Message msg) {
+        logcat(TAG + "===onRecvNewMsg===" + JsonUtil.toString(msg));
+        if (BaseApp.inst().loginCertificate.userID.equals(msg.getRecvID())) {
+            CustomElemData info = BeanUtil.getCustomElemData(msg);
+            if (info != null) {
+                logcat(TAG + "=SignalingInvitationInfo.getCustomType=" + info.getCustomType());
+                if (info.getCustomType()==CustomMsgType.NewInvitation && info.getData()!=null) {
+                    writeLog(TAG + ": recv call msg");
+                    if (isCalling) {
+                        rejectCall(msg);
+                    } else {
+                        newInvitationMsg = msg;
+                        ARouter.getInstance().build(Routes.Conversation.CALL)
+                            /*.withString(Constant.K_ID, msg.getSendID())
+                            .withString(Constant.K_NAME, msg.getSenderNickname())
+                            .withString(Constant.K_FACE_URL, msg.getSenderFaceUrl())
+                            .withString(Constant.K_GROUP_ID, msg.getGroupID())
+                            .withString(Constant.K_MEDIA_TYPE, info.getData().getMediaType())
+                            .withString(Constant.K_ROOM_ID, info.getData().getRoomID())
+                            .withString(Constant.K_INVITATION_MSG_ID, info.getData().getInvitationMsgID())*/
+                            .withBoolean(Constant.CALL_INCOMING, true)
+                            .navigation();
+                    }
+                }
+            }
+        }
+    }
 
+    public void rejectCall(Message inviteMsg) {
+        Message message = CRIMClient.getInstance().signalingManager.createSignalingReject(inviteMsg,InvitationOpType.CRIVT_OP_Busy);
+        writeLog(TAG + ": rejectCall message: " + JsonUtil.toString(message));
+        logcat(TAG + ": rejectCall message=" + JsonUtil.toString(message));
+        CRIMClient.getInstance().messageManager.sendMsg(new OnMsgSendCallback() {
+            @Override
+            public void onError(int code, String error) {
+                logcat("rejectCall===onError=code: " + code + " error: " + error);
+                writeLog(TAG + ": rejectCall error: " + error);
+            }
+
+            @Override
+            public void onProgress(long l) {
+
+            }
+
+            @Override
+            public void onSuccess(Message message) {
+                logcat("rejectCall===success=" + JsonUtil.toString(message));
+                writeLog(TAG + ": rejectCall success");
+            }
+        }, message, inviteMsg.getSendID(), inviteMsg.getGroupID(), new OfflinePushInfo(), false);
     }
 
     @Override
@@ -260,6 +329,11 @@ public class ContactListVM extends BaseViewModel<ContactListVM.ViewAction> imple
 
     @Override
     public void onRecvOfflineNewMessage(List<Message> msg) {
+
+    }
+
+    @Override
+    public void onRecvOnlineOnlyMsg(List<Message> list) {
 
     }
 

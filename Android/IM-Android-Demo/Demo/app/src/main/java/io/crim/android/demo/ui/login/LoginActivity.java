@@ -9,11 +9,13 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 import androidx.annotation.Nullable;
+import io.crim.android.demo.DemoApplication;
 import io.crim.android.demo.R;
 import io.crim.android.demo.databinding.ActivityLoginBinding;
 import io.crim.android.demo.ui.LoginSettingActivity;
 import io.crim.android.demo.ui.main.MainActivity;
 import io.crim.android.demo.vm.LoginVM;
+import io.crim.android.ouicore.AccountConfig;
 import io.crim.android.ouicore.base.BaseActivity;
 import io.crim.android.ouicore.utils.Constant;
 import io.crim.android.ouicore.widget.WaitDialog;
@@ -34,7 +36,7 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLoginBinding> i
         bindVM(LoginVM.class);
         super.onCreate(savedInstanceState);
         bindViewDataBinding(ActivityLoginBinding.inflate(getLayoutInflater()));
-        if (Constant.getSdkServer().equals("sdk.cloudroom.com")) {
+        if (Constant.getBusinessServer().equals(AccountConfig.SERVER_IP)) {
             view.tvVerCodeTip.setText("");
         } else {
             view.tvVerCodeTip.setText("私有云验证码用8888");
@@ -51,12 +53,16 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLoginBinding> i
             @Override
             public void onClick(View view) {
                 String phone = LoginActivity.this.view.etPhone.getText().toString().trim();
-                if (phone.length() == 11) {
-                    waitDialog.show();
-                    vm.login(vm.veriCode.getValue(), 3);
-                } else {
+                if (phone.length() != 11) {
                     toast("请输入11位手机号");
+                    return;
                 }
+                if (!Constant.getAppAuthUrl().startsWith("http")) {
+                    toast("不支持的URL，请检测业务服务器");
+                    return;
+                }
+                waitDialog.show();
+                vm.login(vm.veriCode.getValue(), 3);
             }
         });
         view.tvSend.setOnClickListener(new View.OnClickListener() {
@@ -127,8 +133,10 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLoginBinding> i
                         if (countdown <= 0) {
                             view.tvSend.setText(R.string.get_vc);
                             countdown = 60;
-                            timer.cancel();
-                            timer = null;
+                            if (null != timer) {
+                                timer.cancel();
+                                timer = null;
+                            }
                         }
                     }
                 });
@@ -139,6 +147,11 @@ public class LoginActivity extends BaseActivity<LoginVM, ActivityLoginBinding> i
     @Override
     public void initDate() {
 
+    }
+
+    @Override
+    public void initSdk(String url) {
+        ((DemoApplication)getApplication()).initSdk(url);
     }
 
     @Override

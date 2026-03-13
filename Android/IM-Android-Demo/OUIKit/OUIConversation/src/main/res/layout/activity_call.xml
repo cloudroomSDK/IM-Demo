@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+
+        <variable
+            name="CallVM"
+            type="io.crim.android.ouiconversation.vm.CallVM" />
+
+        <import type="android.view.View" />
+
+    </data>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/callContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#000">
+
+        <com.rtc.sdk.VideoUIView
+            android:id="@+id/videoSelf"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <com.rtc.sdk.VideoUIView
+            android:id="@+id/videoPeer"
+            android:layout_width="133dp"
+            android:layout_height="208dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:visibility="visible"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <io.crim.android.ouicore.widget.AvatarImage
+            android:id="@+id/avatar"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginTop="166dp"
+            android:src="@mipmap/ic_my_friend"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvDurTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@{CallVM.meetDurTime}"
+            android:textColor="#fff"
+            android:textSize="17sp"
+            android:visibility="gone"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="49dp"
+            android:text="Martha Craig"
+            android:textColor="#fff"
+            android:textFontWeight="400"
+            android:textSize="24sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/avatar" />
+
+        <TextView
+            android:id="@+id/tvTip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="等待对方接受邀请..."
+            android:textColor="#fff"
+            android:textSize="17sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvName" />
+
+        <!--<androidx.constraintlayout.widget.Group
+            android:id="@+id/groupCalling"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="visible"
+            app:constraint_referenced_ids="avatar" />-->
+
+        <ImageView
+            android:id="@+id/ivAccept"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginBottom="80dp"
+            android:src="@mipmap/call"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/ivHangUp" />
+
+        <ImageView
+            android:id="@+id/ivHangUp"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginBottom="80dp"
+            android:src="@mipmap/hang_up"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toRightOf="@+id/ivAccept"
+            app:layout_constraintRight_toRightOf="parent" />
+
+        <FrameLayout
+            android:id="@+id/flMic"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_marginBottom="20dp"
+            android:background="@drawable/bg_gray_circle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@+id/ivHangUp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/flCam">
+
+            <ImageView
+                android:id="@+id/ivMic"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/meet_mic" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/flCam"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@drawable/bg_gray_circle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/flMic"
+            app:layout_constraintLeft_toRightOf="@+id/flMic"
+            app:layout_constraintRight_toLeftOf="@+id/flReverse">
+
+            <ImageView
+                android:id="@+id/ivCam"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/camera_meet" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/flReverse"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@drawable/bg_gray_circle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/flMic"
+            app:layout_constraintLeft_toRightOf="@+id/flCam"
+            app:layout_constraintRight_toLeftOf="@+id/flSpeaker">
+
+            <ImageView
+                android:id="@+id/ivReverse"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/cam_reverse" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:id="@+id/flSpeaker"
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:background="@drawable/bg_gray_circle"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@+id/flMic"
+            app:layout_constraintLeft_toRightOf="@+id/flReverse"
+            app:layout_constraintRight_toRightOf="parent">
+
+            <ImageView
+                android:id="@+id/ivSpeaker"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_gravity="center"
+                android:src="@mipmap/voice_add" />
+        </FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

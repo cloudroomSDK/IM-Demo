@@ -29,9 +29,11 @@ public class BaseViewModel<T extends IView> extends BaseVM {
     }
 
     public T getIView() {
-        return IView.get();
+        if (IView != null) {
+            return IView.get();
+        }
+        return null;
     }
-
 
     //视图销毁时
     protected void releaseRes() {

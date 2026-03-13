@@ -83,6 +83,7 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
         formChat = getIntent().getBooleanExtra(Constant.K_RESULT, false);
         groupId = getIntent().getStringExtra(Constant.K_GROUP_ID);
         vm.searchContent.setValue(getIntent().getStringExtra(Constant.K_ID));
+        logcat("K_ID="+vm.searchContent.getValue());
 
         Obs.inst().addObserver(this);
         waitDialog = new WaitDialog(this);
@@ -222,7 +223,7 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
             if (null == vm.userInfo.getValue()) return;
             String remark = "";
             try {
-                remark = vm.userInfo.getValue().get(0).getFriendInfo().getRemark();
+                remark = vm.userInfo.getValue().get(0).getRemark();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -320,14 +321,14 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
                 view.userId.setText(userInfo.getUserID());
                 view.avatar.load(userInfo.getFaceURL());
                 view.bottomMenu.setVisibility(oneself() ? View.GONE : View.VISIBLE);
-                view.gender.setText(userInfo.getGender() == 1 ? io.crim.android.ouicore.R.string.male
+                /*view.gender.setText(userInfo.getGender() == 1 ? io.crim.android.ouicore.R.string.male
                     : io.crim.android.ouicore.R.string.girl);
                 long birth = userInfo.getBirth();
                 if (birth != 0) {
                     view.birthday.setText(TimeUtil.getTime(birth,
                         TimeUtil.yearMonthDayFormat));
                 }
-                view.phoneTv.setText(userInfo.getPhoneNumber());
+                view.phoneTv.setText(userInfo.getPhoneNumber());*/
                 view.tvRemark.setText(remark);
             }
         });
@@ -386,13 +387,17 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
 
     private ActivityResultLauncher<Intent> resultLauncher =
         registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
+            logcat("registerForActivityResult searchContent="+vm.searchContent.getValue());
             if (result.getResultCode() != Activity.RESULT_OK) return;
             String resultStr = result.getData().getStringExtra(Constant.K_RESULT);
 
             waitDialog.show();
-            CRIMClient.getInstance().friendshipManager.setFriendRemark(new OnBase<String>() {
+            ArrayList<String> ids = new ArrayList<>();
+            ids.add(vm.searchContent.getValue());
+            CRIMClient.getInstance().friendshipManager.updateFriendsReq(new OnBase<String>() {
                 @Override
                 public void onError(int code, String error) {
+                    logcat("registerForActivityResult onError="+error);
                     waitDialog.dismiss();
                     toast(error + code);
                 }
@@ -403,7 +408,7 @@ public class PersonDetailActivity extends BaseActivity<SearchVM, ActivityPersonD
                     vm.userInfo.getValue().get(0).setRemark(resultStr);
                     Obs.newMessage(Constant.Event.USER_INFO_UPDATE);
                 }
-            }, vm.searchContent.getValue(), resultStr);
+            }, ids, resultStr);
         });
 
     @Override

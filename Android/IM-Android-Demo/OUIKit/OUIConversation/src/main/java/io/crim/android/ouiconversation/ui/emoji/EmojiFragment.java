@@ -6,8 +6,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -62,7 +60,8 @@ public class EmojiFragment extends BaseFragment<ChatVM> {
                 } else {
                     faceIndex = "" + index;
                 }
-                String emojijName = "ic_face_" + faceIndex;
+//                String emojijName = "ic_face_" + faceIndex;
+                String emojijName = EmojiUtil.emojiFacesList.get(position);
                 Bitmap bitmap = EmojiUtil.getEmojiBitmap(emojijName);
                 if (bitmap != null) {
                     holder.v.emojiIv.setImageBitmap(bitmap);
@@ -79,7 +78,8 @@ public class EmojiFragment extends BaseFragment<ChatVM> {
             }
         };
         v.customEmoji.setAdapter(adapter);
-        adapter.setItems(new ArrayList<>(EmojiUtil.emojiFaces.keySet()));
+//        adapter.setItems(new ArrayList<>(EmojiUtil.emojiFaces.keySet()));
+        adapter.setItems(EmojiUtil.emojiFacesList);
     }
 
     public static class EmojieHolder extends RecyclerView.ViewHolder {

@@ -57,7 +57,6 @@ public class SocialityVM extends BaseViewModel {
 
 
     public void getAllFriend() {
-//        Log.d("eeeeee","get all friend===");
         exUserInfo.getValue().clear();
         letters.getValue().clear();
         CRIMClient.getInstance().friendshipManager.getFriendList(new OnBase<List<UserInfo>>() {
@@ -74,17 +73,17 @@ public class SocialityVM extends BaseViewModel {
                 //不在24个字母中的开头
                 List<ExUserInfo> otInfos = new ArrayList<>();
                 for (UserInfo datum : data) {
-//                    Log.d("eeeeeee","getallfriend success==="+datum.getNickname());
                     ExUserInfo exUserInfo = new ExUserInfo();
                     exUserInfo.userInfo = datum;
                     String letter = "";
                     try {
                         letter = String.valueOf(Pinyin.toPinyin(exUserInfo.userInfo
-                            .getFriendInfo().getNickname().charAt(0)).charAt(0));
+                            .getNickname().charAt(0)).charAt(0));
                         letter=letter.toUpperCase(Locale.ROOT);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
                     if (TextUtils.isEmpty(letter) || !Common.isAlpha(letter)) {
                         exUserInfo.sortLetter = "#";
                         otInfos.add(exUserInfo);
@@ -97,8 +96,9 @@ public class SocialityVM extends BaseViewModel {
                     if (!letters.getValue().contains(userInfo.sortLetter))
                         letters.getValue().add(userInfo.sortLetter);
                 }
-                if (!otInfos.isEmpty())
+                if (!otInfos.isEmpty()){
                     letters.getValue().add("#");
+                }
 
                 Collections.sort(letters.getValue(), new LettersPinyinComparator());
                 letters.setValue(letters.getValue());

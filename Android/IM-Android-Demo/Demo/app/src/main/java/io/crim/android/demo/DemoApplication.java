@@ -8,6 +8,8 @@ import android.util.Log;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.amap.api.location.AMapLocationClient;
 import com.igexin.sdk.PushManager;
+import com.rtc.sdk.RTCSDK;
+import com.rtc.sdk.model.SdkInitDat;
 import com.tencent.bugly.crashreport.CrashReport;
 import com.vanniktech.emoji.EmojiManager;
 import com.vanniktech.emoji.google.GoogleEmojiProvider;
@@ -57,7 +59,7 @@ public class DemoApplication extends BaseApp {
         //net init
         initNet();
         //im 初始化
-        initIM();
+        IM.setContext(this);
         //音频播放
         SPlayer.init(this);
         SPlayer.instance().setCacheDirPath(Constant.AUDIO_DIR);
@@ -65,6 +67,7 @@ public class DemoApplication extends BaseApp {
         EmojiManager.install(new GoogleEmojiProvider());
         AMapLocationClient.updatePrivacyShow(this,true,true);
         AMapLocationClient.updatePrivacyAgree(this,true);
+        initRTCSDK();
     }
 
     private void initBugly() {
@@ -109,6 +112,12 @@ public class DemoApplication extends BaseApp {
         Easy.installVM(UserLogic.class);
     }
 
+    private void initRTCSDK(){
+        // SDK初始化数据对象
+        SdkInitDat initDat = new SdkInitDat();
+        // 初始化SDK
+        RTCSDK.getInstance().init(getApplicationContext(), initDat);
+    }
 
     private void initPush() {
         PushManager.getInstance().initialize(this);
@@ -117,8 +126,6 @@ public class DemoApplication extends BaseApp {
     }
 
     private void initNet() {
-        Constant.getProtocol();
-        Constant.getSdkServer();
         Constant.getBusinessServer();
         N.init(new HttpConfig().setBaseUrl(Constant.getAppAuthUrl())
             .addInterceptor(chain -> {
@@ -133,8 +140,8 @@ public class DemoApplication extends BaseApp {
             }));
     }
 
-    private void initIM() {
-        IM.initSdk(this);
+    public void initSdk(String url) {
+        IM.initSdk(url);
         listenerIMOffline();
         CallingService callingService =
             (CallingService) ARouter.getInstance().build(Routes.Service.CALLING).navigation();
@@ -166,6 +173,11 @@ public class DemoApplication extends BaseApp {
             @Override
             public void onUserTokenExpired() {
                 offline();
+            }
+
+            @Override
+            public void onUserTokenInvalid(String s) {
+
             }
 
             private void offline() {

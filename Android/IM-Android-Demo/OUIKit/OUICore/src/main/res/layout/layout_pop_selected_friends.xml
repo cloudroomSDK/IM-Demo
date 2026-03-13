@@ -18,12 +18,13 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="15dp"
             android:layout_weight="1"
-            android:text="已选择"
-            android:textColor="@color/txt_black"
+            android:text="@string/selected_tips2"
+            android:textColor="@color/base_color"
             android:textSize="@dimen/main_body" />
 
         <TextView
             android:id="@+id/sure"
+            android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:padding="15dp"
@@ -33,7 +34,7 @@
 
     </LinearLayout>
 
-    <include layout="@layout/view_dividing_line" />
+<!--    <include layout="@layout/view_dividing_line" />-->
 
     <androidx.recyclerview.widget.RecyclerView
         android:layout_width="match_parent"

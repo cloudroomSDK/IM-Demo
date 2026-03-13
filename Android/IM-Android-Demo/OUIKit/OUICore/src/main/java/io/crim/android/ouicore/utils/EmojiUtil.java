@@ -10,6 +10,7 @@ import android.text.style.ImageSpan;
 import android.widget.TextView;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 
 public class EmojiUtil {
 
@@ -21,7 +22,7 @@ public class EmojiUtil {
 
     public static Bitmap getEmojiBitmap(String emojiName) {
         Bitmap bitmap = null;
-        String facePath = "emoji/" + emojiName + ".png";
+        String facePath = "emoji/" + emojiName + ".gif";
         try {
             bitmap = BitmapFactory.decodeStream(mContext.getAssets().open(facePath));
         } catch (Exception e) {
@@ -32,7 +33,7 @@ public class EmojiUtil {
 
     public static void showSpanTextview(TextView view, String content) {
         SpannableStringBuilder msp = new SpannableStringBuilder(content);
-        setEmojiSapn(msp, content);
+//        setEmojiSapn(msp, content);
         view.setText(msp);
         view.setMovementMethod(LinkMovementMethod.getInstance());
     }
@@ -56,6 +57,48 @@ public class EmojiUtil {
         }
     }
 
+    public static List<String> emojiFacesList = List.of(
+        "1F31B",
+        "1F494",
+        "1F604",
+        "1F60D",
+        "1F62D",
+        "1F644",
+        "1F929",
+        "1F97A",
+        "1F44B",
+        "1F496",
+        "1F606",
+        "1F60E",
+        "1F62F",
+        "1F910",
+        "1F970",
+        "1f61c",
+        "1F44D",
+        "1F4A4",
+        "1F608",
+        "1F621",
+        "1F631",
+        "1F914",
+        "1F971",
+        "2639",
+        "1F44E",
+        "1F601",
+        "1F609",
+        "1F624",
+        "1F633",
+        "1F91D",
+        "1F973",
+        "263A",
+        "1F44F",
+        "1F602",
+        "1F60C",
+        "1F629",
+        "1F634",
+        "1F923",
+        "1F974",
+        "270C"
+    );
     public static LinkedHashMap<String, String> emojiFaces = new LinkedHashMap<String, String>() {
         {
             put("[天使]", "ic_face_01");

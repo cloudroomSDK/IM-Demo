@@ -13,9 +13,11 @@ import com.alibaba.android.arouter.facade.annotation.Route;
 import com.alibaba.android.arouter.launcher.ARouter;
 import com.igexin.sdk.PushManager;
 import com.yanzhenjie.permission.AndPermission;
+import com.yanzhenjie.permission.runtime.Permission;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.fragment.app.FragmentTransaction;
+import io.crim.android.demo.DemoApplication;
 import io.crim.android.demo.R;
 import io.crim.android.demo.databinding.ActivityMainBinding;
 import io.crim.android.demo.ui.login.LoginActivity;
@@ -61,14 +63,14 @@ public class MainActivity extends BaseActivity<MainVM, ActivityMainBinding> impl
 
     private void init() {
         runOnUiThread(() -> {
-//            hasShoot = AndPermission.hasPermissions(MainActivity.this, Permission.CAMERA
-//                , Permission.RECORD_AUDIO, PermissionUtil.POST_NOTIFICATIONS);
-            hasShoot = AndPermission.hasPermissions(MainActivity.this, PermissionUtil.POST_NOTIFICATIONS);
+            hasShoot = AndPermission.hasPermissions(MainActivity.this, Permission.CAMERA
+                , Permission.RECORD_AUDIO,Permission.READ_PHONE_STATE, PermissionUtil.POST_NOTIFICATIONS);
+//            hasShoot = AndPermission.hasPermissions(MainActivity.this, PermissionUtil.POST_NOTIFICATIONS);
             Common.permission(MainActivity.this, () -> {
                 hasShoot = true;
                 //shang ceng ying yong quan xian
 //                AndPermission.with(this).overlay().start();
-            }, hasShoot,/* Permission.CAMERA, Permission.RECORD_AUDIO, */PermissionUtil.POST_NOTIFICATIONS);
+            }, hasShoot, Permission.CAMERA, Permission.RECORD_AUDIO,Permission.READ_PHONE_STATE, PermissionUtil.POST_NOTIFICATIONS);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                 NotificationManager notificationManager = getSystemService(NotificationManager.class);
@@ -167,6 +169,11 @@ public class MainActivity extends BaseActivity<MainVM, ActivityMainBinding> impl
             switchFragment(conversationListFragment);
         }
         Common.UIHandler.postDelayed(this::bindDot, 500);
+    }
+
+    @Override
+    public void initSdk(String url) {
+        ((DemoApplication)getApplication()).initSdk(url);
     }
 
 

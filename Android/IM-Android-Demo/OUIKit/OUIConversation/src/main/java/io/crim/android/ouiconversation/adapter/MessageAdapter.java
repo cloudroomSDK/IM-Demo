@@ -38,7 +38,6 @@ public class MessageAdapter extends RecyclerView.Adapter {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Message message = messages.get(position);
-
         if (getItemViewType(position) != Constant.LOADING) {
             MessageViewHolder.MsgViewHolder msgViewHolder = (MessageViewHolder.MsgViewHolder) holder;
             msgViewHolder.setMessageAdapter(this);
