@@ -140,7 +140,7 @@ public class IMController: NSObject {
         var config = CRIMInitConfig()
         config.sdkServer = sdkAPIAdrr
         config.objectStorage = sdkOS
-        config.logLevel = 1
+        config.logLevel = 0
         config.skipVerifyCert = skipVerifyCert
         
         manager.initSDK(with: config)

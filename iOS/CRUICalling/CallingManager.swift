@@ -496,6 +496,25 @@ extension CallingManager {
     }
 }
 
+extension CRIMInvitationInfo {
+    convenience init(from dictionary: [String: Any]) {
+        self.init()
+        
+        self.invitationMsgId = dictionary["invitationMsgId"] as? String ?? ""
+        self.inviterUserID = dictionary["inviterUserID"] as? String ?? ""
+        self.groupID = dictionary["groupID"] as? String
+        self.inviteeUserIDList = dictionary["inviteeUserIDList"] as? [String] ?? []
+        self.roomID = dictionary["roomID"] as? String ?? ""
+        self.mediaType = dictionary["mediaType"] as? String ?? ""
+        self.initiateTime = dictionary["initiateTime"] as? Int64 ?? 0
+        self.timeout = dictionary["timeout"] as? Int ?? 30
+        self.acceptTime = dictionary["acceptTime"] as? Int64 ?? 0
+        self.duration = dictionary["duration"] as? Int ?? 0
+        self.opType = dictionary["opType"] as? Int
+        self.opDesc = dictionary["opDesc"] as? String
+    }
+}
+
 // MARK: Listener
 
 extension CallingManager: CRIMAdvancedMsgListener {
@@ -504,11 +523,8 @@ extension CallingManager: CRIMAdvancedMsgListener {
         if message.contentType == .custom, let dataStr = message.customElem?.data {
             var data = try! JSONSerialization.jsonObject(with: dataStr.data(using: .utf8)!) as! [String: Any]
             let customType = data["customType"] as! Int
-            let userID = data["userID"] as? String
             let callType = CRIM_CustomMsgType(rawValue: customType) ?? .unknow
-            
-            data = data["data"] as! [String: Any]
-            
+            let customData = data["data"] as! [String: Any]
             
             if (callType == .newinvitation ||
                 callType == .inviteeaccept ||
@@ -516,12 +532,7 @@ extension CallingManager: CRIMAdvancedMsgListener {
                 callType == .invitationcancel ||
                 callType == .invitationhangup) {
                 
-                let invitation = CRIMInvitationInfo()
-                invitation.inviterUserID = data["inviterUserID"] as! String
-                invitation.inviteeUserIDList = data["inviteeUserIDList"] as? [String] ?? [String]()
-                invitation.roomID = data["roomID"] as? String ?? ""
-                invitation.timeout = data["timeout"] as? Int ?? 0
-                invitation.mediaType = data["mediaType"] as! String
+                let invitation = CRIMInvitationInfo(from: customData)
 
                 switch (callType) {
                 case .newinvitation:
