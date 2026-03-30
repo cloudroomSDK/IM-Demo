@@ -16,18 +16,25 @@ import {
 import { MemberSelect } from "~/components";
 
 import { getSvrTime } from "~/api/login";
+import { ElMessage } from "element-plus";
 
 export const IMSDK = getSDK({
   assetsUrl: {
     sdkWasm: SDK_WASM_URL,
     sqlWasm: SQL_WASM_URL,
   },
+  debug: false
 });
 
 IMSDK.on(CbEvents.OnSyncServerStart, (e) => {
   const userStore = useUserStore();
   userStore.syncProgress = 0;
   userStore.isSyncing = true;
+});
+IMSDK.on(CbEvents.OnSyncServerFailed, (e) => {
+  const userStore = useUserStore();
+  ElMessage.error("消息同步失败");
+  userStore.isSyncing = false;
 });
 IMSDK.on(CbEvents.OnSyncServerProgress, ({ data }) => {
   const userStore = useUserStore();

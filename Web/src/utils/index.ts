@@ -1,12 +1,19 @@
 // @ts-ignore
 import CryptoJS from "crypto-js";
 import { ElMessage, ElMessageBox } from "element-plus";
-import { errorDesc, GroupItem, MessageItem, WsResponse } from "./imsdk";
+import {
+  errorDesc,
+  GroupItem,
+  MessageItem,
+  MessageType,
+  WsResponse,
+} from "./imsdk";
 import { UserInfo } from "~/components";
 import { h } from "vue";
 import { useUserStore } from "~/stores";
 import useClipboard from "vue-clipboard3";
 import { getFaceList, unicodeToChar } from "./face";
+import { CustomMsg, CustomMsgType, InvitationInfo } from "./callModule";
 export function base64Parms(str: string) {
   return CryptoJS.enc.Base64.parse(str).toString(CryptoJS.enc.Utf8);
 }
@@ -106,22 +113,22 @@ export const getVideoSnshotFile = (file: File): Promise<File> => {
 };
 
 export const toLastMessage = (messageItem: MessageItem) => {
-  if (messageItem.contentType === 101) {
+  if (messageItem.contentType === MessageType.TextMessage) {
     return messageItem.textElem!.content;
   }
-  if (messageItem.contentType === 102) {
+  if (messageItem.contentType === MessageType.PictureMessage) {
     return "[图片]";
   }
-  if (messageItem.contentType === 103) {
+  if (messageItem.contentType === MessageType.VoiceMessage) {
     return "[语音]";
   }
-  if (messageItem.contentType === 104) {
+  if (messageItem.contentType === MessageType.VideoMessage) {
     return "[视频]";
   }
-  if (messageItem.contentType === 105) {
+  if (messageItem.contentType === MessageType.FileMessage) {
     return "[文件]";
   }
-  if (messageItem.contentType === 106) {
+  if (messageItem.contentType === MessageType.AtTextMessage) {
     let text = messageItem.atTextElem!.text;
     messageItem.atTextElem!.atUsersInfo?.forEach((item) => {
       const reg = new RegExp(`@${item.atUserID}`, "g");
@@ -129,38 +136,47 @@ export const toLastMessage = (messageItem: MessageItem) => {
     });
     return text;
   }
-  if (messageItem.contentType === 107) {
+  if (messageItem.contentType === MessageType.MergeMessage) {
     return "[聊天记录]";
   }
-  if (messageItem.contentType === 108) {
+  if (messageItem.contentType === MessageType.CardMessage) {
     return "[名片]";
   }
-  if (messageItem.contentType === 109) {
+  if (messageItem.contentType === MessageType.LocationMessage) {
     return "[位置]";
   }
-  if (messageItem.contentType === 110) {
-    return "[音视频]";
+  if (
+    messageItem.contentType === MessageType.CustomMessage &&
+    messageItem.customElem
+  ) {
+    const { data } = messageItem.customElem;
+    const customMsg = JSON.parse(data) as CustomMsg;
+    if (CustomMsgType[customMsg.customType]) {
+      const inviteeElem = customMsg.data as InvitationInfo;
+      return inviteeElem.mediaType === "audio" ? "[语音通话]" : "[视频通话]";
+    }
+    return "[不支持的自定义消息]";
   }
-  if (messageItem.contentType === 114) {
+  if (messageItem.contentType === MessageType.QuoteMessage) {
     return messageItem.quoteElem!.text;
   }
-  if (messageItem.contentType === 1201) {
+  if (messageItem.contentType === MessageType.FriendAdded) {
     return "你们已经成为好友，可以开始聊天了";
   }
 
-  if (messageItem.contentType === 1501) {
+  if (messageItem.contentType === MessageType.GroupCreated) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 创建了群聊`;
   }
-  if (messageItem.contentType === 1504) {
+  if (messageItem.contentType === MessageType.MemberQuit) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.quitUser.nickname} 退出了群聊`;
   }
-  if (messageItem.contentType === 1507) {
+  if (messageItem.contentType === MessageType.GroupOwnerTransferred) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 将群主转让给了 ${data.newGroupOwner.nickname}`;
   }
-  if (messageItem.contentType === 1508) {
+  if (messageItem.contentType === MessageType.MemberKicked) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
 
     const nameListStr = data.kickedUserList
@@ -170,7 +186,7 @@ export const toLastMessage = (messageItem: MessageItem) => {
 
     return `${nameListStr} 被 ${data.opUser.nickname} 踢出群聊`;
   }
-  if (messageItem.contentType === 1509) {
+  if (messageItem.contentType === MessageType.MemberInvited) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     const nameListStr = data.invitedUserList
       // @ts-ignore
@@ -178,41 +194,41 @@ export const toLastMessage = (messageItem: MessageItem) => {
       .join("、");
     return `${data.inviterUser.nickname} 邀请 ${nameListStr} 加入群聊`;
   }
-  if (messageItem.contentType === 1510) {
+  if (messageItem.contentType === MessageType.MemberEnter) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.entrantUser.nickname} 加入了群聊`;
   }
-  if (messageItem.contentType === 1511) {
+  if (messageItem.contentType === MessageType.GroupDismissed) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 解散了群聊`;
   }
-  if (messageItem.contentType === 1512) {
+  if (messageItem.contentType === MessageType.GroupMemberMuted) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.mutedUser.nickname} 被 ${data.opUser.nickname} 禁言${~~(
       data.mutedSeconds / 60
     )}分${data.mutedSeconds % 60}秒`;
   }
-  if (messageItem.contentType === 1513) {
+  if (messageItem.contentType === MessageType.GroupMemberCancelMuted) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 取消了 ${data.mutedUser.nickname} 的禁言`;
   }
-  if (messageItem.contentType === 1514) {
+  if (messageItem.contentType === MessageType.GroupMuted) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 开启了群禁言`;
   }
-  if (messageItem.contentType === 1515) {
+  if (messageItem.contentType === MessageType.GroupCancelMuted) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 关闭了群禁言`;
   }
-  if (messageItem.contentType === 1520) {
+  if (messageItem.contentType === MessageType.GroupNameUpdated) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `${data.opUser.nickname} 修改了群名称`;
   }
-  if (messageItem.contentType === 1701) {
+  if (messageItem.contentType === MessageType.BurnMessageChange) {
     const data = JSON.parse(messageItem.notificationElem!.detail);
     return `已${data.isPrivate ? "开启" : "关闭"}阅后即焚`;
   }
-  if (messageItem.contentType === 2101) {
+  if (messageItem.contentType === MessageType.RevokeMessage) {
     const userStore = useUserStore();
     const data = JSON.parse(messageItem.notificationElem!.detail);
     let nickname = "";
@@ -228,7 +244,7 @@ export const toLastMessage = (messageItem: MessageItem) => {
     return `${nickname}撤回了一条消息`;
   }
 
-  return "[未知消息]" + messageItem.contentType;
+  return `[暂不支持的消息类型: ${messageItem.contentType}]`;
 };
 
 export const openUserInfo = (
@@ -307,12 +323,12 @@ export const chatTextSplit = (function () {
     let atUsersInfo: any[] = [];
     if (typeof message === "string") {
       text = message;
-    } else if (message.contentType === 101) {
+    } else if (message.contentType === MessageType.TextMessage) {
       text = message.textElem!.content;
-    } else if (message.contentType === 106) {
+    } else if (message.contentType === MessageType.AtTextMessage) {
       text = message.atTextElem!.text;
       atUsersInfo = message.atTextElem!.atUsersInfo || [];
-    } else if (message.contentType === 114) {
+    } else if (message.contentType === MessageType.QuoteMessage) {
       text = message.quoteElem!.text;
     }
     const atIds = atUsersInfo.map((item) => `@${item.atUserID}`);

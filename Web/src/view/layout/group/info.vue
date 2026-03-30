@@ -75,7 +75,7 @@
 <script lang="ts" setup>
 import { onBeforeUnmount, provide, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { GroupItem, IMSDK, CbEvents } from "~/utils/imsdk";
+import { GroupItem, IMSDK, CbEvents, SessionType } from "~/utils/imsdk";
 import {
   CanEditAvatar,
   GroupMemberList,
@@ -96,7 +96,7 @@ const groupIDChange = async function (groupID: string) {
   try {
     const { data: conversationItem } = await IMSDK.getOneConversation({
       sourceID: groupID,
-      sessionType: 3,
+      sessionType: SessionType.Group,
     });
 
     await conversationStore.changeConversation(conversationItem);

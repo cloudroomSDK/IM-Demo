@@ -40,16 +40,24 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 import { Search, Empty, MessageItem } from ".";
-import { IMSDK, MessageItem as MessageItemType } from "~/utils/imsdk";
+import {
+  IMSDK,
+  MessageItem as MessageItemType,
+  MessageType,
+} from "~/utils/imsdk";
 import { useConversationStore } from "~/stores";
 import { watch } from "vue";
 const searchText = ref("");
 const typeObj = {
-  文本: [101, 106, 114],
-  图片: [102],
-  视频: [104],
-  文件: [105],
-  位置: [109],
+  文本: [
+    MessageType.TextMessage,
+    MessageType.AtTextMessage,
+    MessageType.QuoteMessage,
+  ],
+  图片: [MessageType.PictureMessage],
+  视频: [MessageType.VideoMessage],
+  文件: [MessageType.FileMessage],
+  位置: [MessageType.LocationMessage],
 };
 
 const activeName = ref("文本");

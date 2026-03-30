@@ -8,9 +8,19 @@
   >
     <template
       v-if="
-        [101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 114].includes(
-          source.contentType,
-        )
+        [
+          MessageType.TextMessage,
+          MessageType.PictureMessage,
+          MessageType.VoiceMessage,
+          MessageType.VideoMessage,
+          MessageType.FileMessage,
+          MessageType.AtTextMessage,
+          MessageType.MergeMessage,
+          MessageType.CardMessage,
+          MessageType.LocationMessage,
+          MessageType.CustomMessage,
+          MessageType.QuoteMessage,
+        ].includes(source.contentType)
       "
     >
       <p v-if="source.isShowTime" class="time">
@@ -74,14 +84,20 @@
                 </template>
                 <!-- 普通文本消息 -->
                 <div
-                  v-if="source.contentType === 101 && source?.textElem?.content"
+                  v-if="
+                    source.contentType === MessageType.TextMessage &&
+                    source?.textElem?.content
+                  "
                 >
                   <span class="text">
                     <TextMsgRender :arr="chatTextSplit(source)" />
                   </span>
                 </div>
                 <!-- 图片 -->
-                <div v-else-if="source.contentType === 102" class="pic">
+                <div
+                  v-else-if="source.contentType === MessageType.PictureMessage"
+                  class="pic"
+                >
                   <el-image
                     class="img"
                     :src="source.pictureElem!.sourcePicture.url"
@@ -90,7 +106,7 @@
                     loading="lazy"
                   />
                 </div>
-                <p v-else-if="source.contentType === 103">
+                <p v-else-if="source.contentType === MessageType.VoiceMessage">
                   <MessageAudioView
                     :data="source.soundElem"
                     :reverse="
@@ -100,7 +116,7 @@
                 </p>
                 <!-- 视频 -->
                 <div
-                  v-else-if="source.contentType === 104"
+                  v-else-if="source.contentType === MessageType.VideoMessage"
                   class="pic"
                   @click="openMediaPreview(source, '')"
                 >
@@ -113,7 +129,7 @@
                 </div>
                 <!-- 文件 -->
                 <div
-                  v-else-if="source.contentType === 105"
+                  v-else-if="source.contentType === MessageType.FileMessage"
                   class="file"
                   @click="downloadUrl(source.fileElem!.sourceUrl)"
                 >
@@ -130,14 +146,16 @@
                   </div>
                 </div>
                 <!-- @消息 -->
-                <div v-else-if="source.contentType === 106">
+                <div
+                  v-else-if="source.contentType === MessageType.AtTextMessage"
+                >
                   <span class="text">
                     <TextMsgRender :arr="chatTextSplit(source)" />
                   </span>
                 </div>
                 <!-- 聊天记录 -->
                 <div
-                  v-else-if="source.contentType === 107"
+                  v-else-if="source.contentType === MessageType.MergeMessage"
                   class="chatRecords"
                   @click="openChatRecord"
                 >
@@ -150,7 +168,9 @@
                   </div>
                 </div>
                 <!-- 引用消息 -->
-                <div v-else-if="source.contentType === 114">
+                <div
+                  v-else-if="source.contentType === MessageType.QuoteMessage"
+                >
                   <div>
                     <span class="text">
                       <TextMsgRender :arr="chatTextSplit(source)" />
@@ -164,7 +184,7 @@
                 </div>
                 <!-- 名片 -->
                 <div
-                  v-else-if="source.contentType === 108"
+                  v-else-if="source.contentType === MessageType.CardMessage"
                   class="businessCard"
                   @click="openUserInfo(source.cardElem!.userID)"
                 >
@@ -178,7 +198,7 @@
                 </div>
                 <!-- 定位 -->
                 <div
-                  v-else-if="source.contentType === 109"
+                  v-else-if="source.contentType === MessageType.LocationMessage"
                   class="map"
                   @click="openMap"
                 >
@@ -192,8 +212,10 @@
                   />
                 </div>
                 <!-- 普通文本消息 -->
-                <div v-else-if="source.contentType === 110">
-                  <span class="text">[暂不支持音视频通话]</span>
+                <div
+                  v-else-if="source.contentType === MessageType.CustomMessage"
+                >
+                  <span class="text">{{ data as CustomMsg }}</span>
                 </div>
                 <p v-else>[暂不支持该内容]</p>
               </component>
@@ -218,10 +240,16 @@
         </template>
       </div>
     </template>
-    <div class="centerToast" v-else-if="source.contentType === 1201">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.FriendAdded"
+    >
       <span class="toast">你们已经成为好友，可以开始聊天了</span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1501">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupCreated"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -230,7 +258,10 @@
         创建了群聊
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1504">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.MemberQuit"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.quitUser.nickname"
@@ -239,7 +270,10 @@
         退出了群聊
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1507">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupOwnerTransferred"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -252,7 +286,10 @@
         />
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1508">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.MemberKicked"
+    >
       <span class="toast">
         <Nickname :infos="data.kickedUserList" />
         被
@@ -263,7 +300,10 @@
         踢出群聊</span
       >
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1509">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.MemberInvited"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.inviterUser.nickname"
@@ -274,7 +314,10 @@
         加入群聊
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1510">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.MemberEnter"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.entrantUser.nickname"
@@ -283,7 +326,10 @@
         加入了群聊
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1511">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupDismissed"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -292,7 +338,10 @@
         解散了群聊
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1512">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupMemberMuted"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.mutedUser.nickname"
@@ -306,7 +355,10 @@
         禁言<!-- {{ ~~(data.mutedSeconds / 60) }}分{{ data.mutedSeconds % 60 }}秒 -->
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1513">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupMemberCancelMuted"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -320,7 +372,10 @@
         的禁言
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1514">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupMuted"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -329,7 +384,10 @@
         开启了群禁言
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1515">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupCancelMuted"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -338,7 +396,10 @@
         关闭了群禁言
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1520">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.GroupNameUpdated"
+    >
       <span class="toast">
         <Nickname
           :nickname="data.opUser.nickname"
@@ -347,12 +408,18 @@
         修改了群名称
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 1701">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.BurnMessageChange"
+    >
       <span class="toast">
         已{{ data.isPrivate ? "开启" : "关闭" }}阅后即焚
       </span>
     </div>
-    <div class="centerToast" v-else-if="source.contentType === 2101">
+    <div
+      class="centerToast"
+      v-else-if="source.contentType === MessageType.RevokeMessage"
+    >
       <span v-if="isQuote">引用消息已撤回</span>
       <span v-else class="toast">
         <Nickname
@@ -368,7 +435,9 @@
         撤回了一条消息
       </span>
     </div>
-    <div v-else>{{ source }}</div>
+    <div class="centerToast" v-else>
+      <span class="toast">[暂不支持的消息类型: {{ source.contentType }}]</span>
+    </div>
   </div>
 </template>
 <script setup lang="ts">
@@ -387,6 +456,7 @@ import {
   getPrivateExpirationMsgTime,
   IMSDK,
   MessageItem as MessageItemType,
+  MessageType,
   WsResponse,
 } from "~/utils/imsdk";
 import {
@@ -400,7 +470,7 @@ import {
   MessageRecord,
   MapContainer,
 } from "~/components";
-import { formatChatString } from "~/utils/dayjs";
+import { formatChatString, formatDuration } from "~/utils/dayjs";
 import {
   downloadUrl,
   openUserInfo,
@@ -415,6 +485,12 @@ import {
   useUserStore,
 } from "~/stores";
 import { getSvrTime } from "~/api/login";
+import {
+  CustomMsg,
+  CustomMsgType,
+  InvitationOpType,
+  InvitationInfo,
+} from "~/utils/callModule";
 
 const appStore = useAppStore();
 const userStore = useUserStore();
@@ -442,6 +518,7 @@ const rightMenuList = ref<any[]>([]); //右键菜单列表
 // 阅后即焚处理
 const attachedHandle = async () => {
   const msg = props.source;
+  if (msg.contentType === MessageType.CustomMessage) return;
   if (!msg.attachedInfoElem?.isPrivateChat) return;
   if (msg.isRead || msg.sendID !== userStore.getMyUserID) {
     const time = await getPrivateExpirationMsgTime(
@@ -477,19 +554,31 @@ onBeforeUnmount(() => {
 });
 
 const data = computed(() => {
-  if (props.isQuote && props.source.contentType === 2101) {
+  if (props.isQuote && props.source.contentType === MessageType.RevokeMessage) {
     return null;
   }
   if (
     [
-      1501, 1504, 1507, 1508, 1509, 1510, 1511, 1512, 1513, 1514, 1515, 1520,
-      1701, 2101,
+      MessageType.GroupCreated,
+      MessageType.MemberQuit,
+      MessageType.GroupOwnerTransferred,
+      MessageType.MemberKicked,
+      MessageType.MemberInvited,
+      MessageType.MemberEnter,
+      MessageType.GroupDismissed,
+      MessageType.GroupMemberMuted,
+      MessageType.GroupMemberCancelMuted,
+      MessageType.GroupMuted,
+      MessageType.GroupCancelMuted,
+      MessageType.GroupNameUpdated,
+      MessageType.BurnMessageChange,
+      MessageType.RevokeMessage,
     ].includes(props.source.contentType)
   ) {
     return JSON.parse(props.source.notificationElem!.detail);
   }
 
-  if (props.source.contentType === 109) {
+  if (props.source.contentType === MessageType.LocationMessage) {
     try {
       const locationElem = props.source.locationElem!;
       const description = JSON.parse(locationElem.description);
@@ -502,6 +591,41 @@ const data = computed(() => {
     } catch (error) {
       return {};
     }
+  }
+
+  // 自定义消息
+  if (props.source.contentType === MessageType.CustomMessage) {
+    const customMsg = props.source.customElem!.data as unknown as CustomMsg;
+    const data = customMsg.data as InvitationInfo;
+
+    if (
+      CustomMsgType.InviteeReject === customMsg.customType ||
+      CustomMsgType.InvitationCancel === customMsg.customType
+    ) {
+      if (props.source.sendID === userStore.getMyUserID) {
+        const map = {
+          [InvitationOpType.Cancel]: "呼叫已取消",
+          [InvitationOpType.Timeout]: "呼叫未应答",
+          [InvitationOpType.Busy]: "呼入未接听(忙)",
+          [InvitationOpType.Reject]: "呼入已拒绝",
+          [InvitationOpType.BUTT]: "",
+        };
+        return map[data.opType] || "";
+      } else {
+        const map = {
+          [InvitationOpType.Cancel]: "呼入已取消",
+          [InvitationOpType.Timeout]: "呼入未应答",
+          [InvitationOpType.Busy]: "呼叫未接听(忙)",
+          [InvitationOpType.Reject]: "呼叫被拒绝",
+          [InvitationOpType.BUTT]: "",
+        };
+        return map[data.opType] || "";
+      }
+    } else if (CustomMsgType.InvitationHangUp === customMsg.customType) {
+      return `通话时长 ${formatDuration(data.duration)}`;
+    }
+
+    return props.source.customElem!.data;
   }
   return null;
 });
@@ -548,7 +672,7 @@ const visibleChange = async (isOpen: boolean, ref: Ref) => {
   if (!isOpen) return;
   rightMenuList.value = [];
   // 语音消息不让转发
-  if (props.source.contentType !== 103) {
+  if (props.source.contentType !== MessageType.VoiceMessage) {
     rightMenuList.value.push({
       text: "转发",
       fn: async () => {
@@ -725,10 +849,6 @@ const reSendMsg = async () => {
           white-space: pre;
           text-wrap: wrap;
           text-align: left;
-          .at {
-            color: var(--el-color-primary);
-            margin: 0 4px;
-          }
 
           &.quote {
             line-height: 20px;

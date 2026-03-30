@@ -30,3 +30,4 @@ export { default as MessageSearch } from "./MessageSearch.vue";
 export { default as MessageRecord } from "./MessageRecord.vue";
 export { default as MessageItem } from "./MessageItem.vue";
 export { default as MapContainer } from "./MapContainer.vue";
+export { default as Call } from "./Call.vue";

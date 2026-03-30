@@ -67,7 +67,10 @@ const playIcon = () => {
     iconType.value++;
   }, 300);
 };
-const player = new AudioPlayer(props.data!.sourceUrl);
+const player = new AudioPlayer(props.data!.sourceUrl, {
+  priority: 1,
+  canPause: true,
+});
 player.onEnded = () => {
   playerStatus.value = PlayerStatus.STOPPED;
   checked.value = false;

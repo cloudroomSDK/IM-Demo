@@ -1,7 +1,12 @@
 <template>
   <div class="wrap">
-    <img v-if="chat.contentType === 102" :src="src" />
-    <video v-if="chat.contentType === 104" :src="src" autoplay controls />
+    <img v-if="chat.contentType === MessageType.PictureMessage" :src="src" />
+    <video
+      v-if="chat.contentType === MessageType.VideoMessage"
+      :src="src"
+      autoplay
+      controls
+    />
     <el-button class="button" type="primary" @click="downloadUrl(src)">
       下载
     </el-button>
@@ -9,21 +14,20 @@
 </template>
 <script lang="ts" setup>
 import { onBeforeMount, ref } from "vue";
-import { MessageItem } from "~/utils/imsdk";
+import { MessageItem, MessageType } from "~/utils/imsdk";
 import { downloadUrl } from "~/utils";
 
-const props =
-  defineProps<{
-    chat: MessageItem;
-  }>();
+const props = defineProps<{
+  chat: MessageItem;
+}>();
 
 const src = ref("");
 onBeforeMount(() => {
   switch (props.chat.contentType) {
-    case 102:
+    case MessageType.PictureMessage:
       src.value = props.chat.pictureElem!.sourcePicture.url;
       break;
-    case 104:
+    case MessageType.VideoMessage:
       src.value = props.chat.videoElem!.videoUrl;
       break;
 

@@ -1,9 +1,17 @@
 import { defineStore } from "pinia";
 import { ConversationStore, MsgItem } from "./type";
-import { ConversationItem, IMSDK, MessageItem, ViewType } from "~/utils/imsdk";
+import {
+  ConversationItem,
+  IMSDK,
+  MessageItem,
+  MessageType,
+  SessionType,
+  ViewType,
+} from "~/utils/imsdk";
 import router from "~/router";
 import { useGroupStore } from ".";
 import { getSvrTime } from "~/api/login";
+import { CustomMsg, CustomMsgType } from "~/utils/callModule";
 
 export const useConversationStore = defineStore("conversation", {
   state: (): ConversationStore => ({
@@ -53,7 +61,7 @@ export const useConversationStore = defineStore("conversation", {
         } else {
           const { data } = await IMSDK.getOneConversation({
             sourceID: userID,
-            sessionType: 1,
+            sessionType: SessionType.Single,
           });
           conversationItem = data;
         }
@@ -180,35 +188,89 @@ export const useConversationStore = defineStore("conversation", {
       });
       let msgList = data.messageList;
 
-      msgList = msgList.map((item, idx) => ({
-        ...item,
-        isShowTime:
-          idx === 0 ||
-          item.sendTime - data.messageList[idx - 1]?.sendTime > 120000,
-      })) as MsgItem[];
+      msgList = msgList
+        .filter((item) => {
+          if (item.contentType === MessageType.CustomMessage) {
+            try {
+              //@ts-ignore
+              const data = JSON.parse(item.customElem.data) as CustomMsg;
+              if (
+                [
+                  CustomMsgType.NewInvitation,
+                  CustomMsgType.InviteeAccept,
+                ].includes(data.customType)
+              ) {
+                IMSDK.deleteMsg({
+                  conversationID: this.currentConversation!.conversationID,
+                  clientMsgID: item.clientMsgID,
+                });
+                return false;
+              }
+
+              //@ts-ignore
+              item.customElem.data = data;
+            } catch (error) {
+              return false;
+            }
+          }
+          return true;
+        })
+        .map((item, idx) => ({
+          ...item,
+          isShowTime:
+            idx === 0 ||
+            item.sendTime - data.messageList[idx - 1]?.sendTime > 120000,
+        })) as MsgItem[];
       this.msgList = msgList.concat(this.msgList);
 
       return data.messageList.length;
     },
     pushMsg(msg: MessageItem[]) {
-      const newMsg = msg.map((item, idx) => {
-        let isShowTime = false;
-        if (idx === 0) {
-          if (this.msgList.length) {
-            isShowTime =
-              item.sendTime - this.msgList[this.msgList.length - 1].sendTime >
-              120000;
-          } else {
-            isShowTime = true;
+      const newMsg = msg
+        .filter((item) => {
+          if (item.contentType === MessageType.CustomMessage) {
+            try {
+              //@ts-ignore
+              const data = JSON.parse(item.customElem.data) as CustomMsg;
+              if (
+                [
+                  CustomMsgType.NewInvitation,
+                  CustomMsgType.InviteeAccept,
+                ].includes(data.customType)
+              ) {
+                IMSDK.deleteMsg({
+                  conversationID: this.currentConversation!.conversationID,
+                  clientMsgID: item.clientMsgID,
+                });
+                return false;
+              }
+
+              //@ts-ignore
+              item.customElem.data = data;
+            } catch (error) {
+              return false;
+            }
           }
-        } else {
-          isShowTime = item.sendTime - msg[idx - 1]?.sendTime > 120000;
-        }
-        return {
-          ...item,
-          isShowTime,
-        };
-      });
+          return true;
+        })
+        .map((item, idx) => {
+          let isShowTime = false;
+          if (idx === 0) {
+            if (this.msgList.length) {
+              isShowTime =
+                item.sendTime - this.msgList[this.msgList.length - 1].sendTime >
+                120000;
+            } else {
+              isShowTime = true;
+            }
+          } else {
+            isShowTime = item.sendTime - msg[idx - 1]?.sendTime > 120000;
+          }
+          return {
+            ...item,
+            isShowTime,
+          };
+        });
       this.msgList = this.msgList.concat(newMsg);
     },
     updateMsgList(msgList: MessageItem[]) {

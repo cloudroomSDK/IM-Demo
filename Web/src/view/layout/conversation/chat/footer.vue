@@ -94,7 +94,11 @@
                   }}:
                   <TextMsgRender
                     v-if="
-                      [106, 101, 114].indexOf(
+                      [
+                        MessageType.TextMessage,
+                        MessageType.AtTextMessage,
+                        MessageType.QuoteMessage,
+                      ].indexOf(
                         conversationStore.currentQuoteMessage.contentType,
                       ) > -1
                     "
@@ -142,6 +146,7 @@ import {
   WsResponse,
   FriendUserItem,
   GroupStatus,
+  MessageType,
 } from "~/utils/imsdk";
 import {
   useAppStore,

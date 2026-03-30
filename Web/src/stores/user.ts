@@ -5,6 +5,7 @@ import router from "~/router";
 import { API } from "~/api/typings";
 import loginApi from "~/api/login";
 import { base64Parms, md5 } from "~/utils";
+import { RTCCtrl } from "~/utils/rtcsdk";
 
 export const useUserStore = defineStore("user", {
   state: (): UserStore => ({
@@ -59,6 +60,8 @@ export const useUserStore = defineStore("user", {
         token: loginInfo.token,
         tryParse: true,
       });
+
+      RTCCtrl.setParams({ ...loginInfo, userID: this.businessData!.userID });
 
       const { data: selfUserInfo } = await IMSDK.getSelfUserInfo();
       IMSDK.on(CbEvents.OnSelfInfoUpdated, this.updateUserInfo);

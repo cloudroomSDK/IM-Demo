@@ -33,8 +33,10 @@ import {
   CbEvents,
   IMSDK,
   MessageItem as MessageItemType,
+  MessageType,
   ReceiptInfo,
   RevokedInfo,
+  SessionType,
 } from "~/utils/imsdk";
 import { useConversationStore, useUserStore } from "~/stores";
 import { Empty } from "~/components";
@@ -130,17 +132,17 @@ const onItemRendered = (id: string, size: number) => {
 
 const inCurrentConversation = (messageItem: MessageItemType): Boolean => {
   switch (messageItem.sessionType) {
-    case 1:
+    case SessionType.Single:
       return (
         messageItem.sendID === conversationStore.currentConversation?.userID ||
         (messageItem.sendID === userStore.userInfo?.userID &&
           messageItem.recvID === conversationStore.currentConversation?.userID)
       );
-    case 3:
+    case SessionType.Group:
       return (
         messageItem.groupID === conversationStore.currentConversation?.groupID
       );
-    case 4:
+    case SessionType.Notification:
       return (
         messageItem.sendID === conversationStore.currentConversation?.userID
       );
@@ -154,7 +156,9 @@ const onRecvNewMsgs = async ({ data }: { data: MessageItemType[] }) => {
   const validMsgList = data.filter(
     (messageItem) =>
       inCurrentConversation(messageItem) &&
-      ![113, 2101].includes(messageItem.contentType),
+      ![MessageType.RevokeMessage, MessageType.TypingMessage].includes(
+        messageItem.contentType,
+      ),
   );
 
   if (validMsgList.length) {
@@ -184,7 +188,7 @@ const onRecvNewMsgs = async ({ data }: { data: MessageItemType[] }) => {
 const onNewRecvMsgRevoked = ({ data }: { data: RevokedInfo }) => {
   const messageItem = {
     clientMsgID: data.clientMsgID,
-    contentType: 2101,
+    contentType: MessageType.RevokeMessage,
     notificationElem: {
       detail: JSON.stringify(data),
     },

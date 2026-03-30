@@ -13,6 +13,13 @@ export default defineConfig({
   base: process.env.NODE_ENV === "development" ? "/" : "/web/im/",
   build: {
     outDir: "im_wasm",
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "rtc-sdk-web": ["rtc-sdk-web"],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
@@ -30,7 +37,10 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["crim-wasm-sdk"],
+    exclude: [
+      "crim-wasm-sdk",
+      ...(process.env.NODE_ENV === "development" ? [] : ["rtc-sdk-web"]),
+    ],
   },
   plugins: [
     vue(),

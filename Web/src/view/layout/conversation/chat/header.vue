@@ -18,6 +18,18 @@
       </div>
     </div>
     <div class="ctrl">
+      <template v-if="conversationStore.currentConversation?.userID">
+        <el-tooltip content="视频通话" placement="bottom" effect="light">
+          <div class="icon" @click="openCall('video')">
+            <img :src="callVideo" alt="" />
+          </div>
+        </el-tooltip>
+        <el-tooltip content="语音通话" placement="bottom" effect="light">
+          <div class="icon" @click="openCall('audio')">
+            <img :src="callAudio" alt="" />
+          </div>
+        </el-tooltip>
+      </template>
       <el-tooltip content="聊天记录" placement="bottom" effect="light">
         <div class="icon" @click="openMsgSearch">
           <img :src="searchImg" alt="" />
@@ -85,13 +97,16 @@
 <script lang="ts" setup>
 import { Avatar, MessageSearch } from "~/components";
 import { useConversationStore, useGroupStore } from "~/stores";
+import callAudio from "~/assets/icons/chat_call_audio.svg";
+import callVideo from "~/assets/icons/chat_call_video.svg";
 import searchImg from "~/assets/icons/search.svg";
 import inviteImg from "~/assets/icons/invite.svg";
 import settingImg from "~/assets/icons/setting.svg";
 import { SettingInChat, GroupMemberDetailList } from "~/components";
 import { h, provide, ref, watch } from "vue";
 import { GroupStatus, inviteFriendInGroup } from "~/utils/imsdk";
-import { ElMessageBox } from "element-plus";
+import { ElMessageBox, ElMessage } from "element-plus";
+import { InvitationView } from "~/utils/InvitationView";
 
 const conversationStore = useConversationStore();
 const groupStore = useGroupStore();
@@ -106,6 +121,19 @@ watch(settingDrawer, () => {
 provide("showGroupMoreMemberList", () => {
   showGroupMemberDetailList.value = true;
 });
+
+const openCall = async (type: "audio" | "video") => {
+  try {
+    const invitationView = await InvitationView.create(
+      type,
+      conversationStore.currentConversation!,
+    );
+    await invitationView.open();
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "发起通话失败";
+    ElMessage.error(message);
+  }
+};
 
 const openMsgSearch = () => {
   ElMessageBox({
@@ -180,6 +208,9 @@ const openMsgSearch = () => {
       border-radius: 4px;
       margin-right: 2px;
       cursor: pointer;
+      width: 20px;
+      height: 20px;
+      box-sizing: content-box;
       &:hover {
         background-color: #e9e9e9;
       }

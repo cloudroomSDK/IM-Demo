@@ -19,7 +19,15 @@
           <TextMsgRender :arr="chatTextSplit(conversationItem.draftText)" />
         </span>
         <span v-else-if="latestMsg" class="desc">
-          <template v-if="[106, 101, 114].indexOf(latestMsg.contentType) > -1">
+          <template
+            v-if="
+              [
+                MessageType.TextMessage,
+                MessageType.AtTextMessage,
+                MessageType.QuoteMessage,
+              ].indexOf(latestMsg.contentType) > -1
+            "
+          >
             <TextMsgRender :arr="chatTextSplit(latestMsg)" />
           </template>
           <template v-else>{{ toLastMessage(latestMsg) }}</template>
@@ -43,7 +51,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ConversationItem, MessageItem } from "~/utils/imsdk";
+import { ConversationItem, MessageItem, MessageType } from "~/utils/imsdk";
 import Avatar from "./Avatar.vue";
 import { toLastMessage } from "~/utils/index";
 import { formatListString } from "~/utils/dayjs";

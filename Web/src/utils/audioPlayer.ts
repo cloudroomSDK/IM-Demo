@@ -5,6 +5,8 @@ const taskID: Record<string, AudioPlayer> = {};
 class AuidoControl {
   private player?: HTMLAudioElement;
   private curPlayID?: string;
+  private curPriority = 0;
+  private curCanPause: boolean = false;
   constructor() {}
   create() {
     if (!this.player) {
@@ -14,13 +16,30 @@ class AuidoControl {
       document.body.appendChild(this.player);
     }
   }
-  play(id: string, url: string, lastPauseTime = 0) {
+  play(
+    id: string,
+    url: string,
+    priority: number,
+    curCanPause: boolean,
+    loop: boolean,
+    lastPauseTime = 0,
+  ) {
     if (this.curPlayID) {
-      taskID[this.curPlayID]._onPause(~~this.player!.currentTime);
+      if (priority < this.curPriority) return;
+
+      if (this.curCanPause) {
+        taskID[this.curPlayID]._onPause(~~this.player!.currentTime);
+      } else {
+        taskID[this.curPlayID].destroy();
+      }
     }
+
     this.create();
     this.curPlayID = id;
+    this.player!.loop = loop;
     this.player!.src = url;
+    this.curPriority = priority;
+    this.curCanPause = curCanPause;
     if (lastPauseTime) {
       this.player!.currentTime = lastPauseTime;
     }
@@ -39,6 +58,7 @@ class AuidoControl {
     } catch (error) {
       console.error(error);
     }
+    this.curPriority = 0;
   }
   stop(id?: string) {
     if (!id || this.curPlayID === id) {
@@ -60,17 +80,36 @@ export class AudioPlayer {
   private id: string;
   private url: string;
   private lastPauseTime?: number;
+  private canPause: boolean; //被打断时允许暂停，可继续播放
+  private priority: number; //声音优先级，低级别会被高级别打断并取代
+  private loop: boolean; //声音优先级，低级别会被高级别打断并取代
   onEnded?: () => void;
   onPause?: () => void;
   onError?: () => void;
   state: "play" | "pause" | "stop" = "stop";
-  constructor(url: string) {
+  constructor(
+    url: string,
+    {
+      priority = 0,
+      canPause = false, //声音可以被暂停
+      loop = false, //循环播放
+    }: { priority?: number; canPause?: boolean; loop?: boolean } = {},
+  ) {
     this.id = uuidv4();
     taskID[this.id] = this;
     this.url = url;
+    this.priority = priority;
+    this.canPause = canPause;
+    this.loop = loop;
   }
   play() {
-    auidoControl.play(this.id, this.url);
+    auidoControl.play(
+      this.id,
+      this.url,
+      this.priority,
+      this.canPause,
+      this.loop,
+    );
     this.state = "play";
   }
   pause() {
@@ -79,7 +118,14 @@ export class AudioPlayer {
     auidoControl.stop(this.id);
   }
   continue() {
-    auidoControl.play(this.id, this.url, this.lastPauseTime);
+    auidoControl.play(
+      this.id,
+      this.url,
+      this.priority,
+      this.canPause,
+      this.loop,
+      this.lastPauseTime,
+    );
     this.state = "play";
   }
   destroy() {

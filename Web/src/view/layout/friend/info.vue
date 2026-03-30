@@ -47,7 +47,7 @@
 <script setup lang="ts">
 import { Avatar, MemberSetting, InputItem } from "~/components";
 import { useRoute, useRouter } from "vue-router";
-import { FriendUserItem, IMSDK, CbEvents } from "~/utils/imsdk";
+import { FriendUserItem, IMSDK, CbEvents, SessionType } from "~/utils/imsdk";
 import { openUserInfo } from "~/utils";
 import { onBeforeUnmount, ref, watch } from "vue";
 import { ElMessageBox } from "element-plus";
@@ -69,7 +69,7 @@ const userChange = async function (userID: string) {
 
   const { data: conversationItem } = await IMSDK.getOneConversation({
     sourceID: userID,
-    sessionType: 1,
+    sessionType: SessionType.Single,
   });
   conversationStore.changeConversation(conversationItem);
 };

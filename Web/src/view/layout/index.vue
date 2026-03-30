@@ -48,9 +48,23 @@ import {
   useFriendStore,
   useGroupStore,
 } from "~/stores";
-import { CbEvents, IMSDK } from "~/utils/imsdk";
+import {
+  CbEvents,
+  ConversationItem,
+  IMSDK,
+  MessageItem,
+  MessageReceiveOptType,
+  MessageType,
+  SessionType,
+} from "~/utils/imsdk";
 import Aside from "./aside.vue";
+import { InvitationOpType, setInvitationCallback } from "~/utils/callModule";
+import { InvitationView } from "~/utils/InvitationView";
+import { AudioPlayer } from "~/utils/audioPlayer";
+import MessageRing from "~/assets/audio/message_ring.wav";
+import { Notify } from "~/utils/systemNotify";
 
+Notify.init();
 const appStore = useAppStore();
 const userStore = useUserStore();
 const friendStore = useFriendStore();
@@ -96,10 +110,108 @@ const onUserTokenExpired = () => {
   userStore.exit();
 };
 
+// 收到消息，播放响铃和系统通知
+const onRecvNewMsgs = async ({ data }: { data: MessageItem[] }) => {
+  const msg = data.find((item, idx) => {
+    if (item.sendID === userStore.getMyUserID) {
+      return false;
+    }
+    const conversationItem = conversationStore.conversationList?.find(
+      (conversation) => {
+        if (item.sessionType === SessionType.Group && conversation.groupID) {
+          return item.groupID === conversation.groupID;
+        }
+        if (
+          item.sessionType === SessionType.Single &&
+          conversation.userID &&
+          conversation.userID !== userStore.getMyUserID
+        ) {
+          return item.sendID === conversation.userID;
+        }
+      },
+    );
+
+    if (
+      conversationItem &&
+      conversationItem.recvMsgOpt !== MessageReceiveOptType.Normal
+    ) {
+      return false;
+    }
+
+    if (
+      item.contentType >= MessageType.TextMessage &&
+      item.contentType < MessageType.CustomMessage
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  if (msg) {
+    const player = new AudioPlayer(MessageRing);
+    player.play();
+    
+    Notify.pushMsg(msg);
+  }
+};
+
+setInvitationCallback({
+  async notifyCallIn(invitationInfo) {
+    try {
+      const invitationView = await InvitationView.create2(invitationInfo);
+      invitationView.open();
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "收到呼叫邀请";
+      console.error(error);
+      ElMessage.error(message);
+    }
+  },
+  notifyCallAccepted(invitationInfo) {
+    console.log("notifyCallAccepted", invitationInfo);
+    InvitationView.startMeeting(invitationInfo);
+  },
+  notifyCallRejected(invitationInfo) {
+    console.log("notifyCallRejected", invitationInfo);
+    InvitationView.update(invitationInfo);
+  },
+  notifyCallCancel(invitationInfo) {
+    console.log("notifyCallCancel", invitationInfo);
+    InvitationView.close(invitationInfo.invitationMsgId, false);
+  },
+  notifyCallHangUp(invitationInfo) {
+    console.log("notifyCallHangUp", invitationInfo);
+    InvitationView.close(invitationInfo.invitationMsgId, false);
+  },
+  notifyInsertMessage(msg) {
+    if (conversationStore.currentConversation?.userID === msg.recvID) {
+      conversationStore.pushMsg([msg]);
+    }
+  },
+  notifyCallAcceptedByOtherDevice(invitationInfo) {
+    console.log("notifyCallAcceptedByOtherDevice", invitationInfo);
+    InvitationView.update(
+      Object.assign(invitationInfo, {
+        invitationStatus: "ended",
+        opType: InvitationOpType.AcceptedByOther,
+      }),
+    );
+  },
+  notifyCallRejectedByOtherDevice(invitationInfo) {
+    console.log("notifyCallRejectedByOtherDevice", invitationInfo);
+    InvitationView.update(
+      Object.assign(invitationInfo, {
+        invitationStatus: "ended",
+        opType: InvitationOpType.RejectedByOther,
+      }),
+    );
+  },
+});
+
 IMSDK.on(CbEvents.OnConnecting, onConnecting);
 IMSDK.on(CbEvents.OnConnectSuccess, onConnectSuccess);
 IMSDK.on(CbEvents.OnKickedOffline, onKickedOffline);
 IMSDK.on(CbEvents.OnUserTokenExpired, onUserTokenExpired);
+IMSDK.on(CbEvents.OnRecvNewMsgs, onRecvNewMsgs);
 IMSDK.on(CbEvents.OnNewConversation, conversationStore.onNewConversation);
 IMSDK.on(
   CbEvents.OnConversationChanged,
@@ -132,6 +244,7 @@ onUnmounted(() => {
   IMSDK.off(CbEvents.OnConnectSuccess, onConnectSuccess);
   IMSDK.off(CbEvents.OnKickedOffline, onKickedOffline);
   IMSDK.off(CbEvents.OnUserTokenExpired, onUserTokenExpired);
+  IMSDK.off(CbEvents.OnRecvNewMsgs, onRecvNewMsgs);
   IMSDK.off(CbEvents.OnNewConversation, conversationStore.onNewConversation);
   IMSDK.off(
     CbEvents.OnConversationChanged,
